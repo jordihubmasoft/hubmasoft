@@ -80,7 +80,7 @@ const HeaderTop = () => {
                   className="w-full max-w-[120px] xs:max-w-[100px]"
                   src={
                     layoutMode === 'lightMode'
-                      ? '/hexadash-nextjs/img/logo_dark.svg'
+                      ? '/hexadash-nextjs/img/logo_white.svg'
                       : '/hexadash-nextjs/img/logo_white.svg'
                   }
                   alt="Logo"
