@@ -1,0 +1,29 @@
+{
+    "name": "crm-project",
+    "version": "0.1.0",
+    "private": true,
+    "scripts": {
+        "dev": "next dev",
+        "build": "next build",
+        "start": "next start",
+        "lint": "next lint"
+    },
+    "dependencies": {
+        "@emotion/react": "^11.13.0",
+        "@emotion/styled": "^11.13.0",
+        "@mui/icons-material": "^5.16.4",
+        "@mui/material": "^5.16.4",
+        "next": "latest",
+        "react": "latest",
+        "react-dom": "latest"
+    },
+    "devDependencies": {
+        "@types/node": "^14.0.0",
+        "@types/react": "^17.0.0",
+        "@types/react-dom": "^17.0.0",
+        "autoprefixer": "^10.0.0",
+        "postcss": "^8.0.0",
+        "tailwindcss": "^2.0.0",
+        "typescript": "^4.0.0"
+    }
+}
