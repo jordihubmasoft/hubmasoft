@@ -13,8 +13,13 @@ import LockOutlinedIcon from '@mui/icons-material/LockOutlined'
 import Typography from '@mui/material/Typography'
 import Container from '@mui/material/Container'
 import { createTheme, ThemeProvider } from '@mui/material/styles'
-import Image from 'next/image'  // Importar Image de next
-import Logo from '../public/img/Logo.svg'  // Importar la imagen del logo
+import Image from 'next/image'
+import Logo from '../public/img/Logo.svg'
+import Dialog from '@mui/material/Dialog'
+import DialogActions from '@mui/material/DialogActions'
+import DialogContent from '@mui/material/DialogContent'
+import DialogContentText from '@mui/material/DialogContentText'
+import DialogTitle from '@mui/material/DialogTitle'
 
 function Copyright(props: any) {
   return (
@@ -35,10 +40,18 @@ const Login = () => {
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [openRegister, setOpenRegister] = useState(false)
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    // TODO logica de autenticacion
+    // TODO: lógica de autenticación
+    router.push('/dashboard')
+  }
+
+  const handleRegisterSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    // TODO: lógica de registro
+    setOpenRegister(false)
     router.push('/dashboard')
   }
 
@@ -52,13 +65,13 @@ const Login = () => {
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            backgroundColor: '#f5f4f2', // Fondo gris claro
-            padding: 4, // Padding alrededor del contenido
-            borderRadius: 2, // Bordes redondeados
-            boxShadow: '0 3px 10px rgba(0,0,0,0.1)', // Sombra para un efecto de profundidad
+            backgroundColor: '#f5f4f2',
+            padding: 4,
+            borderRadius: 2,
+            boxShadow: '0 3px 10px rgba(0,0,0,0.1)',
           }}
         >
-          <Box sx={{ mb: -4, mt: -4 }}>
+          <Box sx={{ mb: 4 }}>
             <Image src={Logo} alt="Logo" width={200} height={200} />
           </Box>
           <Avatar sx={{ m: 1, bgcolor: '#1A1A40' }}>
@@ -111,7 +124,7 @@ const Login = () => {
                 </Link>
               </Grid>
               <Grid item>
-                <Link href="#" variant="body2">
+                <Link href="#" variant="body2" onClick={() => setOpenRegister(true)}>
                   {"Regístrate"}
                 </Link>
               </Grid>
@@ -120,6 +133,74 @@ const Login = () => {
         </Box>
         <Copyright sx={{ mt: 8, mb: 4 }} />
       </Container>
+
+      {/* Dialog para Registro */}
+      <Dialog open={openRegister} onClose={() => setOpenRegister(false)}>
+        <DialogTitle>Regístrate</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Completa los siguientes campos para crear tu cuenta.
+          </DialogContentText>
+          <Box component="form" onSubmit={handleRegisterSubmit} noValidate sx={{ mt: 1 }}>
+            <TextField
+              margin="normal"
+              required
+              fullWidth
+              id="nombre"
+              label="Nombre"
+              name="nombre"
+              autoComplete="name"
+              autoFocus
+            />
+            <TextField
+              margin="normal"
+              required
+              fullWidth
+              id="email"
+              label="Correo Electrónico"
+              name="email"
+              autoComplete="email"
+            />
+            <TextField
+              margin="normal"
+              required
+              fullWidth
+              name="password"
+              label="Contraseña"
+              type="password"
+              id="password"
+              autoComplete="new-password"
+            />
+            <TextField
+              margin="normal"
+              required
+              fullWidth
+              name="confirmPassword"
+              label="Confirmar Contraseña"
+              type="password"
+              id="confirmPassword"
+              autoComplete="new-password"
+            />
+            <TextField
+              margin="normal"
+              fullWidth
+              name="phone"
+              label="Número de Teléfono (opcional)"
+              type="tel"
+              id="phone"
+              autoComplete="tel"
+            />
+            <DialogActions>
+              <Button onClick={() => setOpenRegister(false)} color="primary">
+                Cancelar
+              </Button>
+              <Button type="submit" color="primary">
+                Registrarse
+              </Button>
+            </DialogActions>
+          </Box>
+        </DialogContent>
+      </Dialog>
     </ThemeProvider>
   )
 }

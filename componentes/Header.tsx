@@ -11,8 +11,8 @@ const Header = () => {
   return (
     <AppBar position="static" sx={{ bgcolor: '#1A1A40' }}>
       <Toolbar>
-        <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', height: '90px' }}> {/* Fija la altura del contenedor */}
-          <Image src={Logo} alt="Logo" width={200} height={200} style={{ maxHeight: '100%' }} /> {/* Ajusta el tamaño del logo */}
+        <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', height: '70px' }}> {/* Fija la altura del contenedor */}
+          <Image src={Logo} alt="Logo" width={150} height={150} style={{ maxHeight: '100%' }} /> {/* Ajusta el tamaño del logo */}
         </Box>
         <Box>
           <IconButton
