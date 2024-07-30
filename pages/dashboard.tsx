@@ -50,16 +50,16 @@ const Dashboard = () => {
         data: [500, 400, 600, 700, 800, 900, 1000],
         borderColor: '#2666CF',
         backgroundColor: 'rgba(0, 0, 0, 0)',
-        tension: 0.4, // Agrega suavidad a las líneas
-        fill: false, // Evita que el área debajo de la línea esté rellena
+        tension: 0.4,
+        fill: false,
       },
       {
         label: 'Compras',
         data: [300, 200, 400, 500, 600, 700, 800],
         borderColor: '#1A1A40',
         backgroundColor: 'rgba(0, 0, 0, 0)',
-        tension: 0.4, // Agrega suavidad a las líneas
-        fill: false, // Evita que el área debajo de la línea esté rellena
+        tension: 0.4,
+        fill: false,
       },
     ],
   }
@@ -87,6 +87,10 @@ const Dashboard = () => {
         title: {
           display: true,
           text: 'Meses',
+          color: '#666666',
+          font: {
+            size: 14,
+          }
         },
       },
       y: {
@@ -94,13 +98,17 @@ const Dashboard = () => {
         title: {
           display: true,
           text: 'Cantidad',
+          color: '#666666',
+          font: {
+            size: 14,
+          }
         },
       },
     },
   }
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', bgcolor: '#EFFFFD' }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', bgcolor: '#F3F4F6' }}>
       <Header />
       <Box sx={{ display: 'flex', flexGrow: 1 }}>
         <Box
@@ -110,7 +118,13 @@ const Dashboard = () => {
             flexShrink: 0,
             bgcolor: '#1A1A40',
             borderRight: 1,
-            borderColor: 'divider'
+            borderColor: 'divider',
+            borderRadius: 2,
+            overflow: 'hidden',
+            boxShadow: '0 3px 10px rgba(0, 0, 0, 0.1)',
+            zIndex: 1201,
+            position: 'fixed',
+            height: '100%',
           }}
         >
           <Sidebar />
@@ -119,58 +133,59 @@ const Dashboard = () => {
           component="main"
           sx={{
             flexGrow: 1,
-            bgcolor: '#EFFFFD',
+            bgcolor: '#F3F4F6',
             p: 3,
+            marginLeft: '240px', 
           }}
         >
           <Container maxWidth="lg">
-            <Typography variant="h4" gutterBottom sx={{ color: '#000000' }}>
+            <Typography variant="h3" gutterBottom sx={{ color: '#1A1A40', fontWeight: '600', fontFamily: 'Roboto, sans-serif' }}>
               Dashboard
             </Typography>
             <Box sx={{ display: 'flex', mb: 3 }}>
-              <Button variant="contained" sx={{ bgcolor: '#ffffff', color: '#000000' }}>
+              <Button variant="contained" sx={{ bgcolor: 'linear-gradient(90deg, #2666CF, #6A82FB)', color: '#ffffff', fontWeight: '500', textTransform: 'none', borderRadius: 2, boxShadow: '0 3px 6px rgba(0,0,0,0.1)', padding: '10px 20px' }}>
                 Nuevas solicitudes de contactos
               </Button>
-              <Button variant="outlined" sx={{ ml: 2, borderColor: '#1A1A40', color: '#1A1A40' }}>
+              <Button variant="outlined" sx={{ ml: 2, borderColor: '#2666CF', color: '#2666CF', fontWeight: '500', textTransform: 'none', borderRadius: 2, padding: '10px 20px', boxShadow: '0 3px 6px rgba(0,0,0,0.1)' }}>
                 Nuevos documentos recibidos
               </Button>
             </Box>
             <Grid container spacing={3}>
               <Grid item xs={12} md={3}>
-                <Paper sx={{ p: 2, display: 'flex', flexDirection: 'column', bgcolor: '#ffffff' }}>
-                  <Typography variant="h6" gutterBottom sx={{ color: '#000000' }}>
+                <Paper sx={{ p: 3, display: 'flex', flexDirection: 'column', bgcolor: '#ffffff', borderRadius: 2, boxShadow: '0 3px 10px rgba(0, 0, 0, 0.1)', transition: '0.3s', '&:hover': { transform: 'translateY(-5px)', boxShadow: '0 6px 15px rgba(0, 0, 0, 0.15)' } }}>
+                  <Typography variant="h6" gutterBottom sx={{ color: '#1A1A40', fontWeight: '500', fontFamily: 'Roboto, sans-serif' }}>
                     Ventas totales
                   </Typography>
-                  <Typography variant="h4" sx={{ color: '#000000' }}>$1,000</Typography>
+                  <Typography variant="h4" sx={{ color: '#1A1A40', fontWeight: '700', fontFamily: 'Roboto, sans-serif' }}>$1,000</Typography>
                 </Paper>
               </Grid>
               <Grid item xs={12} md={3}>
-                <Paper sx={{ p: 2, display: 'flex', flexDirection: 'column', bgcolor: '#ffffff' }}>
-                  <Typography variant="h6" gutterBottom sx={{ color: '#000000' }}>
+                <Paper sx={{ p: 3, display: 'flex', flexDirection: 'column', bgcolor: '#ffffff', borderRadius: 2, boxShadow: '0 3px 10px rgba(0, 0, 0, 0.1)', transition: '0.3s', '&:hover': { transform: 'translateY(-5px)', boxShadow: '0 6px 15px rgba(0, 0, 0, 0.15)' } }}>
+                  <Typography variant="h6" gutterBottom sx={{ color: '#1A1A40', fontWeight: '500', fontFamily: 'Roboto, sans-serif' }}>
                     Compras totales
                   </Typography>
-                  <Typography variant="h4" sx={{ color: '#000000' }}>$2,000</Typography>
+                  <Typography variant="h4" sx={{ color: '#1A1A40', fontWeight: '700', fontFamily: 'Roboto, sans-serif' }}>$2,000</Typography>
                 </Paper>
               </Grid>
               <Grid item xs={12} md={3}>
-                <Paper sx={{ p: 2, display: 'flex', flexDirection: 'column', bgcolor: '#ffffff' }}>
-                  <Typography variant="h6" gutterBottom sx={{ color: '#000000' }}>
+                <Paper sx={{ p: 3, display: 'flex', flexDirection: 'column', bgcolor: '#ffffff', borderRadius: 2, boxShadow: '0 3px 10px rgba(0, 0, 0, 0.1)', transition: '0.3s', '&:hover': { transform: 'translateY(-5px)', boxShadow: '0 6px 15px rgba(0, 0, 0, 0.15)' } }}>
+                  <Typography variant="h6" gutterBottom sx={{ color: '#1A1A40', fontWeight: '500', fontFamily: 'Roboto, sans-serif' }}>
                     Beneficio este mes
                   </Typography>
-                  <Typography variant="h4" sx={{ color: '#000000' }}>$1,000</Typography>
+                  <Typography variant="h4" sx={{ color: '#1A1A40', fontWeight: '700', fontFamily: 'Roboto, sans-serif' }}>$1,000</Typography>
                 </Paper>
               </Grid>
               <Grid item xs={12} md={3}>
-                <Paper sx={{ p: 2, display: 'flex', flexDirection: 'column', bgcolor: '#ffffff' }}>
-                  <Typography variant="h6" gutterBottom sx={{ color: '#000000' }}>
+                <Paper sx={{ p: 3, display: 'flex', flexDirection: 'column', bgcolor: '#ffffff', borderRadius: 2, boxShadow: '0 3px 10px rgba(0, 0, 0, 0.1)', transition: '0.3s', '&:hover': { transform: 'translateY(-5px)', boxShadow: '0 6px 15px rgba(0, 0, 0, 0.15)' } }}>
+                  <Typography variant="h6" gutterBottom sx={{ color: '#1A1A40', fontWeight: '500', fontFamily: 'Roboto, sans-serif' }}>
                     Balance
                   </Typography>
-                  <Typography variant="h4" sx={{ color: '#000000' }}>$10,000</Typography>
+                  <Typography variant="h4" sx={{ color: '#1A1A40', fontWeight: '700', fontFamily: 'Roboto, sans-serif' }}>$10,000</Typography>
                 </Paper>
               </Grid>
               <Grid item xs={12}>
-                <Paper sx={{ p: 2, display: 'flex', flexDirection: 'column', bgcolor: '#ffffff' }}>
-                  <Typography variant="h6" gutterBottom sx={{ color: '#000000' }}>
+                <Paper sx={{ p: 3, display: 'flex', flexDirection: 'column', bgcolor: '#ffffff', borderRadius: 2, boxShadow: '0 3px 10px rgba(0, 0, 0, 0.1)' }}>
+                  <Typography variant="h6" gutterBottom sx={{ color: '#1A1A40', fontWeight: '500', fontFamily: 'Roboto, sans-serif' }}>
                     Ventas y compras
                   </Typography>
                   <Box sx={{ height: 400 }}>
@@ -185,14 +200,14 @@ const Dashboard = () => {
 
       {/* Dialog para completar información del usuario */}
       <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
-        <DialogTitle>Completa tu información</DialogTitle>
+        <DialogTitle sx={{ fontWeight: '700', fontFamily: 'Roboto, sans-serif' }}>Completa tu información</DialogTitle>
         <DialogContent>
-          <DialogContentText>
+          <DialogContentText sx={{ fontWeight: '400', fontFamily: 'Roboto, sans-serif' }}>
             Por favor, completa la siguiente información para continuar.
           </DialogContentText>
           <Box component="form" onSubmit={handleFormSubmit} noValidate sx={{ mt: 1 }}>
             <FormControl component="fieldset" sx={{ mb: 2 }}>
-              <FormLabel component="legend">Tipo de Usuario</FormLabel>
+              <FormLabel component="legend" sx={{ fontWeight: '500', fontFamily: 'Roboto, sans-serif' }}>Tipo de Usuario</FormLabel>
               <RadioGroup row value={userType} onChange={handleUserTypeChange}>
                 <FormControlLabel value="autonomo" control={<Radio />} label="Autónomo" />
                 <FormControlLabel value="empresa" control={<Radio />} label="Empresa" />
@@ -237,10 +252,10 @@ const Dashboard = () => {
               </Grid>
             </Grid>
             <DialogActions>
-              <Button onClick={handleClose} sx={{ color: '#1A1A40' }}>
+              <Button onClick={handleClose} sx={{ color: '#1A1A40', fontWeight: '500' }}>
                 Rellenar más tarde
               </Button>
-              <Button type="submit" sx={{ color: '#1A1A40' }}>
+              <Button type="submit" sx={{ color: '#1A1A40', fontWeight: '500' }}>
                 Guardar
               </Button>
             </DialogActions>

@@ -5,14 +5,14 @@ import AccountCircle from '@mui/icons-material/AccountCircle'
 import NotificationsIcon from '@mui/icons-material/Notifications'
 import Box from '@mui/material/Box'
 import Image from 'next/image'
-import Logo from '../public/img/Logo.svg'  // Asegúrate de que la ruta sea correcta
+import Logo from '../public/img/Logo.svg' 
 
 const Header = () => {
   return (
-    <AppBar position="static" sx={{ bgcolor: '#1A1A40' }}>
+    <AppBar position="sticky" sx={{ bgcolor: '#FFFFFF', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
       <Toolbar>
-        <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', height: '70px' }}> {/* Fija la altura del contenedor */}
-          <Image src={Logo} alt="Logo" width={150} height={150} style={{ maxHeight: '100%' }} /> {/* Ajusta el tamaño del logo */}
+        <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', height: '70px' }}> {/*altura del contenedor */}
+          <Image src={Logo} alt="Logo" width={150} height={150} style={{ maxHeight: '100%' }} /> {/* Ajustae el tamaño del logo */}
         </Box>
         <Box>
           <IconButton
@@ -20,7 +20,7 @@ const Header = () => {
             aria-label="show new notifications"
             color="inherit"
           >
-            <NotificationsIcon sx={{ color: '#2666CF' }} />
+            <NotificationsIcon sx={{ color: '#000000' }} />
           </IconButton>
           <IconButton
             size="large"
@@ -29,7 +29,7 @@ const Header = () => {
             aria-haspopup="true"
             color="inherit"
           >
-            <AccountCircle sx={{ color: '#2666CF' }} />
+            <AccountCircle sx={{ color: '#000000' }} />
           </IconButton>
         </Box>
       </Toolbar>

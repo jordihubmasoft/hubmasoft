@@ -20,19 +20,8 @@ import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogContentText from '@mui/material/DialogContentText'
 import DialogTitle from '@mui/material/DialogTitle'
-
-function Copyright(props: any) {
-  return (
-    <Typography variant="body2" color="text.secondary" align="center" {...props}>
-      {'Copyright © '}
-      <Link color="inherit" href="https://your-website.com/">
-        Hubmasoft
-      </Link>{' '}
-      {new Date().getFullYear()}
-      {'.'}
-    </Typography>
-  )
-}
+import axios from 'axios'
+import { Copyright } from '@mui/icons-material'
 
 const theme = createTheme()
 
@@ -40,19 +29,72 @@ const Login = () => {
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [emailError, setEmailError] = useState(false)
+  const [passwordError, setPasswordError] = useState(false)
+  const [errorMessage, setErrorMessage] = useState('')
   const [openRegister, setOpenRegister] = useState(false)
+  const [registerData, setRegisterData] = useState({
+    nombre: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+    phone: ''
+  })
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    // TODO: lógica de autenticación
-    router.push('/dashboard')
+    setEmailError(false)
+    setPasswordError(false)
+    setErrorMessage('')
+    try {
+      console.log('Enviando solicitud de inicio de sesión con', { email, password })
+      const response = await axios.post('https://hubmasoftapi-dpaph6a7h5bja0cr.eastus-01.azurewebsites.net/user/login', {
+        email,
+        password,
+      })
+      console.log('Respuesta recibida:', response)
+      if (response.status === 200) {
+        localStorage.setItem('token', response.data.token)
+        router.push('/dashboard')
+      }
+    } catch (error) {
+      console.error('Error en la solicitud de inicio de sesión:', error)
+      setEmailError(true)
+      setPasswordError(true)
+      setErrorMessage('Error al iniciar sesión: Verifique sus credenciales e intente nuevamente.')
+    }
   }
 
-  const handleRegisterSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleRegisterSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    // TODO: lógica de registro
-    setOpenRegister(false)
-    router.push('/dashboard')
+    if (registerData.password !== registerData.confirmPassword) {
+      alert('Las contraseñas no coinciden')
+      return
+    }
+    try {
+      console.log('Enviando solicitud de registro con', registerData)
+      const response = await axios.post('https://hubmasoftapi-dpaph6a7h5bja0cr.eastus-01.azurewebsites.net/user/register', registerData)
+      console.log('Respuesta recibida:', response)
+      if (response.status === 200) {
+        setOpenRegister(false)
+        router.push('/dashboard')
+      }
+    } catch (error) {
+      console.error('Error en la solicitud de registro:', error)
+      if (error.response) {
+        console.log('Error data:', error.response.data)
+        setErrorMessage('Error al registrar: ' + error.response.data.message)
+      } else {
+        setErrorMessage('Error al registrar: ' + error.message)
+      }
+    }
+  }
+
+  const handleRegisterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setRegisterData({
+      ...registerData,
+      [e.target.name]: e.target.value,
+    })
   }
 
   return (
@@ -61,7 +103,7 @@ const Login = () => {
         <CssBaseline />
         <Box
           sx={{
-            marginTop: 8,
+            marginTop: 4,
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
@@ -71,8 +113,8 @@ const Login = () => {
             boxShadow: '0 3px 10px rgba(0,0,0,0.1)',
           }}
         >
-          <Box sx={{ mb: 4 }}>
-            <Image src={Logo} alt="Logo" width={200} height={200} />
+          <Box sx={{ mb: 2 }}>
+            <Image src={Logo} alt="Logo" width={150} height={150} />
           </Box>
           <Avatar sx={{ m: 1, bgcolor: '#1A1A40' }}>
             <LockOutlinedIcon />
@@ -80,6 +122,11 @@ const Login = () => {
           <Typography component="h1" variant="h5">
             Iniciar Sesión
           </Typography>
+          {errorMessage && (
+            <Typography color="error" variant="body2">
+              {errorMessage}
+            </Typography>
+          )}
           <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
             <TextField
               margin="normal"
@@ -92,6 +139,15 @@ const Login = () => {
               autoFocus
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              error={emailError}
+              helperText={emailError && 'Correo electrónico incorrecto'}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  '&.Mui-focused fieldset': {
+                    borderColor: emailError ? 'red' : 'primary.main',
+                  },
+                },
+              }}
             />
             <TextField
               margin="normal"
@@ -104,6 +160,15 @@ const Login = () => {
               autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              error={passwordError}
+              helperText={passwordError && 'Contraseña incorrecta'}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  '&.Mui-focused fieldset': {
+                    borderColor: passwordError ? 'red' : 'primary.main',
+                  },
+                },
+              }}
             />
             <FormControlLabel
               control={<Checkbox value="remember" color="primary" />}
@@ -131,7 +196,7 @@ const Login = () => {
             </Grid>
           </Box>
         </Box>
-        <Copyright sx={{ mt: 8, mb: 4 }} />
+        <Copyright sx={{ mt: 4, mb: 4 }} />
       </Container>
 
       {/* Dialog para Registro */}
@@ -151,6 +216,8 @@ const Login = () => {
               name="nombre"
               autoComplete="name"
               autoFocus
+              value={registerData.nombre}
+              onChange={handleRegisterChange}
             />
             <TextField
               margin="normal"
@@ -160,6 +227,8 @@ const Login = () => {
               label="Correo Electrónico"
               name="email"
               autoComplete="email"
+              value={registerData.email}
+              onChange={handleRegisterChange}
             />
             <TextField
               margin="normal"
@@ -170,6 +239,8 @@ const Login = () => {
               type="password"
               id="password"
               autoComplete="new-password"
+              value={registerData.password}
+              onChange={handleRegisterChange}
             />
             <TextField
               margin="normal"
@@ -180,6 +251,8 @@ const Login = () => {
               type="password"
               id="confirmPassword"
               autoComplete="new-password"
+              value={registerData.confirmPassword}
+              onChange={handleRegisterChange}
             />
             <TextField
               margin="normal"
@@ -189,6 +262,8 @@ const Login = () => {
               type="tel"
               id="phone"
               autoComplete="tel"
+              value={registerData.phone}
+              onChange={handleRegisterChange}
             />
             <DialogActions>
               <Button onClick={() => setOpenRegister(false)} color="primary">
