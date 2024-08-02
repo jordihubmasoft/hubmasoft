@@ -7,33 +7,33 @@ import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
 import NoteAddIcon from '@mui/icons-material/NoteAdd'
 
-const proyectosData = [
-  // Datos de ejemplo para proyectos
+const projectsData = [
+  // Example data for projects
   {
     id: 1,
-    nombre: 'Proyecto A',
-    columnas: [
+    name: 'Project A',
+    columns: [
       {
-        nombre: 'To Do',
-        tareas: [
-          { nombre: 'Tarea 1', asignado: 'Empleado A', completado: false },
-          { nombre: 'Tarea 2', asignado: 'Empleado B', completado: false },
+        name: 'To Do',
+        tasks: [
+          { name: 'Task 1', assignedTo: 'Employee A', completed: false },
+          { name: 'Task 2', assignedTo: 'Employee B', completed: false },
         ],
       },
       {
-        nombre: 'In Progress',
-        tareas: [
-          { nombre: 'Tarea 3', asignado: 'Empleado C', completado: false },
+        name: 'In Progress',
+        tasks: [
+          { name: 'Task 3', assignedTo: 'Employee C', completed: false },
         ],
       },
     ],
-    notas: 'Notas del proyecto A',
+    notes: 'Notes for project A',
   },
-  // ... más datos de ejemplo
+  // ... more example data
 ]
 
-const ProyectoForm = ({ open, handleClose, proyecto, handleSave }) => {
-  const [formData, setFormData] = useState(proyecto || { nombre: '', columnas: [], notas: '' })
+const ProjectForm = ({ open, handleClose, project, handleSave }) => {
+  const [formData, setFormData] = useState(project || { name: '', columns: [], notes: '' })
 
   const handleChange = (e) => {
     setFormData({
@@ -48,93 +48,93 @@ const ProyectoForm = ({ open, handleClose, proyecto, handleSave }) => {
   }
 
   return (
-    <Dialog open={open} onClose={handleClose}>
-      <DialogTitle>{proyecto ? 'Editar Proyecto' : 'Agregar Proyecto'}</DialogTitle>
+    <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
+      <DialogTitle>{project ? 'Edit Project' : 'Add Project'}</DialogTitle>
       <DialogContent>
         <DialogContentText>
-          {proyecto ? 'Edita la información del proyecto' : 'Introduce la información del nuevo proyecto'}
+          {project ? 'Edit the project information' : 'Enter the new project information'}
         </DialogContentText>
-        <TextField margin="dense" label="Nombre" name="nombre" fullWidth variant="outlined" value={formData.nombre} onChange={handleChange} />
-        <TextField margin="dense" label="Notas" name="notas" fullWidth variant="outlined" value={formData.notas} onChange={handleChange} />
+        <TextField margin="dense" label="Name" name="name" fullWidth variant="outlined" value={formData.name} onChange={handleChange} />
+        <TextField margin="dense" label="Notes" name="notes" fullWidth variant="outlined" value={formData.notes} onChange={handleChange} />
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClose} color="primary">
-          Cancelar
+        <Button onClick={handleClose} sx={{ color: '#1A1A40', fontWeight: '500' }}>
+          Cancel
         </Button>
-        <Button onClick={handleSubmit} color="primary">
-          Guardar
+        <Button onClick={handleSubmit} sx={{ color: '#1A1A40', fontWeight: '500' }}>
+          Save
         </Button>
       </DialogActions>
     </Dialog>
   )
 }
 
-const Proyectos = () => {
+const Projects = () => {
   const [open, setOpen] = useState(false)
-  const [selectedProyecto, setSelectedProyecto] = useState(null)
-  const [proyectos, setProyectos] = useState(proyectosData)
+  const [selectedProject, setSelectedProject] = useState(null)
+  const [projects, setProjects] = useState(projectsData)
 
-  const handleOpen = (proyecto = null) => {
-    setSelectedProyecto(proyecto)
+  const handleOpen = (project = null) => {
+    setSelectedProject(project)
     setOpen(true)
   }
 
   const handleClose = () => {
     setOpen(false)
-    setSelectedProyecto(null)
+    setSelectedProject(null)
   }
 
-  const handleSave = (proyecto) => {
-    if (selectedProyecto) {
-      setProyectos(proyectos.map((p) => (p.id === proyecto.id ? proyecto : p)))
+  const handleSave = (project) => {
+    if (selectedProject) {
+      setProjects(projects.map((p) => (p.id === project.id ? project : p)))
     } else {
-      proyecto.id = proyectos.length + 1
-      setProyectos([...proyectos, proyecto])
+      project.id = projects.length + 1
+      setProjects([...projects, project])
     }
   }
 
-  const handleAddColumn = (proyecto) => {
-    const nombreColumna = prompt('Nombre de la columna:')
-    if (nombreColumna) {
-      const newProyecto = {
-        ...proyecto,
-        columnas: [...proyecto.columnas, { nombre: nombreColumna, tareas: [] }],
+  const handleAddColumn = (project) => {
+    const columnName = prompt('Column name:')
+    if (columnName) {
+      const newProject = {
+        ...project,
+        columns: [...project.columns, { name: columnName, tasks: [] }],
       }
-      handleSave(newProyecto)
+      handleSave(newProject)
     }
   }
 
-  const handleAddTask = (columna) => {
-    const nombreTarea = prompt('Nombre de la tarea:')
-    const asignado = prompt('Asignar a:')
-    if (nombreTarea && asignado) {
-      const newColumna = {
-        ...columna,
-        tareas: [...columna.tareas, { nombre: nombreTarea, asignado, completado: false }],
+  const handleAddTask = (column) => {
+    const taskName = prompt('Task name:')
+    const assignedTo = prompt('Assign to:')
+    if (taskName && assignedTo) {
+      const newColumn = {
+        ...column,
+        tasks: [...column.tasks, { name: taskName, assignedTo, completed: false }],
       }
-      const newProyecto = {
-        ...selectedProyecto,
-        columnas: selectedProyecto.columnas.map((col) => (col.nombre === columna.nombre ? newColumna : col)),
+      const newProject = {
+        ...selectedProject,
+        columns: selectedProject.columns.map((col) => (col.name === column.name ? newColumn : col)),
       }
-      handleSave(newProyecto)
+      handleSave(newProject)
     }
   }
 
-  const handleToggleTask = (columna, tarea) => {
-    const newTarea = { ...tarea, completado: !tarea.completado }
-    const newColumna = {
-      ...columna,
-      tareas: columna.tareas.map((t) => (t.nombre === tarea.nombre ? newTarea : t)),
+  const handleToggleTask = (column, task) => {
+    const newTask = { ...task, completed: !task.completed }
+    const newColumn = {
+      ...column,
+      tasks: column.tasks.map((t) => (t.name === task.name ? newTask : t)),
     }
-    const newProyecto = {
-      ...selectedProyecto,
-      columnas: selectedProyecto.columnas.map((col) => (col.nombre === columna.nombre ? newColumna : col)),
+    const newProject = {
+      ...selectedProject,
+      columns: selectedProject.columns.map((col) => (col.name === column.name ? newColumn : col)),
     }
-    handleSave(newProyecto)
+    handleSave(newProject)
   }
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', bgcolor: '#EFFFFD' }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', bgcolor: '#F3F4F6' }}>
       <Header />
       <Box sx={{ display: 'flex', flexGrow: 1 }}>
         <Box
@@ -144,7 +144,13 @@ const Proyectos = () => {
             flexShrink: 0,
             bgcolor: '#1A1A40',
             borderRight: 1,
-            borderColor: 'divider'
+            borderColor: 'divider',
+            borderRadius: 2,
+            overflow: 'hidden',
+            boxShadow: '0 3px 10px rgba(0, 0, 0, 0.1)',
+            zIndex: 1201,
+            position: 'fixed',
+            height: '100%',
           }}
         >
           <Sidebar />
@@ -153,80 +159,81 @@ const Proyectos = () => {
           component="main"
           sx={{
             flexGrow: 1,
-            bgcolor: '#EFFFFD',
+            bgcolor: '#F3F4F6',
             p: 3,
+            marginLeft: '240px',
           }}
         >
           <Container maxWidth="lg">
-            <Typography variant="h4" gutterBottom sx={{ color: '#000000' }}>
-              Proyectos
+            <Typography variant="h3" gutterBottom sx={{ color: '#1A1A40', fontWeight: '600', fontFamily: 'Roboto, sans-serif' }}>
+              Projects
             </Typography>
             <Box sx={{ display: 'flex', mb: 3 }}>
               <Button 
                 variant="contained" 
-                sx={{ bgcolor: '#ffffff', color: '#000000', ml: 2 }} 
+                sx={{ bgcolor: 'linear-gradient(90deg, #2666CF, #6A82FB)', color: '#ffffff', fontWeight: '500', textTransform: 'none', borderRadius: 2, boxShadow: '0 3px 6px rgba(0,0,0,0.1)', ml: 2 }} 
                 startIcon={<AddIcon />} 
                 onClick={() => handleOpen()}
               >
-                Nuevo Proyecto
+                New Project
               </Button>
             </Box>
             <Grid container spacing={3}>
-              {proyectos.map((proyecto) => (
-                <Grid item xs={12} key={proyecto.id}>
-                  <Paper sx={{ p: 2, mb: 2 }}>
+              {projects.map((project) => (
+                <Grid item xs={12} key={project.id}>
+                  <Paper sx={{ p: 2, mb: 2, boxShadow: '0 3px 10px rgba(0, 0, 0, 0.1)', transition: '0.3s', '&:hover': { transform: 'translateY(-5px)', boxShadow: '0 6px 15px rgba(0, 0, 0, 0.15)' } }}>
                     <Typography variant="h5" gutterBottom>
-                      {proyecto.nombre}
-                      <IconButton onClick={() => handleOpen(proyecto)}>
+                      {project.name}
+                      <IconButton onClick={() => handleOpen(project)} sx={{ color: '#1A1A40', ml: 2 }}>
                         <EditIcon />
                       </IconButton>
-                      <IconButton onClick={() => setProyectos(proyectos.filter((p) => p.id !== proyecto.id))}>
+                      <IconButton onClick={() => setProjects(projects.filter((p) => p.id !== project.id))} sx={{ color: '#B00020' }}>
                         <DeleteIcon />
                       </IconButton>
                     </Typography>
                     <Button 
                       variant="outlined" 
-                      sx={{ color: '#000000', borderColor: '#000000' }}
-                      onClick={() => handleAddColumn(proyecto)}
+                      sx={{ color: '#1A1A40', borderColor: '#1A1A40' }}
+                      onClick={() => handleAddColumn(project)}
                     >
-                      Añadir Columna
+                      Add Column
                     </Button>
                     <Grid container spacing={2} sx={{ mt: 2 }}>
-                      {proyecto.columnas.map((columna, colIndex) => (
+                      {project.columns.map((column, colIndex) => (
                         <Grid item xs={12} md={4} key={colIndex}>
                           <Paper sx={{ p: 2 }}>
                             <Typography variant="h6" gutterBottom>
-                              {columna.nombre}
+                              {column.name}
                             </Typography>
                             <Button 
                               variant="outlined" 
-                              sx={{ color: '#000000', borderColor: '#000000', mb: 2 }}
-                              onClick={() => handleAddTask(columna)}
+                              sx={{ color: '#1A1A40', borderColor: '#1A1A40', mb: 2 }}
+                              onClick={() => handleAddTask(column)}
                             >
-                              Añadir Tarea
+                              Add Task
                             </Button>
                             <List>
-                              {columna.tareas.map((tarea, taskIndex) => (
-                                <ListItem key={taskIndex} dense button>
-                                  <ListItemText primary={tarea.nombre} secondary={tarea.asignado} />
+                              {column.tasks.map((task, taskIndex) => (
+                                <ListItem key={taskIndex} dense button sx={{ '&:hover': { bgcolor: '#F1F1F1' } }}>
+                                  <ListItemText primary={task.name} secondary={task.assignedTo} />
                                   <ListItemSecondaryAction>
-                                    <IconButton edge="end" onClick={() => handleToggleTask(columna, tarea)}>
-                                      <Checkbox checked={tarea.completado} />
+                                    <IconButton edge="end" onClick={() => handleToggleTask(column, task)} sx={{ color: '#1A1A40' }}>
+                                      <Checkbox checked={task.completed} />
                                     </IconButton>
-                                    <IconButton edge="end" onClick={() => handleAddTask(columna)}>
+                                    <IconButton edge="end" onClick={() => handleAddTask(column)} sx={{ color: '#1A1A40' }}>
                                       <EditIcon />
                                     </IconButton>
                                     <IconButton edge="end" onClick={() => {
-                                      const newColumna = {
-                                        ...columna,
-                                        tareas: columna.tareas.filter((t) => t.nombre !== tarea.nombre),
+                                      const newColumn = {
+                                        ...column,
+                                        tasks: column.tasks.filter((t) => t.name !== task.name),
                                       }
-                                      const newProyecto = {
-                                        ...selectedProyecto,
-                                        columnas: selectedProyecto.columnas.map((col) => (col.nombre === columna.nombre ? newColumna : col)),
+                                      const newProject = {
+                                        ...selectedProject,
+                                        columns: selectedProject.columns.map((col) => (col.name === column.name ? newColumn : col)),
                                       }
-                                      handleSave(newProyecto)
-                                    }}>
+                                      handleSave(newProject)
+                                    }} sx={{ color: '#B00020' }}>
                                       <DeleteIcon />
                                     </IconButton>
                                   </ListItemSecondaryAction>
@@ -238,7 +245,7 @@ const Proyectos = () => {
                       ))}
                     </Grid>
                     <Typography variant="h6" gutterBottom>
-                      Notas
+                      Notes
                     </Typography>
                     <Paper sx={{ p: 2, mb: 2 }}>
                       <TextField
@@ -246,10 +253,10 @@ const Proyectos = () => {
                         multiline
                         fullWidth
                         rows={4}
-                        value={proyecto.notas}
+                        value={project.notes}
                         onChange={(e) => {
-                          const newProyecto = { ...proyecto, notas: e.target.value }
-                          handleSave(newProyecto)
+                          const newProject = { ...project, notes: e.target.value }
+                          handleSave(newProject)
                         }}
                       />
                     </Paper>
@@ -260,9 +267,9 @@ const Proyectos = () => {
           </Container>
         </Box>
       </Box>
-      <ProyectoForm open={open} handleClose={handleClose} proyecto={selectedProyecto} handleSave={handleSave} />
+      <ProjectForm open={open} handleClose={handleClose} project={selectedProject} handleSave={handleSave} />
     </Box>
   )
 }
 
-export default Proyectos
+export default Projects

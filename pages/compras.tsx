@@ -8,28 +8,28 @@ import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
 import MoreVertIcon from '@mui/icons-material/MoreVert'
 
-const comprasData = [
-  // Datos de ejemplo para compras
+const purchasesData = [
+  // Example data for purchases
   {
     id: 1,
-    fecha: '2023-01-01',
-    numero: 'COMP001',
-    proveedor: 'Proveedor A',
-    descripcion: 'Descripción de la compra',
+    date: '2023-01-01',
+    number: 'PUR001',
+    supplier: 'Supplier A',
+    description: 'Purchase description',
     total: 1000,
-    estado: 'PAGADO',
+    status: 'PAID',
   },
-  // ... más datos de ejemplo
+  // ... more example data
 ]
 
-const ComprasForm = ({ open, handleClose, compra, handleSave }) => {
-  const [formData, setFormData] = useState(compra || {
-    fecha: '',
-    numero: '',
-    proveedor: '',
-    descripcion: '',
+const PurchasesForm = ({ open, handleClose, purchase, handleSave }) => {
+  const [formData, setFormData] = useState(purchase || {
+    date: '',
+    number: '',
+    supplier: '',
+    description: '',
     total: '',
-    estado: '',
+    status: '',
   })
 
   const handleChange = (e) => {
@@ -46,52 +46,52 @@ const ComprasForm = ({ open, handleClose, compra, handleSave }) => {
 
   return (
     <Dialog open={open} onClose={handleClose}>
-      <DialogTitle>{compra ? 'Editar Compra' : 'Agregar Compra'}</DialogTitle>
+      <DialogTitle>{purchase ? 'Edit Purchase' : 'Add Purchase'}</DialogTitle>
       <DialogContent>
         <DialogContentText>
-          {compra ? 'Edita la información de la compra' : 'Introduce la información de la nueva compra'}
+          {purchase ? 'Edit the purchase information' : 'Enter the new purchase information'}
         </DialogContentText>
-        <TextField margin="dense" label="Fecha" name="fecha" fullWidth variant="outlined" value={formData.fecha} onChange={handleChange} />
-        <TextField margin="dense" label="Número" name="numero" fullWidth variant="outlined" value={formData.numero} onChange={handleChange} />
-        <TextField margin="dense" label="Proveedor" name="proveedor" fullWidth variant="outlined" value={formData.proveedor} onChange={handleChange} />
-        <TextField margin="dense" label="Descripción" name="descripcion" fullWidth variant="outlined" value={formData.descripcion} onChange={handleChange} />
+        <TextField margin="dense" label="Date" name="date" fullWidth variant="outlined" value={formData.date} onChange={handleChange} />
+        <TextField margin="dense" label="Number" name="number" fullWidth variant="outlined" value={formData.number} onChange={handleChange} />
+        <TextField margin="dense" label="Supplier" name="supplier" fullWidth variant="outlined" value={formData.supplier} onChange={handleChange} />
+        <TextField margin="dense" label="Description" name="description" fullWidth variant="outlined" value={formData.description} onChange={handleChange} />
         <TextField margin="dense" label="Total" name="total" fullWidth variant="outlined" value={formData.total} onChange={handleChange} />
-        <TextField margin="dense" label="Estado" name="estado" fullWidth variant="outlined" value={formData.estado} onChange={handleChange} />
+        <TextField margin="dense" label="Status" name="status" fullWidth variant="outlined" value={formData.status} onChange={handleChange} />
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose} color="primary">
-          Cancelar
+          Cancel
         </Button>
         <Button onClick={handleSubmit} color="primary">
-          Guardar
+          Save
         </Button>
       </DialogActions>
     </Dialog>
   )
 }
 
-const Compras = () => {
+const Purchases = () => {
   const [open, setOpen] = useState(false)
-  const [selectedCompra, setSelectedCompra] = useState(null)
-  const [compras, setCompras] = useState(comprasData)
+  const [selectedPurchase, setSelectedPurchase] = useState(null)
+  const [purchases, setPurchases] = useState(purchasesData)
   const [anchorEl, setAnchorEl] = useState(null)
 
-  const handleOpen = (compra = null) => {
-    setSelectedCompra(compra)
+  const handleOpen = (purchase = null) => {
+    setSelectedPurchase(purchase)
     setOpen(true)
   }
 
   const handleClose = () => {
     setOpen(false)
-    setSelectedCompra(null)
+    setSelectedPurchase(null)
   }
 
-  const handleSave = (compra) => {
-    if (selectedCompra) {
-      setCompras(compras.map((c) => (c.id === compra.id ? compra : c)))
+  const handleSave = (purchase) => {
+    if (selectedPurchase) {
+      setPurchases(purchases.map((p) => (p.id === purchase.id ? purchase : p)))
     } else {
-      compra.id = compras.length + 1
-      setCompras([...compras, compra])
+      purchase.id = purchases.length + 1
+      setPurchases([...purchases, purchase])
     }
   }
 
@@ -103,7 +103,7 @@ const Compras = () => {
     setAnchorEl(null)
   }
 
-  const subcategories = ['Presupuestos', 'Pedidos', 'Albaranes', 'Facturas Proformas', 'Facturas']
+  const subcategories = ['Quotes', 'Orders', 'Delivery Notes', 'Proforma Invoices', 'Invoices']
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', bgcolor: '#EFFFFD' }}>
@@ -131,12 +131,12 @@ const Compras = () => {
         >
           <Container maxWidth="lg">
             <Typography variant="h4" gutterBottom sx={{ color: '#000000' }}>
-              Compras
+              Purchases
             </Typography>
             <Box sx={{ display: 'flex', mb: 3 }}>
               <TextField 
                 variant="outlined" 
-                placeholder="Buscar..." 
+                placeholder="Search..." 
                 fullWidth 
                 InputProps={{
                   startAdornment: (
@@ -152,7 +152,7 @@ const Compras = () => {
                 startIcon={<AddIcon />} 
                 onClick={() => handleOpen()}
               >
-                Agregar Compra
+                Add Purchase
               </Button>
             </Box>
             <Box sx={{ mb: 3 }}>
@@ -163,7 +163,7 @@ const Compras = () => {
                 variant="outlined"
                 sx={{ color: '#000000', borderColor: '#000000' }}
               >
-                Subcategorías
+                Subcategories
                 <MoreVertIcon />
               </Button>
               <Menu
@@ -184,29 +184,29 @@ const Compras = () => {
               <Table>
                 <TableHead>
                   <TableRow>
-                    <TableCell>Fecha</TableCell>
-                    <TableCell>Número</TableCell>
-                    <TableCell>Proveedor</TableCell>
-                    <TableCell>Descripción</TableCell>
+                    <TableCell>Date</TableCell>
+                    <TableCell>Number</TableCell>
+                    <TableCell>Supplier</TableCell>
+                    <TableCell>Description</TableCell>
                     <TableCell>Total</TableCell>
-                    <TableCell>Estado</TableCell>
-                    <TableCell>Acciones</TableCell>
+                    <TableCell>Status</TableCell>
+                    <TableCell>Actions</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {compras.map((compra) => (
-                    <TableRow key={compra.id}>
-                      <TableCell>{compra.fecha}</TableCell>
-                      <TableCell>{compra.numero}</TableCell>
-                      <TableCell>{compra.proveedor}</TableCell>
-                      <TableCell>{compra.descripcion}</TableCell>
-                      <TableCell>{compra.total}</TableCell>
-                      <TableCell>{compra.estado}</TableCell>
+                  {purchases.map((purchase) => (
+                    <TableRow key={purchase.id}>
+                      <TableCell>{purchase.date}</TableCell>
+                      <TableCell>{purchase.number}</TableCell>
+                      <TableCell>{purchase.supplier}</TableCell>
+                      <TableCell>{purchase.description}</TableCell>
+                      <TableCell>{purchase.total}</TableCell>
+                      <TableCell>{purchase.status}</TableCell>
                       <TableCell>
-                        <IconButton onClick={() => handleOpen(compra)}>
+                        <IconButton onClick={() => handleOpen(purchase)}>
                           <EditIcon />
                         </IconButton>
-                        <IconButton onClick={() => setCompras(compras.filter((c) => c.id !== compra.id))}>
+                        <IconButton onClick={() => setPurchases(purchases.filter((p) => p.id !== purchase.id))}>
                           <DeleteIcon />
                         </IconButton>
                       </TableCell>
@@ -218,9 +218,9 @@ const Compras = () => {
           </Container>
         </Box>
       </Box>
-      <ComprasForm open={open} handleClose={handleClose} compra={selectedCompra} handleSave={handleSave} />
+      <PurchasesForm open={open} handleClose={handleClose} purchase={selectedPurchase} handleSave={handleSave} />
     </Box>
   )
 }
 
-export default Compras
+export default Purchases

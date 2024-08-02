@@ -8,32 +8,32 @@ import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
 import MoreVertIcon from '@mui/icons-material/MoreVert'
 
-const empleadosData = [
-  // Datos de ejemplo para empleados
+const employeesData = [
+  // Example data for employees
   {
     id: 1,
-    nombre: 'Empleado A',
-    puesto: 'Operario de Logística',
-    salario: 30000,
-    irpf: 15,
-    seguridadSocial: 6,
-    email: 'empleadoA@empresa.com',
-    telefono: '123456789',
-    acceso: ['inventario'],
+    name: 'Employee A',
+    position: 'Logistics Operator',
+    salary: 30000,
+    tax: 15,
+    socialSecurity: 6,
+    email: 'employeeA@company.com',
+    phone: '123456789',
+    access: ['inventory'],
   },
-  // ... más datos de ejemplo
+  // ... more example data
 ]
 
-const EmpleadoForm = ({ open, handleClose, empleado, handleSave }) => {
-  const [formData, setFormData] = useState(empleado || {
-    nombre: '',
-    puesto: '',
-    salario: '',
-    irpf: '',
-    seguridadSocial: '',
+const EmployeeForm = ({ open, handleClose, employee, handleSave }) => {
+  const [formData, setFormData] = useState(employee || {
+    name: '',
+    position: '',
+    salary: '',
+    tax: '',
+    socialSecurity: '',
     email: '',
-    telefono: '',
-    acceso: [],
+    phone: '',
+    access: [],
   })
 
   const handleChange = (e) => {
@@ -47,12 +47,12 @@ const EmpleadoForm = ({ open, handleClose, empleado, handleSave }) => {
     if (e.target.checked) {
       setFormData({
         ...formData,
-        acceso: [...formData.acceso, e.target.name],
+        access: [...formData.access, e.target.name],
       })
     } else {
       setFormData({
         ...formData,
-        acceso: formData.acceso.filter((item) => item !== e.target.name),
+        access: formData.access.filter((item) => item !== e.target.name),
       })
     }
   }
@@ -62,75 +62,75 @@ const EmpleadoForm = ({ open, handleClose, empleado, handleSave }) => {
     handleClose()
   }
 
-  const accesos = [
-    { name: 'inventario', label: 'Inventario' },
-    { name: 'ventas', label: 'Ventas' },
-    { name: 'compras', label: 'Compras' },
-    { name: 'clientes', label: 'Clientes' },
-    // Agrega más accesos según sea necesario
+  const accessOptions = [
+    { name: 'inventory', label: 'Inventory' },
+    { name: 'sales', label: 'Sales' },
+    { name: 'purchases', label: 'Purchases' },
+    { name: 'clients', label: 'Clients' },
+    // Add more access options as needed
   ]
 
   return (
-    <Dialog open={open} onClose={handleClose}>
-      <DialogTitle>{empleado ? 'Editar Empleado' : 'Agregar Empleado'}</DialogTitle>
+    <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
+      <DialogTitle>{employee ? 'Edit Employee' : 'Add Employee'}</DialogTitle>
       <DialogContent>
         <DialogContentText>
-          {empleado ? 'Edita la información del empleado' : 'Introduce la información del nuevo empleado'}
+          {employee ? 'Edit the employee information' : 'Enter the new employee information'}
         </DialogContentText>
-        <TextField margin="dense" label="Nombre" name="nombre" fullWidth variant="outlined" value={formData.nombre} onChange={handleChange} />
-        <TextField margin="dense" label="Puesto" name="puesto" fullWidth variant="outlined" value={formData.puesto} onChange={handleChange} />
-        <TextField margin="dense" label="Salario" name="salario" fullWidth variant="outlined" value={formData.salario} onChange={handleChange} />
-        <TextField margin="dense" label="IRPF (%)" name="irpf" fullWidth variant="outlined" value={formData.irpf} onChange={handleChange} />
-        <TextField margin="dense" label="Seguridad Social (%)" name="seguridadSocial" fullWidth variant="outlined" value={formData.seguridadSocial} onChange={handleChange} />
+        <TextField margin="dense" label="Name" name="name" fullWidth variant="outlined" value={formData.name} onChange={handleChange} />
+        <TextField margin="dense" label="Position" name="position" fullWidth variant="outlined" value={formData.position} onChange={handleChange} />
+        <TextField margin="dense" label="Salary" name="salary" fullWidth variant="outlined" value={formData.salary} onChange={handleChange} />
+        <TextField margin="dense" label="Tax (%)" name="tax" fullWidth variant="outlined" value={formData.tax} onChange={handleChange} />
+        <TextField margin="dense" label="Social Security (%)" name="socialSecurity" fullWidth variant="outlined" value={formData.socialSecurity} onChange={handleChange} />
         <TextField margin="dense" label="Email" name="email" fullWidth variant="outlined" value={formData.email} onChange={handleChange} />
-        <TextField margin="dense" label="Teléfono" name="telefono" fullWidth variant="outlined" value={formData.telefono} onChange={handleChange} />
-        <Typography variant="subtitle1" gutterBottom>Accesos:</Typography>
-        {accesos.map((acceso) => (
+        <TextField margin="dense" label="Phone" name="phone" fullWidth variant="outlined" value={formData.phone} onChange={handleChange} />
+        <Typography variant="subtitle1" gutterBottom>Access:</Typography>
+        {accessOptions.map((access) => (
           <FormControlLabel
-            key={acceso.name}
-            control={<Checkbox checked={formData.acceso.includes(acceso.name)} onChange={handleCheckboxChange} name={acceso.name} />}
-            label={acceso.label}
+            key={access.name}
+            control={<Checkbox checked={formData.access.includes(access.name)} onChange={handleCheckboxChange} name={access.name} />}
+            label={access.label}
           />
         ))}
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClose} color="primary">
-          Cancelar
+        <Button onClick={handleClose} sx={{ color: '#1A1A40', fontWeight: '500' }}>
+          Cancel
         </Button>
-        <Button onClick={handleSubmit} color="primary">
-          Guardar
+        <Button onClick={handleSubmit} sx={{ color: '#1A1A40', fontWeight: '500' }}>
+          Save
         </Button>
       </DialogActions>
     </Dialog>
   )
 }
 
-const Empleados = () => {
+const Employees = () => {
   const [open, setOpen] = useState(false)
-  const [selectedEmpleado, setSelectedEmpleado] = useState(null)
-  const [empleados, setEmpleados] = useState(empleadosData)
+  const [selectedEmployee, setSelectedEmployee] = useState(null)
+  const [employees, setEmployees] = useState(employeesData)
 
-  const handleOpen = (empleado = null) => {
-    setSelectedEmpleado(empleado)
+  const handleOpen = (employee = null) => {
+    setSelectedEmployee(employee)
     setOpen(true)
   }
 
   const handleClose = () => {
     setOpen(false)
-    setSelectedEmpleado(null)
+    setSelectedEmployee(null)
   }
 
-  const handleSave = (empleado) => {
-    if (selectedEmpleado) {
-      setEmpleados(empleados.map((e) => (e.id === empleado.id ? empleado : e)))
+  const handleSave = (employee) => {
+    if (selectedEmployee) {
+      setEmployees(employees.map((e) => (e.id === employee.id ? employee : e)))
     } else {
-      empleado.id = empleados.length + 1
-      setEmpleados([...empleados, empleado])
+      employee.id = employees.length + 1
+      setEmployees([...employees, employee])
     }
   }
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', bgcolor: '#EFFFFD' }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', bgcolor: '#F3F4F6' }}>
       <Header />
       <Box sx={{ display: 'flex', flexGrow: 1 }}>
         <Box
@@ -140,7 +140,13 @@ const Empleados = () => {
             flexShrink: 0,
             bgcolor: '#1A1A40',
             borderRight: 1,
-            borderColor: 'divider'
+            borderColor: 'divider',
+            borderRadius: 2,
+            overflow: 'hidden',
+            boxShadow: '0 3px 10px rgba(0, 0, 0, 0.1)',
+            zIndex: 1201,
+            position: 'fixed',
+            height: '100%',
           }}
         >
           <Sidebar />
@@ -149,18 +155,19 @@ const Empleados = () => {
           component="main"
           sx={{
             flexGrow: 1,
-            bgcolor: '#EFFFFD',
+            bgcolor: '#F3F4F6',
             p: 3,
+            marginLeft: '240px',
           }}
         >
           <Container maxWidth="lg">
-            <Typography variant="h4" gutterBottom sx={{ color: '#000000' }}>
-              Empleados
+            <Typography variant="h3" gutterBottom sx={{ color: '#1A1A40', fontWeight: '600', fontFamily: 'Roboto, sans-serif' }}>
+              Employees
             </Typography>
             <Box sx={{ display: 'flex', mb: 3 }}>
               <TextField 
                 variant="outlined" 
-                placeholder="Buscar..." 
+                placeholder="Search..." 
                 fullWidth 
                 InputProps={{
                   startAdornment: (
@@ -172,38 +179,38 @@ const Empleados = () => {
               />
               <Button 
                 variant="contained" 
-                sx={{ bgcolor: '#ffffff', color: '#000000', ml: 2 }} 
+                sx={{ bgcolor: 'linear-gradient(90deg, #2666CF, #6A82FB)', color: '#ffffff', fontWeight: '500', textTransform: 'none', borderRadius: 2, boxShadow: '0 3px 6px rgba(0,0,0,0.1)', ml: 2 }} 
                 startIcon={<AddIcon />} 
                 onClick={() => handleOpen()}
               >
-                Agregar Empleado
+                Add Employee
               </Button>
             </Box>
-            <TableContainer component={Paper}>
+            <TableContainer component={Paper} sx={{ boxShadow: '0 3px 10px rgba(0, 0, 0, 0.1)' }}>
               <Table>
                 <TableHead>
                   <TableRow>
-                    <TableCell>Nombre</TableCell>
-                    <TableCell>Puesto</TableCell>
-                    <TableCell>Salario</TableCell>
+                    <TableCell>Name</TableCell>
+                    <TableCell>Position</TableCell>
+                    <TableCell>Salary</TableCell>
                     <TableCell>Email</TableCell>
-                    <TableCell>Teléfono</TableCell>
-                    <TableCell>Acciones</TableCell>
+                    <TableCell>Phone</TableCell>
+                    <TableCell>Actions</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {empleados.map((empleado) => (
-                    <TableRow key={empleado.id}>
-                      <TableCell>{empleado.nombre}</TableCell>
-                      <TableCell>{empleado.puesto}</TableCell>
-                      <TableCell>{empleado.salario}</TableCell>
-                      <TableCell>{empleado.email}</TableCell>
-                      <TableCell>{empleado.telefono}</TableCell>
+                  {employees.map((employee) => (
+                    <TableRow key={employee.id} sx={{ '&:hover': { bgcolor: '#F1F1F1' } }}>
+                      <TableCell>{employee.name}</TableCell>
+                      <TableCell>{employee.position}</TableCell>
+                      <TableCell>{employee.salary}</TableCell>
+                      <TableCell>{employee.email}</TableCell>
+                      <TableCell>{employee.phone}</TableCell>
                       <TableCell>
-                        <IconButton onClick={() => handleOpen(empleado)}>
+                        <IconButton onClick={() => handleOpen(employee)} sx={{ color: '#1A1A40' }}>
                           <EditIcon />
                         </IconButton>
-                        <IconButton onClick={() => setEmpleados(empleados.filter((e) => e.id !== empleado.id))}>
+                        <IconButton onClick={() => setEmployees(employees.filter((e) => e.id !== employee.id))} sx={{ color: '#B00020' }}>
                           <DeleteIcon />
                         </IconButton>
                       </TableCell>
@@ -215,9 +222,9 @@ const Empleados = () => {
           </Container>
         </Box>
       </Box>
-      <EmpleadoForm open={open} handleClose={handleClose} empleado={selectedEmpleado} handleSave={handleSave} />
+      <EmployeeForm open={open} handleClose={handleClose} employee={selectedEmployee} handleSave={handleSave} />
     </Box>
   )
 }
 
-export default Empleados
+export default Employees

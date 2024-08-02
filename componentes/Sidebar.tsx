@@ -25,172 +25,174 @@ const Sidebar = () => {
   const [openInventory, setOpenInventory] = useState(false)
   const [openAccounting, setOpenAccounting] = useState(false)
 
-  const handleContactsClick = () => {
-    setOpenContacts(!openContacts)
+  const handleItemClick = (path) => {
+    router.push(path)
   }
 
-  const handleSalesClick = () => {
-    setOpenSales(!openSales)
-  }
-
-  const handlePurchasesClick = () => {
-    setOpenPurchases(!openPurchases)
-  }
-
-  const handleInventoryClick = () => {
-    setOpenInventory(!openInventory)
-  }
-
-  const handleAccountingClick = () => {
-    setOpenAccounting(!openAccounting)
+  const handleToggle = (openStateSetter, isOpen) => {
+    openStateSetter(!isOpen)
   }
 
   return (
     <Box sx={{ bgcolor: '#F8F9FA', height: '100vh', padding: '20px', boxShadow: 'none', borderRight: 'none', position: 'fixed' }}>
       <List>
-        <ListItem button onClick={() => router.push('/dashboard')} sx={{ borderRadius: '10px', marginBottom: '10px' }}>
+        <ListItem button onClick={() => handleItemClick('/dashboard')} sx={{ borderRadius: '10px', marginBottom: '10px' }}>
           <ListItemIcon>
             <DashboardIcon sx={{ color: '#6C757D' }} />
           </ListItemIcon>
           <ListItemText primary="Dashboard" />
         </ListItem>
 
-        <ListItem button onClick={handleContactsClick} sx={{ borderRadius: '10px', marginBottom: '10px' }}>
+        <ListItem button onClick={() => handleToggle(setOpenContacts, openContacts)} sx={{ borderRadius: '10px', marginBottom: '10px' }}>
           <ListItemIcon>
             <ContactsIcon sx={{ color: '#6C757D' }} />
           </ListItemIcon>
-          <ListItemText primary="Contactos" />
-          {openContacts ? <ExpandLess /> : <ExpandMore />}
+          <ListItemText primary="Contacts" onClick={() => !openContacts && handleItemClick('/contacts')} />
+          {openContacts ? <ExpandLess onClick={() => handleToggle(setOpenContacts, openContacts)} /> : <ExpandMore onClick={() => handleToggle(setOpenContacts, openContacts)} />}
         </ListItem>
         <Collapse in={openContacts} timeout="auto" unmountOnExit>
           <List component="div" disablePadding>
-            <ListItem button sx={{ pl: 4 }} onClick={() => router.push('/clientes')}>
-              <ListItemText primary="Clientes" />
+            <ListItem button sx={{ pl: 4 }} onClick={() => handleItemClick('/clients')}>
+              <ListItemText primary="Clients" />
             </ListItem>
-            <ListItem button sx={{ pl: 4 }} onClick={() => router.push('/proveedores')}>
-              <ListItemText primary="Proveedores" />
+            <ListItem button sx={{ pl: 4 }} onClick={() => handleItemClick('/suppliers')}>
+              <ListItemText primary="Suppliers" />
             </ListItem>
           </List>
         </Collapse>
 
-        <ListItem button onClick={handleSalesClick} sx={{ borderRadius: '10px', marginBottom: '10px' }}>
+        <ListItem button onClick={() => handleToggle(setOpenSales, openSales)} sx={{ borderRadius: '10px', marginBottom: '10px' }}>
           <ListItemIcon>
             <ShoppingCartIcon sx={{ color: '#6C757D' }} />
           </ListItemIcon>
-          <ListItemText primary="Ventas" />
-          {openSales ? <ExpandLess /> : <ExpandMore />}
+          <ListItemText primary="Sales" onClick={() => !openSales && handleItemClick('/ventas')} />
+          {openSales ? <ExpandLess onClick={() => handleToggle(setOpenSales, openSales)} /> : <ExpandMore onClick={() => handleToggle(setOpenSales, openSales)} />}
         </ListItem>
         <Collapse in={openSales} timeout="auto" unmountOnExit>
           <List component="div" disablePadding>
-            <ListItem button sx={{ pl: 4 }} onClick={() => router.push('/presupuestos-ventas')}>
-              <ListItemText primary="Presupuestos" />
+            <ListItem button sx={{ pl: 4 }} onClick={() => handleItemClick('/sales-quotes')}>
+              <ListItemText primary="Quotes" />
             </ListItem>
-            <ListItem button sx={{ pl: 4 }} onClick={() => router.push('/pedidos-ventas')}>
-              <ListItemText primary="Pedidos" />
+            <ListItem button sx={{ pl: 4 }} onClick={() => handleItemClick('/sales-orders')}>
+              <ListItemText primary="Orders" />
             </ListItem>
-            <ListItem button sx={{ pl: 4 }} onClick={() => router.push('/albaranes-ventas')}>
-              <ListItemText primary="Albaranes" />
+            <ListItem button sx={{ pl: 4 }} onClick={() => handleItemClick('/sales-delivery-notes')}>
+              <ListItemText primary="Delivery Notes" />
             </ListItem>
-            <ListItem button sx={{ pl: 4 }} onClick={() => router.push('/proformas-ventas')}>
+            <ListItem button sx={{ pl: 4 }} onClick={() => handleItemClick('/sales-proformas')}>
               <ListItemText primary="Proformas" />
             </ListItem>
-            <ListItem button sx={{ pl: 4 }} onClick={() => router.push('/facturas-ventas')}>
-              <ListItemText primary="Facturas" />
+            <ListItem button sx={{ pl: 4 }} onClick={() => handleItemClick('/sales-invoices')}>
+              <ListItemText primary="Invoices" />
             </ListItem>
           </List>
         </Collapse>
 
-        <ListItem button onClick={handlePurchasesClick} sx={{ borderRadius: '10px', marginBottom: '10px' }}>
+        <ListItem button onClick={() => handleToggle(setOpenPurchases, openPurchases)} sx={{ borderRadius: '10px', marginBottom: '10px' }}>
           <ListItemIcon>
             <InventoryIcon sx={{ color: '#6C757D' }} />
           </ListItemIcon>
-          <ListItemText primary="Compras" />
-          {openPurchases ? <ExpandLess /> : <ExpandMore />}
+          <ListItemText primary="Purchases" onClick={() => !openPurchases && handleItemClick('/compras')} />
+          {openPurchases ? <ExpandLess onClick={() => handleToggle(setOpenPurchases, openPurchases)} /> : <ExpandMore onClick={() => handleToggle(setOpenPurchases, openPurchases)} />}
         </ListItem>
         <Collapse in={openPurchases} timeout="auto" unmountOnExit>
           <List component="div" disablePadding>
-            <ListItem button sx={{ pl: 4 }} onClick={() => router.push('/presupuestos-compras')}>
-              <ListItemText primary="Presupuestos" />
+            <ListItem button sx={{ pl: 4 }} onClick={() => handleItemClick('/purchase-quotes')}>
+              <ListItemText primary="Quotes" />
             </ListItem>
-            <ListItem button sx={{ pl: 4 }} onClick={() => router.push('/pedidos-compras')}>
-              <ListItemText primary="Pedidos" />
+            <ListItem button sx={{ pl: 4 }} onClick={() => handleItemClick('/purchase-orders')}>
+              <ListItemText primary="Orders" />
             </ListItem>
-            <ListItem button sx={{ pl: 4 }} onClick={() => router.push('/albaranes-compras')}>
-              <ListItemText primary="Albaranes" />
+            <ListItem button sx={{ pl: 4 }} onClick={() => handleItemClick('/purchase-delivery-notes')}>
+              <ListItemText primary="Delivery Notes" />
             </ListItem>
-            <ListItem button sx={{ pl: 4 }} onClick={() => router.push('/proformas-compras')}>
+            <ListItem button sx={{ pl: 4 }} onClick={() => handleItemClick('/purchase-proformas')}>
               <ListItemText primary="Proformas" />
             </ListItem>
-            <ListItem button sx={{ pl: 4 }} onClick={() => router.push('/facturas-compras')}>
-              <ListItemText primary="Facturas" />
+            <ListItem button sx={{ pl: 4 }} onClick={() => handleItemClick('/purchase-invoices')}>
+              <ListItemText primary="Invoices" />
             </ListItem>
           </List>
         </Collapse>
 
-        <ListItem button onClick={handleInventoryClick} sx={{ borderRadius: '10px', marginBottom: '10px' }}>
+        <ListItem button onClick={() => handleToggle(setOpenInventory, openInventory)} sx={{ borderRadius: '10px', marginBottom: '10px' }}>
           <ListItemIcon>
             <InventoryIcon sx={{ color: '#6C757D' }} />
           </ListItemIcon>
-          <ListItemText primary="Inventario" />
-          {openInventory ? <ExpandLess /> : <ExpandMore />}
+          <ListItemText primary="Inventory" onClick={() => !openInventory && handleItemClick('/inventario')} />
+          {openInventory ? <ExpandLess onClick={() => handleToggle(setOpenInventory, openInventory)} /> : <ExpandMore onClick={() => handleToggle(setOpenInventory, openInventory)} />}
         </ListItem>
         <Collapse in={openInventory} timeout="auto" unmountOnExit>
           <List component="div" disablePadding>
-            <ListItem button sx={{ pl: 4 }} onClick={() => router.push('/panel-control')}>
-              <ListItemText primary="Panel de control" />
+            <ListItem button sx={{ pl: 4 }} onClick={() => handleItemClick('/control-panel')}>
+              <ListItemText primary="Control Panel" />
             </ListItem>
-            <ListItem button sx={{ pl: 4 }} onClick={() => router.push('/almacenes')}>
-              <ListItemText primary="Almacenes" />
+            <ListItem button sx={{ pl: 4 }} onClick={() => handleItemClick('/warehouses')}>
+              <ListItemText primary="Warehouses" />
             </ListItem>
-            <ListItem button sx={{ pl: 4 }} onClick={() => router.push('/productos')}>
-              <ListItemText primary="Productos" />
+            <ListItem button sx={{ pl: 4 }} onClick={() => handleItemClick('/products')}>
+              <ListItemText primary="Products" />
             </ListItem>
-            <ListItem button sx={{ pl: 4 }} onClick={() => router.push('/pedidos-inventario')}>
-              <ListItemText primary="Pedidos" />
+            <ListItem button sx={{ pl: 4 }} onClick={() => handleItemClick('/inventory-orders')}>
+              <ListItemText primary="Orders" />
             </ListItem>
-            <ListItem button sx={{ pl: 4 }} onClick={() => router.push('/pedidos-venta')}>
-              <ListItemText primary="Pedidos de venta" />
+            <ListItem button sx={{ pl: 4 }} onClick={() => handleItemClick('/sales-orders')}>
+              <ListItemText primary="Sales Orders" />
             </ListItem>
-            <ListItem button sx={{ pl: 4 }} onClick={() => router.push('/pedidos-compra')}>
-              <ListItemText primary="Pedidos de compra" />
+            <ListItem button sx={{ pl: 4 }} onClick={() => handleItemClick('/purchase-orders')}>
+              <ListItemText primary="Purchase Orders" />
             </ListItem>
           </List>
         </Collapse>
 
-        <ListItem button onClick={handleAccountingClick} sx={{ borderRadius: '10px', marginBottom: '10px' }}>
+        <ListItem button onClick={() => handleToggle(setOpenAccounting, openAccounting)} sx={{ borderRadius: '10px', marginBottom: '10px' }}>
           <ListItemIcon>
             <AccountBalanceIcon sx={{ color: '#6C757D' }} />
           </ListItemIcon>
-          <ListItemText primary="Contabilidad" />
-          {openAccounting ? <ExpandLess /> : <ExpandMore />}
+          <ListItemText primary="Accounting" onClick={() => !openAccounting && handleItemClick('/contabilidad')} />
+          {openAccounting ? <ExpandLess onClick={() => handleToggle(setOpenAccounting, openAccounting)} /> : <ExpandMore onClick={() => handleToggle(setOpenAccounting, openAccounting)} />}
         </ListItem>
         <Collapse in={openAccounting} timeout="auto" unmountOnExit>
           <List component="div" disablePadding>
-            <ListItem button sx={{ pl: 4 }} onClick={() => router.push('/clashflow')}>
-              <ListItemText primary="Clashflow" />
+            <ListItem button sx={{ pl: 4 }} onClick={() => handleItemClick('/cashflow')}>
+              <ListItemText primary="Cashflow" />
             </ListItem>
-            <ListItem button sx={{ pl: 4 }} onClick={() => router.push('/pagos-cobros')}>
-              <ListItemText primary="Pagos y cobros" />
+            <ListItem button sx={{ pl: 4 }} onClick={() => handleItemClick('/payments-receipts')}>
+              <ListItemText primary="Payments and Receipts" />
             </ListItem>
-            <ListItem button sx={{ pl: 4 }} onClick={() => router.push('/impuestos')}>
-              <ListItemText primary="Impuestos" />
+            <ListItem button sx={{ pl: 4 }} onClick={() => handleItemClick('/taxes')}>
+              <ListItemText primary="Taxes" />
             </ListItem>
           </List>
         </Collapse>
 
-        <ListItem button onClick={() => router.push('/gastos')} sx={{ borderRadius: '10px', marginBottom: '10px' }}>
+        <ListItem button onClick={() => handleItemClick('/expenses')} sx={{ borderRadius: '10px', marginBottom: '10px' }}>
           <ListItemIcon>
             <ShoppingCartIcon sx={{ color: '#6C757D' }} />
           </ListItemIcon>
-          <ListItemText primary="Gastos" />
+          <ListItemText primary="Expenses" />
           <IconButton
             size="large"
             color="inherit"
-            onClick={() => router.push('/crear-documento')}
+            onClick={() => router.push('/create-document')}
             sx={{ marginLeft: 'auto' }}
           >
             <AddCircleIcon sx={{ color: '#17A2B8', fontSize: '40px' }} />
           </IconButton>
+        </ListItem>
+
+        <ListItem button onClick={() => handleItemClick('/empleados')} sx={{ borderRadius: '10px', marginBottom: '10px' }}>
+          <ListItemIcon>
+            <AssignmentIndIcon sx={{ color: '#6C757D' }} />
+          </ListItemIcon>
+          <ListItemText primary="Employees" />
+        </ListItem>
+
+        <ListItem button onClick={() => handleItemClick('/proyectos')} sx={{ borderRadius: '10px', marginBottom: '10px' }}>
+          <ListItemIcon>
+            <BusinessCenterIcon sx={{ color: '#6C757D' }} />
+          </ListItemIcon>
+          <ListItemText primary="Projects" />
         </ListItem>
       </List>
     </Box>

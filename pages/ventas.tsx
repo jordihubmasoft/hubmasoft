@@ -8,28 +8,28 @@ import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
 import MoreVertIcon from '@mui/icons-material/MoreVert'
 
-const ventasData = [
-  // Datos de ejemplo para ventas
+const salesData = [
+  // Example data for sales
   {
     id: 1,
-    fecha: '2023-01-01',
-    numero: 'FAC001',
-    cliente: 'Cliente A',
-    descripcion: 'Descripción de la factura',
+    date: '2023-01-01',
+    number: 'INV001',
+    client: 'Client A',
+    description: 'Invoice description',
     total: 1000,
-    estado: 'PAGADO',
+    status: 'PAID',
   },
-  // ... más datos de ejemplo
+  // ... more example data
 ]
 
-const VentasForm = ({ open, handleClose, venta, handleSave }) => {
-  const [formData, setFormData] = useState(venta || {
-    fecha: '',
-    numero: '',
-    cliente: '',
-    descripcion: '',
+const SalesForm = ({ open, handleClose, sale, handleSave }) => {
+  const [formData, setFormData] = useState(sale || {
+    date: '',
+    number: '',
+    client: '',
+    description: '',
     total: '',
-    estado: '',
+    status: '',
   })
 
   const handleChange = (e) => {
@@ -45,53 +45,53 @@ const VentasForm = ({ open, handleClose, venta, handleSave }) => {
   }
 
   return (
-    <Dialog open={open} onClose={handleClose}>
-      <DialogTitle>{venta ? 'Editar Venta' : 'Agregar Venta'}</DialogTitle>
+    <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
+      <DialogTitle>{sale ? 'Edit Sale' : 'Add Sale'}</DialogTitle>
       <DialogContent>
         <DialogContentText>
-          {venta ? 'Edita la información de la venta' : 'Introduce la información de la nueva venta'}
+          {sale ? 'Edit the sale information' : 'Enter the new sale information'}
         </DialogContentText>
-        <TextField margin="dense" label="Fecha" name="fecha" fullWidth variant="outlined" value={formData.fecha} onChange={handleChange} />
-        <TextField margin="dense" label="Número" name="numero" fullWidth variant="outlined" value={formData.numero} onChange={handleChange} />
-        <TextField margin="dense" label="Cliente" name="cliente" fullWidth variant="outlined" value={formData.cliente} onChange={handleChange} />
-        <TextField margin="dense" label="Descripción" name="descripcion" fullWidth variant="outlined" value={formData.descripcion} onChange={handleChange} />
+        <TextField margin="dense" label="Date" name="date" fullWidth variant="outlined" value={formData.date} onChange={handleChange} />
+        <TextField margin="dense" label="Number" name="number" fullWidth variant="outlined" value={formData.number} onChange={handleChange} />
+        <TextField margin="dense" label="Client" name="client" fullWidth variant="outlined" value={formData.client} onChange={handleChange} />
+        <TextField margin="dense" label="Description" name="description" fullWidth variant="outlined" value={formData.description} onChange={handleChange} />
         <TextField margin="dense" label="Total" name="total" fullWidth variant="outlined" value={formData.total} onChange={handleChange} />
-        <TextField margin="dense" label="Estado" name="estado" fullWidth variant="outlined" value={formData.estado} onChange={handleChange} />
+        <TextField margin="dense" label="Status" name="status" fullWidth variant="outlined" value={formData.status} onChange={handleChange} />
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClose} color="primary">
-          Cancelar
+        <Button onClick={handleClose} sx={{ color: '#1A1A40', fontWeight: '500' }}>
+          Cancel
         </Button>
-        <Button onClick={handleSubmit} color="primary">
-          Guardar
+        <Button onClick={handleSubmit} sx={{ color: '#1A1A40', fontWeight: '500' }}>
+          Save
         </Button>
       </DialogActions>
     </Dialog>
   )
 }
 
-const Ventas = () => {
+const Sales = () => {
   const [open, setOpen] = useState(false)
-  const [selectedVenta, setSelectedVenta] = useState(null)
-  const [ventas, setVentas] = useState(ventasData)
+  const [selectedSale, setSelectedSale] = useState(null)
+  const [sales, setSales] = useState(salesData)
   const [anchorEl, setAnchorEl] = useState(null)
 
-  const handleOpen = (venta = null) => {
-    setSelectedVenta(venta)
+  const handleOpen = (sale = null) => {
+    setSelectedSale(sale)
     setOpen(true)
   }
 
   const handleClose = () => {
     setOpen(false)
-    setSelectedVenta(null)
+    setSelectedSale(null)
   }
 
-  const handleSave = (venta) => {
-    if (selectedVenta) {
-      setVentas(ventas.map((v) => (v.id === venta.id ? venta : v)))
+  const handleSave = (sale) => {
+    if (selectedSale) {
+      setSales(sales.map((s) => (s.id === sale.id ? sale : s)))
     } else {
-      venta.id = ventas.length + 1
-      setVentas([...ventas, venta])
+      sale.id = sales.length + 1
+      setSales([...sales, sale])
     }
   }
 
@@ -103,10 +103,10 @@ const Ventas = () => {
     setAnchorEl(null)
   }
 
-  const subcategories = ['Presupuestos', 'Pedidos', 'Albaranes', 'Facturas Proformas', 'Facturas']
+  const subcategories = ['Quotes', 'Orders', 'Delivery Notes', 'Proforma Invoices', 'Invoices']
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', bgcolor: '#EFFFFD' }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', bgcolor: '#F3F4F6' }}>
       <Header />
       <Box sx={{ display: 'flex', flexGrow: 1 }}>
         <Box
@@ -116,7 +116,13 @@ const Ventas = () => {
             flexShrink: 0,
             bgcolor: '#1A1A40',
             borderRight: 1,
-            borderColor: 'divider'
+            borderColor: 'divider',
+            borderRadius: 2,
+            overflow: 'hidden',
+            boxShadow: '0 3px 10px rgba(0, 0, 0, 0.1)',
+            zIndex: 1201,
+            position: 'fixed',
+            height: '100%',
           }}
         >
           <Sidebar />
@@ -125,18 +131,19 @@ const Ventas = () => {
           component="main"
           sx={{
             flexGrow: 1,
-            bgcolor: '#EFFFFD',
+            bgcolor: '#F3F4F6',
             p: 3,
+            marginLeft: '240px',
           }}
         >
           <Container maxWidth="lg">
-            <Typography variant="h4" gutterBottom sx={{ color: '#000000' }}>
-              Ventas
+            <Typography variant="h3" gutterBottom sx={{ color: '#1A1A40', fontWeight: '600', fontFamily: 'Roboto, sans-serif' }}>
+              Sales
             </Typography>
             <Box sx={{ display: 'flex', mb: 3 }}>
               <TextField 
                 variant="outlined" 
-                placeholder="Buscar..." 
+                placeholder="Search..." 
                 fullWidth 
                 InputProps={{
                   startAdornment: (
@@ -148,11 +155,11 @@ const Ventas = () => {
               />
               <Button 
                 variant="contained" 
-                sx={{ bgcolor: '#ffffff', color: '#000000', ml: 2 }} 
+                sx={{ bgcolor: 'linear-gradient(90deg, #2666CF, #6A82FB)', color: '#ffffff', fontWeight: '500', textTransform: 'none', borderRadius: 2, boxShadow: '0 3px 6px rgba(0,0,0,0.1)', ml: 2 }} 
                 startIcon={<AddIcon />} 
                 onClick={() => handleOpen()}
               >
-                Agregar Venta
+                Add Sale
               </Button>
             </Box>
             <Box sx={{ mb: 3 }}>
@@ -161,9 +168,9 @@ const Ventas = () => {
                 aria-haspopup="true" 
                 onClick={handleMenuClick}
                 variant="outlined"
-                sx={{ color: '#000000', borderColor: '#000000' }}
+                sx={{ color: '#1A1A40', borderColor: '#1A1A40' }}
               >
-                Subcategorías
+                Subcategories
                 <MoreVertIcon />
               </Button>
               <Menu
@@ -180,33 +187,33 @@ const Ventas = () => {
                 ))}
               </Menu>
             </Box>
-            <TableContainer component={Paper}>
+            <TableContainer component={Paper} sx={{ boxShadow: '0 3px 10px rgba(0, 0, 0, 0.1)' }}>
               <Table>
                 <TableHead>
                   <TableRow>
-                    <TableCell>Fecha</TableCell>
-                    <TableCell>Número</TableCell>
-                    <TableCell>Cliente</TableCell>
-                    <TableCell>Descripción</TableCell>
+                    <TableCell>Date</TableCell>
+                    <TableCell>Number</TableCell>
+                    <TableCell>Client</TableCell>
+                    <TableCell>Description</TableCell>
                     <TableCell>Total</TableCell>
-                    <TableCell>Estado</TableCell>
-                    <TableCell>Acciones</TableCell>
+                    <TableCell>Status</TableCell>
+                    <TableCell>Actions</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {ventas.map((venta) => (
-                    <TableRow key={venta.id}>
-                      <TableCell>{venta.fecha}</TableCell>
-                      <TableCell>{venta.numero}</TableCell>
-                      <TableCell>{venta.cliente}</TableCell>
-                      <TableCell>{venta.descripcion}</TableCell>
-                      <TableCell>{venta.total}</TableCell>
-                      <TableCell>{venta.estado}</TableCell>
+                  {sales.map((sale) => (
+                    <TableRow key={sale.id} sx={{ '&:hover': { bgcolor: '#F1F1F1' } }}>
+                      <TableCell>{sale.date}</TableCell>
+                      <TableCell>{sale.number}</TableCell>
+                      <TableCell>{sale.client}</TableCell>
+                      <TableCell>{sale.description}</TableCell>
+                      <TableCell>{sale.total}</TableCell>
+                      <TableCell>{sale.status}</TableCell>
                       <TableCell>
-                        <IconButton onClick={() => handleOpen(venta)}>
+                        <IconButton onClick={() => handleOpen(sale)} sx={{ color: '#1A1A40' }}>
                           <EditIcon />
                         </IconButton>
-                        <IconButton onClick={() => setVentas(ventas.filter((v) => v.id !== venta.id))}>
+                        <IconButton onClick={() => setSales(sales.filter((s) => s.id !== sale.id))} sx={{ color: '#B00020' }}>
                           <DeleteIcon />
                         </IconButton>
                       </TableCell>
@@ -218,9 +225,9 @@ const Ventas = () => {
           </Container>
         </Box>
       </Box>
-      <VentasForm open={open} handleClose={handleClose} venta={selectedVenta} handleSave={handleSave} />
+      <SalesForm open={open} handleClose={handleClose} sale={selectedSale} handleSave={handleSave} />
     </Box>
   )
 }
 
-export default Ventas
+export default Sales

@@ -10,57 +10,57 @@ import SearchIcon from '@mui/icons-material/Search'
 import ImportExportIcon from '@mui/icons-material/ImportExport'
 import PrintIcon from '@mui/icons-material/Print'
 
-const productosData = [
-  // Datos de ejemplo para productos
+const productsData = [
+  // Example data for products
   {
     id: 1,
-    nombre: 'Producto A',
-    descripcion: 'Descripción del producto A',
-    referencia: 'REF001',
-    codigoFabrica: 'CF001',
-    variante: 'Variante A',
+    name: 'Product A',
+    description: 'Description of product A',
+    reference: 'REF001',
+    factoryCode: 'CF001',
+    variant: 'Variant A',
     tags: 'Tag1',
-    tipo: 'Tipo A',
-    almacen: 'Almacén A',
-    canal: 'Canal A',
-    cuenta: 'Cuenta A',
+    type: 'Type A',
+    warehouse: 'Warehouse A',
+    channel: 'Channel A',
+    account: 'Account A',
     stock: 100,
-    coste: 10,
-    precioCompra: 12,
-    valorCoste: 1000,
-    valorVenta: 1200,
+    cost: 10,
+    purchasePrice: 12,
+    costValue: 1000,
+    saleValue: 1200,
     subtotal: 1000,
-    iva: 21,
-    retencion: 0,
-    recargoEquivalencia: 0,
-    impuestos: 210,
+    vat: 21,
+    retention: 0,
+    equivalenceSurcharge: 0,
+    taxes: 210,
     total: 1210,
   },
-  // ... más datos de ejemplo
+  // ... more example data
 ]
 
-const ProductoForm = ({ open, handleClose, producto, handleSave }) => {
-  const [formData, setFormData] = useState(producto || {
-    nombre: '',
-    descripcion: '',
-    referencia: '',
-    codigoFabrica: '',
-    variante: '',
+const ProductForm = ({ open, handleClose, product, handleSave }) => {
+  const [formData, setFormData] = useState(product || {
+    name: '',
+    description: '',
+    reference: '',
+    factoryCode: '',
+    variant: '',
     tags: '',
-    tipo: '',
-    almacen: '',
-    canal: '',
-    cuenta: '',
+    type: '',
+    warehouse: '',
+    channel: '',
+    account: '',
     stock: '',
-    coste: '',
-    precioCompra: '',
-    valorCoste: '',
-    valorVenta: '',
+    cost: '',
+    purchasePrice: '',
+    costValue: '',
+    saleValue: '',
     subtotal: '',
-    iva: '',
-    retencion: '',
-    recargoEquivalencia: '',
-    impuestos: '',
+    vat: '',
+    retention: '',
+    equivalenceSurcharge: '',
+    taxes: '',
     total: '',
   })
 
@@ -77,68 +77,68 @@ const ProductoForm = ({ open, handleClose, producto, handleSave }) => {
   }
 
   return (
-    <Dialog open={open} onClose={handleClose}>
-      <DialogTitle>{producto ? 'Editar Producto' : 'Agregar Producto'}</DialogTitle>
+    <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
+      <DialogTitle>{product ? 'Edit Product' : 'Add Product'}</DialogTitle>
       <DialogContent>
         <DialogContentText>
-          {producto ? 'Edita la información del producto' : 'Introduce la información del nuevo producto'}
+          {product ? 'Edit the product information' : 'Enter the new product information'}
         </DialogContentText>
-        <TextField margin="dense" label="Nombre" name="nombre" fullWidth variant="outlined" value={formData.nombre} onChange={handleChange} />
-        <TextField margin="dense" label="Descripción" name="descripcion" fullWidth variant="outlined" value={formData.descripcion} onChange={handleChange} />
-        <TextField margin="dense" label="Referencia" name="referencia" fullWidth variant="outlined" value={formData.referencia} onChange={handleChange} />
-        <TextField margin="dense" label="Código de Fábrica" name="codigoFabrica" fullWidth variant="outlined" value={formData.codigoFabrica} onChange={handleChange} />
-        <TextField margin="dense" label="Variante" name="variante" fullWidth variant="outlined" value={formData.variante} onChange={handleChange} />
+        <TextField margin="dense" label="Name" name="name" fullWidth variant="outlined" value={formData.name} onChange={handleChange} />
+        <TextField margin="dense" label="Description" name="description" fullWidth variant="outlined" value={formData.description} onChange={handleChange} />
+        <TextField margin="dense" label="Reference" name="reference" fullWidth variant="outlined" value={formData.reference} onChange={handleChange} />
+        <TextField margin="dense" label="Factory Code" name="factoryCode" fullWidth variant="outlined" value={formData.factoryCode} onChange={handleChange} />
+        <TextField margin="dense" label="Variant" name="variant" fullWidth variant="outlined" value={formData.variant} onChange={handleChange} />
         <TextField margin="dense" label="Tags" name="tags" fullWidth variant="outlined" value={formData.tags} onChange={handleChange} />
-        <TextField margin="dense" label="Tipo" name="tipo" fullWidth variant="outlined" value={formData.tipo} onChange={handleChange} />
-        <TextField margin="dense" label="Almacén" name="almacen" fullWidth variant="outlined" value={formData.almacen} onChange={handleChange} />
-        <TextField margin="dense" label="Canal" name="canal" fullWidth variant="outlined" value={formData.canal} onChange={handleChange} />
-        <TextField margin="dense" label="Cuenta" name="cuenta" fullWidth variant="outlined" value={formData.cuenta} onChange={handleChange} />
+        <TextField margin="dense" label="Type" name="type" fullWidth variant="outlined" value={formData.type} onChange={handleChange} />
+        <TextField margin="dense" label="Warehouse" name="warehouse" fullWidth variant="outlined" value={formData.warehouse} onChange={handleChange} />
+        <TextField margin="dense" label="Channel" name="channel" fullWidth variant="outlined" value={formData.channel} onChange={handleChange} />
+        <TextField margin="dense" label="Account" name="account" fullWidth variant="outlined" value={formData.account} onChange={handleChange} />
         <TextField margin="dense" label="Stock" name="stock" fullWidth variant="outlined" value={formData.stock} onChange={handleChange} />
-        <TextField margin="dense" label="Coste" name="coste" fullWidth variant="outlined" value={formData.coste} onChange={handleChange} />
-        <TextField margin="dense" label="Precio de Compra" name="precioCompra" fullWidth variant="outlined" value={formData.precioCompra} onChange={handleChange} />
-        <TextField margin="dense" label="Valor Coste" name="valorCoste" fullWidth variant="outlined" value={formData.valorCoste} onChange={handleChange} />
-        <TextField margin="dense" label="Valor Venta" name="valorVenta" fullWidth variant="outlined" value={formData.valorVenta} onChange={handleChange} />
+        <TextField margin="dense" label="Cost" name="cost" fullWidth variant="outlined" value={formData.cost} onChange={handleChange} />
+        <TextField margin="dense" label="Purchase Price" name="purchasePrice" fullWidth variant="outlined" value={formData.purchasePrice} onChange={handleChange} />
+        <TextField margin="dense" label="Cost Value" name="costValue" fullWidth variant="outlined" value={formData.costValue} onChange={handleChange} />
+        <TextField margin="dense" label="Sale Value" name="saleValue" fullWidth variant="outlined" value={formData.saleValue} onChange={handleChange} />
         <TextField margin="dense" label="Subtotal" name="subtotal" fullWidth variant="outlined" value={formData.subtotal} onChange={handleChange} />
-        <TextField margin="dense" label="IVA (%)" name="iva" fullWidth variant="outlined" value={formData.iva} onChange={handleChange} />
-        <TextField margin="dense" label="Retención" name="retencion" fullWidth variant="outlined" value={formData.retencion} onChange={handleChange} />
-        <TextField margin="dense" label="Recargo de Equivalencia" name="recargoEquivalencia" fullWidth variant="outlined" value={formData.recargoEquivalencia} onChange={handleChange} />
-        <TextField margin="dense" label="Impuestos" name="impuestos" fullWidth variant="outlined" value={formData.impuestos} onChange={handleChange} />
+        <TextField margin="dense" label="VAT (%)" name="vat" fullWidth variant="outlined" value={formData.vat} onChange={handleChange} />
+        <TextField margin="dense" label="Retention" name="retention" fullWidth variant="outlined" value={formData.retention} onChange={handleChange} />
+        <TextField margin="dense" label="Equivalence Surcharge" name="equivalenceSurcharge" fullWidth variant="outlined" value={formData.equivalenceSurcharge} onChange={handleChange} />
+        <TextField margin="dense" label="Taxes" name="taxes" fullWidth variant="outlined" value={formData.taxes} onChange={handleChange} />
         <TextField margin="dense" label="Total" name="total" fullWidth variant="outlined" value={formData.total} onChange={handleChange} />
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClose} color="primary">
-          Cancelar
+        <Button onClick={handleClose} sx={{ color: '#1A1A40', fontWeight: '500' }}>
+          Cancel
         </Button>
-        <Button onClick={handleSubmit} color="primary">
-          Guardar
+        <Button onClick={handleSubmit} sx={{ color: '#1A1A40', fontWeight: '500' }}>
+          Save
         </Button>
       </DialogActions>
     </Dialog>
   )
 }
 
-const Inventario = () => {
+const Inventory = () => {
   const [open, setOpen] = useState(false)
-  const [selectedProducto, setSelectedProducto] = useState(null)
-  const [productos, setProductos] = useState(productosData)
+  const [selectedProduct, setSelectedProduct] = useState(null)
+  const [products, setProducts] = useState(productsData)
   const [anchorEl, setAnchorEl] = useState(null)
 
-  const handleOpen = (producto = null) => {
-    setSelectedProducto(producto)
+  const handleOpen = (product = null) => {
+    setSelectedProduct(product)
     setOpen(true)
   }
 
   const handleClose = () => {
     setOpen(false)
-    setSelectedProducto(null)
+    setSelectedProduct(null)
   }
 
-  const handleSave = (producto) => {
-    if (selectedProducto) {
-      setProductos(productos.map((p) => (p.id === producto.id ? producto : p)))
+  const handleSave = (product) => {
+    if (selectedProduct) {
+      setProducts(products.map((p) => (p.id === product.id ? product : p)))
     } else {
-      producto.id = productos.length + 1
-      setProductos([...productos, producto])
+      product.id = products.length + 1
+      setProducts([...products, product])
     }
   }
 
@@ -150,23 +150,23 @@ const Inventario = () => {
     setAnchorEl(null)
   }
 
-  const operaciones = [
-    { name: 'Actualizar Stock', icon: <ImportExportIcon /> },
-    { name: 'Transferir Stock', icon: <ImportExportIcon /> },
-    { name: 'Imprimir Códigos de Barra', icon: <PrintIcon /> },
-    { name: 'Importar/Actualizar a través de Excel', icon: <ImportExportIcon /> },
+  const operations = [
+    { name: 'Update Stock', icon: <ImportExportIcon /> },
+    { name: 'Transfer Stock', icon: <ImportExportIcon /> },
+    { name: 'Print Barcodes', icon: <PrintIcon /> },
+    { name: 'Import/Update via Excel', icon: <ImportExportIcon /> },
   ]
 
-  const propiedadesProducto = [
-    { name: 'Categorías' },
-    { name: 'Familias de Producto' },
-    { name: 'Grupos de Variantes' },
-    { name: 'Listados de Precios' },
-    { name: 'Etapas Logísticas' },
+  const productProperties = [
+    { name: 'Categories' },
+    { name: 'Product Families' },
+    { name: 'Variant Groups' },
+    { name: 'Price Lists' },
+    { name: 'Logistics Stages' },
   ]
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', bgcolor: '#EFFFFD' }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', bgcolor: '#F3F4F6' }}>
       <Header />
       <Box sx={{ display: 'flex', flexGrow: 1 }}>
         <Box
@@ -176,7 +176,13 @@ const Inventario = () => {
             flexShrink: 0,
             bgcolor: '#1A1A40',
             borderRight: 1,
-            borderColor: 'divider'
+            borderColor: 'divider',
+            borderRadius: 2,
+            overflow: 'hidden',
+            boxShadow: '0 3px 10px rgba(0, 0, 0, 0.1)',
+            zIndex: 1201,
+            position: 'fixed',
+            height: '100%',
           }}
         >
           <Sidebar />
@@ -185,18 +191,19 @@ const Inventario = () => {
           component="main"
           sx={{
             flexGrow: 1,
-            bgcolor: '#EFFFFD',
+            bgcolor: '#F3F4F6',
             p: 3,
+            marginLeft: '240px',
           }}
         >
           <Container maxWidth="lg">
-            <Typography variant="h4" gutterBottom sx={{ color: '#000000' }}>
-              Inventario
+            <Typography variant="h3" gutterBottom sx={{ color: '#1A1A40', fontWeight: '600', fontFamily: 'Roboto, sans-serif' }}>
+              Inventory
             </Typography>
             <Box sx={{ display: 'flex', mb: 3 }}>
               <TextField 
                 variant="outlined" 
-                placeholder="Buscar..." 
+                placeholder="Search..." 
                 fullWidth 
                 InputProps={{
                   startAdornment: (
@@ -208,11 +215,11 @@ const Inventario = () => {
               />
               <Button 
                 variant="contained" 
-                sx={{ bgcolor: '#ffffff', color: '#000000', ml: 2 }} 
+                sx={{ bgcolor: 'linear-gradient(90deg, #2666CF, #6A82FB)', color: '#ffffff', fontWeight: '500', textTransform: 'none', borderRadius: 2, boxShadow: '0 3px 6px rgba(0,0,0,0.1)', ml: 2 }} 
                 startIcon={<AddIcon />} 
                 onClick={() => handleOpen()}
               >
-                Nuevo Producto
+                New Product
               </Button>
               <IconButton aria-controls="simple-menu" aria-haspopup="true" onClick={handleMenuClick}>
                 <MoreVertIcon />
@@ -224,71 +231,71 @@ const Inventario = () => {
                 open={Boolean(anchorEl)}
                 onClose={handleMenuClose}
               >
-                {operaciones.map((operacion) => (
-                  <MenuItem key={operacion.name} onClick={handleMenuClose}>
-                    {operacion.icon}
-                    {operacion.name}
+                {operations.map((operation) => (
+                  <MenuItem key={operation.name} onClick={handleMenuClose}>
+                    {operation.icon}
+                    {operation.name}
                   </MenuItem>
                 ))}
               </Menu>
             </Box>
-            <TableContainer component={Paper}>
+            <TableContainer component={Paper} sx={{ boxShadow: '0 3px 10px rgba(0, 0, 0, 0.1)' }}>
               <Table>
                 <TableHead>
                   <TableRow>
-                    <TableCell>Nombre</TableCell>
-                    <TableCell>Descripción</TableCell>
-                    <TableCell>Referencia</TableCell>
-                    <TableCell>Código de Fábrica</TableCell>
-                    <TableCell>Variante</TableCell>
+                    <TableCell>Name</TableCell>
+                    <TableCell>Description</TableCell>
+                    <TableCell>Reference</TableCell>
+                    <TableCell>Factory Code</TableCell>
+                    <TableCell>Variant</TableCell>
                     <TableCell>Tags</TableCell>
-                    <TableCell>Tipo</TableCell>
-                    <TableCell>Almacén</TableCell>
-                    <TableCell>Canal</TableCell>
-                    <TableCell>Cuenta</TableCell>
+                    <TableCell>Type</TableCell>
+                    <TableCell>Warehouse</TableCell>
+                    <TableCell>Channel</TableCell>
+                    <TableCell>Account</TableCell>
                     <TableCell>Stock</TableCell>
-                    <TableCell>Coste</TableCell>
-                    <TableCell>Precio de Compra</TableCell>
-                    <TableCell>Valor Coste</TableCell>
-                    <TableCell>Valor Venta</TableCell>
+                    <TableCell>Cost</TableCell>
+                    <TableCell>Purchase Price</TableCell>
+                    <TableCell>Cost Value</TableCell>
+                    <TableCell>Sale Value</TableCell>
                     <TableCell>Subtotal</TableCell>
-                    <TableCell>IVA (%)</TableCell>
-                    <TableCell>Retención</TableCell>
-                    <TableCell>Recargo de Equivalencia</TableCell>
-                    <TableCell>Impuestos</TableCell>
+                    <TableCell>VAT (%)</TableCell>
+                    <TableCell>Retention</TableCell>
+                    <TableCell>Equivalence Surcharge</TableCell>
+                    <TableCell>Taxes</TableCell>
                     <TableCell>Total</TableCell>
-                    <TableCell>Acciones</TableCell>
+                    <TableCell>Actions</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {productos.map((producto) => (
-                    <TableRow key={producto.id}>
-                      <TableCell>{producto.nombre}</TableCell>
-                      <TableCell>{producto.descripcion}</TableCell>
-                      <TableCell>{producto.referencia}</TableCell>
-                      <TableCell>{producto.codigoFabrica}</TableCell>
-                      <TableCell>{producto.variante}</TableCell>
-                      <TableCell>{producto.tags}</TableCell>
-                      <TableCell>{producto.tipo}</TableCell>
-                      <TableCell>{producto.almacen}</TableCell>
-                      <TableCell>{producto.canal}</TableCell>
-                      <TableCell>{producto.cuenta}</TableCell>
-                      <TableCell>{producto.stock}</TableCell>
-                      <TableCell>{producto.coste}</TableCell>
-                      <TableCell>{producto.precioCompra}</TableCell>
-                      <TableCell>{producto.valorCoste}</TableCell>
-                      <TableCell>{producto.valorVenta}</TableCell>
-                      <TableCell>{producto.subtotal}</TableCell>
-                      <TableCell>{producto.iva}</TableCell>
-                      <TableCell>{producto.retencion}</TableCell>
-                      <TableCell>{producto.recargoEquivalencia}</TableCell>
-                      <TableCell>{producto.impuestos}</TableCell>
-                      <TableCell>{producto.total}</TableCell>
+                  {products.map((product) => (
+                    <TableRow key={product.id} sx={{ '&:hover': { bgcolor: '#F1F1F1' } }}>
+                      <TableCell>{product.name}</TableCell>
+                      <TableCell>{product.description}</TableCell>
+                      <TableCell>{product.reference}</TableCell>
+                      <TableCell>{product.factoryCode}</TableCell>
+                      <TableCell>{product.variant}</TableCell>
+                      <TableCell>{product.tags}</TableCell>
+                      <TableCell>{product.type}</TableCell>
+                      <TableCell>{product.warehouse}</TableCell>
+                      <TableCell>{product.channel}</TableCell>
+                      <TableCell>{product.account}</TableCell>
+                      <TableCell>{product.stock}</TableCell>
+                      <TableCell>{product.cost}</TableCell>
+                      <TableCell>{product.purchasePrice}</TableCell>
+                      <TableCell>{product.costValue}</TableCell>
+                      <TableCell>{product.saleValue}</TableCell>
+                      <TableCell>{product.subtotal}</TableCell>
+                      <TableCell>{product.vat}</TableCell>
+                      <TableCell>{product.retention}</TableCell>
+                      <TableCell>{product.equivalenceSurcharge}</TableCell>
+                      <TableCell>{product.taxes}</TableCell>
+                      <TableCell>{product.total}</TableCell>
                       <TableCell>
-                        <IconButton onClick={() => handleOpen(producto)}>
+                        <IconButton onClick={() => handleOpen(product)} sx={{ color: '#1A1A40' }}>
                           <EditIcon />
                         </IconButton>
-                        <IconButton onClick={() => setProductos(productos.filter((p) => p.id !== producto.id))}>
+                        <IconButton onClick={() => setProducts(products.filter((p) => p.id !== product.id))} sx={{ color: '#B00020' }}>
                           <DeleteIcon />
                         </IconButton>
                       </TableCell>
@@ -300,9 +307,9 @@ const Inventario = () => {
           </Container>
         </Box>
       </Box>
-      <ProductoForm open={open} handleClose={handleClose} producto={selectedProducto} handleSave={handleSave} />
+      <ProductForm open={open} handleClose={handleClose} product={selectedProduct} handleSave={handleSave} />
     </Box>
   )
 }
 
-export default Inventario
+export default Inventory

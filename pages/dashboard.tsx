@@ -38,15 +38,15 @@ const Dashboard = () => {
 
   const handleFormSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    // TODO: lógica para guardar la información adicional del usuario
+    // TODO: logic to save additional user information
     setOpen(false)
   }
 
   const data = {
-    labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul'],
+    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
     datasets: [
       {
-        label: 'Ventas',
+        label: 'Sales',
         data: [500, 400, 600, 700, 800, 900, 1000],
         borderColor: '#2666CF',
         backgroundColor: 'rgba(0, 0, 0, 0)',
@@ -54,7 +54,7 @@ const Dashboard = () => {
         fill: false,
       },
       {
-        label: 'Compras',
+        label: 'Purchases',
         data: [300, 200, 400, 500, 600, 700, 800],
         borderColor: '#1A1A40',
         backgroundColor: 'rgba(0, 0, 0, 0)',
@@ -86,7 +86,7 @@ const Dashboard = () => {
         display: true,
         title: {
           display: true,
-          text: 'Meses',
+          text: 'Months',
           color: '#666666',
           font: {
             size: 14,
@@ -97,7 +97,7 @@ const Dashboard = () => {
         display: true,
         title: {
           display: true,
-          text: 'Cantidad',
+          text: 'Amount',
           color: '#666666',
           font: {
             size: 14,
@@ -144,17 +144,17 @@ const Dashboard = () => {
             </Typography>
             <Box sx={{ display: 'flex', mb: 3 }}>
               <Button variant="contained" sx={{ bgcolor: 'linear-gradient(90deg, #2666CF, #6A82FB)', color: '#ffffff', fontWeight: '500', textTransform: 'none', borderRadius: 2, boxShadow: '0 3px 6px rgba(0,0,0,0.1)', padding: '10px 20px' }}>
-                Nuevas solicitudes de contactos
+                New contact requests
               </Button>
               <Button variant="outlined" sx={{ ml: 2, borderColor: '#2666CF', color: '#2666CF', fontWeight: '500', textTransform: 'none', borderRadius: 2, padding: '10px 20px', boxShadow: '0 3px 6px rgba(0,0,0,0.1)' }}>
-                Nuevos documentos recibidos
+                New documents received
               </Button>
             </Box>
             <Grid container spacing={3}>
               <Grid item xs={12} md={3}>
                 <Paper sx={{ p: 3, display: 'flex', flexDirection: 'column', bgcolor: '#ffffff', borderRadius: 2, boxShadow: '0 3px 10px rgba(0, 0, 0, 0.1)', transition: '0.3s', '&:hover': { transform: 'translateY(-5px)', boxShadow: '0 6px 15px rgba(0, 0, 0, 0.15)' } }}>
                   <Typography variant="h6" gutterBottom sx={{ color: '#1A1A40', fontWeight: '500', fontFamily: 'Roboto, sans-serif' }}>
-                    Ventas totales
+                    Total Sales
                   </Typography>
                   <Typography variant="h4" sx={{ color: '#1A1A40', fontWeight: '700', fontFamily: 'Roboto, sans-serif' }}>$1,000</Typography>
                 </Paper>
@@ -162,7 +162,7 @@ const Dashboard = () => {
               <Grid item xs={12} md={3}>
                 <Paper sx={{ p: 3, display: 'flex', flexDirection: 'column', bgcolor: '#ffffff', borderRadius: 2, boxShadow: '0 3px 10px rgba(0, 0, 0, 0.1)', transition: '0.3s', '&:hover': { transform: 'translateY(-5px)', boxShadow: '0 6px 15px rgba(0, 0, 0, 0.15)' } }}>
                   <Typography variant="h6" gutterBottom sx={{ color: '#1A1A40', fontWeight: '500', fontFamily: 'Roboto, sans-serif' }}>
-                    Compras totales
+                    Total Purchases
                   </Typography>
                   <Typography variant="h4" sx={{ color: '#1A1A40', fontWeight: '700', fontFamily: 'Roboto, sans-serif' }}>$2,000</Typography>
                 </Paper>
@@ -170,7 +170,7 @@ const Dashboard = () => {
               <Grid item xs={12} md={3}>
                 <Paper sx={{ p: 3, display: 'flex', flexDirection: 'column', bgcolor: '#ffffff', borderRadius: 2, boxShadow: '0 3px 10px rgba(0, 0, 0, 0.1)', transition: '0.3s', '&:hover': { transform: 'translateY(-5px)', boxShadow: '0 6px 15px rgba(0, 0, 0, 0.15)' } }}>
                   <Typography variant="h6" gutterBottom sx={{ color: '#1A1A40', fontWeight: '500', fontFamily: 'Roboto, sans-serif' }}>
-                    Beneficio este mes
+                    Profit this month
                   </Typography>
                   <Typography variant="h4" sx={{ color: '#1A1A40', fontWeight: '700', fontFamily: 'Roboto, sans-serif' }}>$1,000</Typography>
                 </Paper>
@@ -186,7 +186,7 @@ const Dashboard = () => {
               <Grid item xs={12}>
                 <Paper sx={{ p: 3, display: 'flex', flexDirection: 'column', bgcolor: '#ffffff', borderRadius: 2, boxShadow: '0 3px 10px rgba(0, 0, 0, 0.1)' }}>
                   <Typography variant="h6" gutterBottom sx={{ color: '#1A1A40', fontWeight: '500', fontFamily: 'Roboto, sans-serif' }}>
-                    Ventas y compras
+                    Sales and Purchases
                   </Typography>
                   <Box sx={{ height: 400 }}>
                     <Line data={data} options={options} />
@@ -198,65 +198,65 @@ const Dashboard = () => {
         </Box>
       </Box>
 
-      {/* Dialog para completar información del usuario */}
+      {/* Dialog to complete user information */}
       <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
-        <DialogTitle sx={{ fontWeight: '700', fontFamily: 'Roboto, sans-serif' }}>Completa tu información</DialogTitle>
+        <DialogTitle sx={{ fontWeight: '700', fontFamily: 'Roboto, sans-serif' }}>Complete your information</DialogTitle>
         <DialogContent>
           <DialogContentText sx={{ fontWeight: '400', fontFamily: 'Roboto, sans-serif' }}>
-            Por favor, completa la siguiente información para continuar.
+            Please complete the following information to continue.
           </DialogContentText>
           <Box component="form" onSubmit={handleFormSubmit} noValidate sx={{ mt: 1 }}>
             <FormControl component="fieldset" sx={{ mb: 2 }}>
-              <FormLabel component="legend" sx={{ fontWeight: '500', fontFamily: 'Roboto, sans-serif' }}>Tipo de Usuario</FormLabel>
+              <FormLabel component="legend" sx={{ fontWeight: '500', fontFamily: 'Roboto, sans-serif' }}>User Type</FormLabel>
               <RadioGroup row value={userType} onChange={handleUserTypeChange}>
-                <FormControlLabel value="autonomo" control={<Radio />} label="Autónomo" />
-                <FormControlLabel value="empresa" control={<Radio />} label="Empresa" />
+                <FormControlLabel value="freelancer" control={<Radio />} label="Freelancer" />
+                <FormControlLabel value="company" control={<Radio />} label="Company" />
               </RadioGroup>
             </FormControl>
             <Grid container spacing={2}>
               <Grid item xs={12} sm={6}>
-                <TextField margin="dense" label="Nombre fiscal" name="nombreFiscal" fullWidth variant="outlined" />
+                <TextField margin="dense" label="Fiscal Name" name="fiscalName" fullWidth variant="outlined" />
               </Grid>
               <Grid item xs={12} sm={6}>
-                <TextField margin="dense" label="NIF o CIF" name="nif" fullWidth variant="outlined" />
+                <TextField margin="dense" label="NIF or CIF" name="nif" fullWidth variant="outlined" />
               </Grid>
               <Grid item xs={12} sm={6}>
-                <TextField margin="dense" label="Nombre comercial" name="nombreComercial" fullWidth variant="outlined" />
+                <TextField margin="dense" label="Commercial Name" name="commercialName" fullWidth variant="outlined" />
               </Grid>
               <Grid item xs={12} sm={6}>
-                <TextField margin="dense" label="Dirección fiscal" name="direccionFiscal" fullWidth variant="outlined" />
+                <TextField margin="dense" label="Fiscal Address" name="fiscalAddress" fullWidth variant="outlined" />
               </Grid>
               <Grid item xs={12} sm={4}>
-                <TextField margin="dense" label="Población" name="poblacion" fullWidth variant="outlined" />
+                <TextField margin="dense" label="City" name="city" fullWidth variant="outlined" />
               </Grid>
               <Grid item xs={12} sm={4}>
-                <TextField margin="dense" label="Provincia" name="provincia" fullWidth variant="outlined" />
+                <TextField margin="dense" label="Province" name="province" fullWidth variant="outlined" />
               </Grid>
               <Grid item xs={12} sm={4}>
-                <TextField margin="dense" label="Código postal" name="codigoPostal" fullWidth variant="outlined" />
+                <TextField margin="dense" label="Postal Code" name="postalCode" fullWidth variant="outlined" />
               </Grid>
               <Grid item xs={12} sm={4}>
-                <TextField margin="dense" label="País" name="pais" fullWidth variant="outlined" />
+                <TextField margin="dense" label="Country" name="country" fullWidth variant="outlined" />
               </Grid>
               <Grid item xs={12} sm={4}>
-                <TextField margin="dense" label="Teléfono" name="telefono" fullWidth variant="outlined" />
+                <TextField margin="dense" label="Phone" name="phone" fullWidth variant="outlined" />
               </Grid>
               <Grid item xs={12} sm={4}>
-                <TextField margin="dense" label="Móvil" name="movil" fullWidth variant="outlined" />
+                <TextField margin="dense" label="Mobile" name="mobile" fullWidth variant="outlined" />
               </Grid>
               <Grid item xs={12} sm={6}>
                 <TextField margin="dense" label="Email" name="email" fullWidth variant="outlined" />
               </Grid>
               <Grid item xs={12} sm={6}>
-                <TextField margin="dense" label="Sitio web" name="sitioWeb" fullWidth variant="outlined" />
+                <TextField margin="dense" label="Website" name="website" fullWidth variant="outlined" />
               </Grid>
             </Grid>
             <DialogActions>
               <Button onClick={handleClose} sx={{ color: '#1A1A40', fontWeight: '500' }}>
-                Rellenar más tarde
+                Fill out later
               </Button>
               <Button type="submit" sx={{ color: '#1A1A40', fontWeight: '500' }}>
-                Guardar
+                Save
               </Button>
             </DialogActions>
           </Box>
