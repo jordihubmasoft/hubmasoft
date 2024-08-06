@@ -1,5 +1,5 @@
-import { CommonResponse } from "../types/CommonResponse";
-import { LoginResponse, UserLogin } from "../types/UserLogin";
+import { UserLogin, LoginResponse } from '../types/UserLogin';
+import { CommonResponse } from '../types/CommonResponse';
 
 export default class AuthenticatorService {
   static async userLogin(

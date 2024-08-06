@@ -22,8 +22,8 @@ import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
 import axios from "axios";
 import { Copyright } from "@mui/icons-material";
-import AuthenticationService from "./services/AuthenticatorService";
-import { LoginResponse, UserLogin } from "./types/UserLogin";
+import AuthenticationService from "../services/AuthenticatorService";
+import { LoginResponse, UserLogin } from "../types/UserLogin";
 
 const theme = createTheme();
 
@@ -55,13 +55,6 @@ const Login = () => {
         email,
         password,
       });
-      /*  const response = await axios.post(
-        "https://hubmasoftapi-dpaph6a7h5bja0cr.eastus-01.azurewebsites.net/user/login",
-        {
-          email,
-          password,
-        }
-      );*/
       const userLogin: UserLogin = {
         userName: email,
         password: password,
@@ -72,10 +65,6 @@ const Login = () => {
         console.log("Token:", token);
       });
       console.log("Respuesta recibida:", response);
-      //if (response.status === 200) {
-      //  localStorage.setItem("token", response.data.token);
-      //  router.push("/dashboard");
-      //}
     } catch (error) {
       console.error("Error en la solicitud de inicio de sesión:", error);
       setEmailError(true);
