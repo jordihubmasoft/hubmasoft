@@ -14,7 +14,7 @@ import Typography from "@mui/material/Typography";
 import Container from "@mui/material/Container";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import Image from "next/image";
-import Logo from "../public/img/Logo.svg";
+import Logo from "@public/img/Logo.svg";
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
@@ -24,10 +24,15 @@ import axios from "axios";
 import { Copyright } from "@mui/icons-material";
 import AuthenticationService from "../services/AuthenticatorService";
 import { LoginResponse, UserLogin } from "../types/UserLogin";
+import { useLogin } from "hooks/useAuthentication";
+import { useRegister } from "hooks/userRegister";
+import Register from "./login/register/Register";
+import { CircularProgress } from "@mui/material";
 
 const theme = createTheme();
 
 const Login = () => {
+  const { login, data, error, loading } = useLogin();
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -43,73 +48,19 @@ const Login = () => {
     phone: "",
   });
 
-  const handleLogin = async () => {};
-
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setEmailError(false);
     setPasswordError(false);
     setErrorMessage("");
-    try {
-      console.log("Enviando solicitud de inicio de sesión con", {
-        email,
-        password,
-      });
-      const userLogin: UserLogin = {
-        userName: email,
-        password: password,
-      };
-      let response: LoginResponse;
-      await AuthenticationService.userLogin(userLogin).then(async (data) => {
-        const token = data.data.token;
-        console.log("Token:", token);
-      });
-      console.log("Respuesta recibida:", response);
-    } catch (error) {
-      console.error("Error en la solicitud de inicio de sesión:", error);
-      setEmailError(true);
-      setPasswordError(true);
-      setErrorMessage(
-        "Error al iniciar sesión: Verifique sus credenciales e intente nuevamente."
-      );
-    }
-  };
-
-  const handleRegisterSubmit = async (
-    event: React.FormEvent<HTMLFormElement>
-  ) => {
     event.preventDefault();
-    if (registerData.password !== registerData.confirmPassword) {
-      alert("Las contraseñas no coinciden");
-      return;
+    const user: UserLogin = { username: email, password: password };
+    await login(user);
+    if (data) {
+      router.push("/dashboard");
+    } else {
+      setErrorMessage(error);
     }
-    try {
-      console.log("Enviando solicitud de registro con", registerData);
-      const response = await axios.post(
-        "https://hubmasoftapi-dpaph6a7h5bja0cr.eastus-01.azurewebsites.net/user/register",
-        registerData
-      );
-      console.log("Respuesta recibida:", response);
-      if (response.status === 200) {
-        setOpenRegister(false);
-        router.push("/dashboard");
-      }
-    } catch (error) {
-      console.error("Error en la solicitud de registro:", error);
-      if (error.response) {
-        console.log("Error data:", error.response.data);
-        setErrorMessage("Error al registrar: " + error.response.data.message);
-      } else {
-        setErrorMessage("Error al registrar: " + error.message);
-      }
-    }
-  };
-
-  const handleRegisterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setRegisterData({
-      ...registerData,
-      [e.target.name]: e.target.value,
-    });
   };
 
   return (
@@ -200,7 +151,11 @@ const Login = () => {
               variant="contained"
               sx={{ mt: 3, mb: 2 }}
             >
-              Iniciar Sesión
+              {loading ? (
+                <CircularProgress size={24} sx={{ ml: 2 }} />
+              ) : (
+                "Iniciar Sesión"
+              )}
             </Button>
             <Grid container>
               <Grid item xs>
@@ -223,88 +178,7 @@ const Login = () => {
         <Copyright sx={{ mt: 4, mb: 4 }} />
       </Container>
 
-      {/* Dialog para Registro */}
-      <Dialog open={openRegister} onClose={() => setOpenRegister(false)}>
-        <DialogTitle>Regístrate</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            Completa los siguientes campos para crear tu cuenta.
-          </DialogContentText>
-          <Box
-            component="form"
-            onSubmit={handleRegisterSubmit}
-            noValidate
-            sx={{ mt: 1 }}
-          >
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              id="nombre"
-              label="Nombre"
-              name="nombre"
-              autoComplete="name"
-              autoFocus
-              value={registerData.nombre}
-              onChange={handleRegisterChange}
-            />
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              id="email"
-              label="Correo Electrónico"
-              name="email"
-              autoComplete="email"
-              value={registerData.email}
-              onChange={handleRegisterChange}
-            />
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              name="password"
-              label="Contraseña"
-              type="password"
-              id="password"
-              autoComplete="new-password"
-              value={registerData.password}
-              onChange={handleRegisterChange}
-            />
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              name="confirmPassword"
-              label="Confirmar Contraseña"
-              type="password"
-              id="confirmPassword"
-              autoComplete="new-password"
-              value={registerData.confirmPassword}
-              onChange={handleRegisterChange}
-            />
-            <TextField
-              margin="normal"
-              fullWidth
-              name="phone"
-              label="Número de Teléfono (opcional)"
-              type="tel"
-              id="phone"
-              autoComplete="tel"
-              value={registerData.phone}
-              onChange={handleRegisterChange}
-            />
-            <DialogActions>
-              <Button onClick={() => setOpenRegister(false)} color="primary">
-                Cancelar
-              </Button>
-              <Button type="submit" color="primary">
-                Registrarse
-              </Button>
-            </DialogActions>
-          </Box>
-        </DialogContent>
-      </Dialog>
+      {openRegister && <Register />}
     </ThemeProvider>
   );
 };

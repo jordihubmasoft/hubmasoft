@@ -19,7 +19,16 @@
     "jsx": "preserve",
     "baseUrl": "src", 
     "paths": {
-      "@types/*": ["types/*"] 
+      "@types/*": ["types/*"] ,
+      "@public/*": ["../public/*"],
+      "@components/*": ["../components/*"],
+      "@services/*": ["./services/*"],
+      "@hooks/*": ["./hooks/*"],
+      "@utils/*": ["./utils/*"],
+      "@pages/*": ["./pages/*"],
+      "@styles/*": ["./styles/*"],
+      "@constants/*": ["./constants/*"],
+      "@contexts/*": ["./contexts/*"],
     }
   },
   "include": [
