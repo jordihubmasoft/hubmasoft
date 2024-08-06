@@ -8,28 +8,28 @@ import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
 import MoreVertIcon from '@mui/icons-material/MoreVert'
 
-const ventasData = [
-  // Datos de ejemplo para ventas
+const purchasesData = [
+  // Example data for purchases
   {
     id: 1,
-    fecha: '2023-01-01',
-    numero: 'FAC001',
-    cliente: 'Cliente A',
-    descripcion: 'Descripción de la factura',
+    date: '2023-01-01',
+    number: 'PUR001',
+    supplier: 'Supplier A',
+    description: 'Purchase description',
     total: 1000,
-    estado: 'PAGADO',
+    status: 'PAID',
   },
-  // ... más datos de ejemplo
+  // ... more example data
 ]
 
-const VentasForm = ({ open, handleClose, venta, handleSave }) => {
-  const [formData, setFormData] = useState(venta || {
-    fecha: '',
-    numero: '',
-    cliente: '',
-    descripcion: '',
+const PurchasesForm = ({ open, handleClose, purchase, handleSave }) => {
+  const [formData, setFormData] = useState(purchase || {
+    date: '',
+    number: '',
+    supplier: '',
+    description: '',
     total: '',
-    estado: '',
+    status: '',
   })
 
   const handleChange = (e) => {
@@ -46,52 +46,52 @@ const VentasForm = ({ open, handleClose, venta, handleSave }) => {
 
   return (
     <Dialog open={open} onClose={handleClose}>
-      <DialogTitle>{venta ? 'Editar Venta' : 'Agregar Venta'}</DialogTitle>
+      <DialogTitle>{purchase ? 'Edit Purchase' : 'Add Purchase'}</DialogTitle>
       <DialogContent>
         <DialogContentText>
-          {venta ? 'Edita la información de la venta' : 'Introduce la información de la nueva venta'}
+          {purchase ? 'Edit the purchase information' : 'Enter the new purchase information'}
         </DialogContentText>
-        <TextField margin="dense" label="Fecha" name="fecha" fullWidth variant="outlined" value={formData.fecha} onChange={handleChange} />
-        <TextField margin="dense" label="Número" name="numero" fullWidth variant="outlined" value={formData.numero} onChange={handleChange} />
-        <TextField margin="dense" label="Cliente" name="cliente" fullWidth variant="outlined" value={formData.cliente} onChange={handleChange} />
-        <TextField margin="dense" label="Descripción" name="descripcion" fullWidth variant="outlined" value={formData.descripcion} onChange={handleChange} />
+        <TextField margin="dense" label="Date" name="date" fullWidth variant="outlined" value={formData.date} onChange={handleChange} />
+        <TextField margin="dense" label="Number" name="number" fullWidth variant="outlined" value={formData.number} onChange={handleChange} />
+        <TextField margin="dense" label="Supplier" name="supplier" fullWidth variant="outlined" value={formData.supplier} onChange={handleChange} />
+        <TextField margin="dense" label="Description" name="description" fullWidth variant="outlined" value={formData.description} onChange={handleChange} />
         <TextField margin="dense" label="Total" name="total" fullWidth variant="outlined" value={formData.total} onChange={handleChange} />
-        <TextField margin="dense" label="Estado" name="estado" fullWidth variant="outlined" value={formData.estado} onChange={handleChange} />
+        <TextField margin="dense" label="Status" name="status" fullWidth variant="outlined" value={formData.status} onChange={handleChange} />
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose} color="primary">
-          Cancelar
+          Cancel
         </Button>
         <Button onClick={handleSubmit} color="primary">
-          Guardar
+          Save
         </Button>
       </DialogActions>
     </Dialog>
   )
 }
 
-const Ventas = () => {
+const Purchases = () => {
   const [open, setOpen] = useState(false)
-  const [selectedVenta, setSelectedVenta] = useState(null)
-  const [ventas, setVentas] = useState(ventasData)
+  const [selectedPurchase, setSelectedPurchase] = useState(null)
+  const [purchases, setPurchases] = useState(purchasesData)
   const [anchorEl, setAnchorEl] = useState(null)
 
-  const handleOpen = (venta = null) => {
-    setSelectedVenta(venta)
+  const handleOpen = (purchase = null) => {
+    setSelectedPurchase(purchase)
     setOpen(true)
   }
 
   const handleClose = () => {
     setOpen(false)
-    setSelectedVenta(null)
+    setSelectedPurchase(null)
   }
 
-  const handleSave = (venta) => {
-    if (selectedVenta) {
-      setVentas(ventas.map((v) => (v.id === venta.id ? venta : v)))
+  const handleSave = (purchase) => {
+    if (selectedPurchase) {
+      setPurchases(purchases.map((p) => (p.id === purchase.id ? purchase : p)))
     } else {
-      venta.id = ventas.length + 1
-      setVentas([...ventas, venta])
+      purchase.id = purchases.length + 1
+      setPurchases([...purchases, purchase])
     }
   }
 
@@ -103,7 +103,7 @@ const Ventas = () => {
     setAnchorEl(null)
   }
 
-  const subcategories = ['Presupuestos', 'Pedidos', 'Albaranes', 'Facturas Proformas', 'Facturas']
+  const subcategories = ['Quotes', 'Orders', 'Delivery Notes', 'Proforma Invoices', 'Invoices']
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', bgcolor: '#EFFFFD' }}>
@@ -131,12 +131,12 @@ const Ventas = () => {
         >
           <Container maxWidth="lg">
             <Typography variant="h4" gutterBottom sx={{ color: '#000000' }}>
-              Ventas
+              Purchases
             </Typography>
             <Box sx={{ display: 'flex', mb: 3 }}>
               <TextField 
                 variant="outlined" 
-                placeholder="Buscar..." 
+                placeholder="Search..." 
                 fullWidth 
                 InputProps={{
                   startAdornment: (
@@ -152,7 +152,7 @@ const Ventas = () => {
                 startIcon={<AddIcon />} 
                 onClick={() => handleOpen()}
               >
-                Agregar Venta
+                Add Purchase
               </Button>
             </Box>
             <Box sx={{ mb: 3 }}>
@@ -163,7 +163,7 @@ const Ventas = () => {
                 variant="outlined"
                 sx={{ color: '#000000', borderColor: '#000000' }}
               >
-                Subcategorías
+                Subcategories
                 <MoreVertIcon />
               </Button>
               <Menu
@@ -184,29 +184,29 @@ const Ventas = () => {
               <Table>
                 <TableHead>
                   <TableRow>
-                    <TableCell>Fecha</TableCell>
-                    <TableCell>Número</TableCell>
-                    <TableCell>Cliente</TableCell>
-                    <TableCell>Descripción</TableCell>
+                    <TableCell>Date</TableCell>
+                    <TableCell>Number</TableCell>
+                    <TableCell>Supplier</TableCell>
+                    <TableCell>Description</TableCell>
                     <TableCell>Total</TableCell>
-                    <TableCell>Estado</TableCell>
-                    <TableCell>Acciones</TableCell>
+                    <TableCell>Status</TableCell>
+                    <TableCell>Actions</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {ventas.map((venta) => (
-                    <TableRow key={venta.id}>
-                      <TableCell>{venta.fecha}</TableCell>
-                      <TableCell>{venta.numero}</TableCell>
-                      <TableCell>{venta.cliente}</TableCell>
-                      <TableCell>{venta.descripcion}</TableCell>
-                      <TableCell>{venta.total}</TableCell>
-                      <TableCell>{venta.estado}</TableCell>
+                  {purchases.map((purchase) => (
+                    <TableRow key={purchase.id}>
+                      <TableCell>{purchase.date}</TableCell>
+                      <TableCell>{purchase.number}</TableCell>
+                      <TableCell>{purchase.supplier}</TableCell>
+                      <TableCell>{purchase.description}</TableCell>
+                      <TableCell>{purchase.total}</TableCell>
+                      <TableCell>{purchase.status}</TableCell>
                       <TableCell>
-                        <IconButton onClick={() => handleOpen(venta)}>
+                        <IconButton onClick={() => handleOpen(purchase)}>
                           <EditIcon />
                         </IconButton>
-                        <IconButton onClick={() => setVentas(ventas.filter((v) => v.id !== venta.id))}>
+                        <IconButton onClick={() => setPurchases(purchases.filter((p) => p.id !== purchase.id))}>
                           <DeleteIcon />
                         </IconButton>
                       </TableCell>
@@ -218,9 +218,9 @@ const Ventas = () => {
           </Container>
         </Box>
       </Box>
-      <VentasForm open={open} handleClose={handleClose} venta={selectedVenta} handleSave={handleSave} />
+      <PurchasesForm open={open} handleClose={handleClose} purchase={selectedPurchase} handleSave={handleSave} />
     </Box>
   )
 }
 
-export default Ventas
+export default Purchases

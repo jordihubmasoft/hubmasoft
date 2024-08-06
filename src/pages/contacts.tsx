@@ -1,11 +1,13 @@
 import { useState } from 'react'
-import { Box, Container, Grid, Paper, Typography, Button, TextField, IconButton, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, InputAdornment } from '@mui/material'
+import { Box, Container, Grid, Paper, Typography, Button, TextField, IconButton, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, InputAdornment, MenuItem, FormControl, Select, InputLabel } from '@mui/material'
 import Header from '../componentes/Header'
 import Sidebar from '../componentes/Sidebar'
 import SearchIcon from '@mui/icons-material/Search'
 import AddIcon from '@mui/icons-material/Add'
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
+import ImportExportIcon from '@mui/icons-material/ImportExport'
+import PortalIcon from '@mui/icons-material/Language'
 
 const contactsData = [
   {
@@ -81,7 +83,22 @@ const ContactForm = ({ open, handleClose, contact, handleSave }) => {
         <TextField margin="dense" label="Nombre Comercial" name="nombreComercial" fullWidth variant="outlined" value={formData.nombreComercial} onChange={handleChange} />
         <TextField margin="dense" label="Identificación VAT" name="identificacionVAT" fullWidth variant="outlined" value={formData.identificacionVAT} onChange={handleChange} />
         <TextField margin="dense" label="Tags" name="tags" fullWidth variant="outlined" value={formData.tags} onChange={handleChange} />
-        <TextField margin="dense" label="Tipo de Contacto" name="tipoContacto" fullWidth variant="outlined" value={formData.tipoContacto} onChange={handleChange} />
+        <FormControl fullWidth margin="dense">
+          <InputLabel>Tipo de Contacto</InputLabel>
+          <Select
+            label="Tipo de Contacto"
+            name="tipoContacto"
+            value={formData.tipoContacto}
+            onChange={handleChange}
+            fullWidth
+          >
+            <MenuItem value="Cliente">Cliente</MenuItem>
+            <MenuItem value="Proveedor">Proveedor</MenuItem>
+            <MenuItem value="Lead">Lead</MenuItem>
+            <MenuItem value="Deudor">Deudor</MenuItem>
+            <MenuItem value="Acreedor">Acreedor</MenuItem>
+          </Select>
+        </FormControl>
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose} color="primary">
@@ -162,24 +179,38 @@ const Contacts = () => {
               />
               <Button 
                 variant="contained" 
-                sx={{ bgcolor: '#ffffff', color: '#000000', ml: 2 }} 
+                sx={{ bgcolor: '#1A1A40', color: '#ffffff', ml: 2 }} 
                 startIcon={<AddIcon />} 
                 onClick={() => handleOpen()}
               >
                 Agregar Contacto
               </Button>
+              <Button 
+                variant="outlined" 
+                sx={{ color: '#1A1A40', ml: 2 }} 
+                startIcon={<ImportExportIcon />}
+              >
+                Importar/Exportar
+              </Button>
+              <Button 
+                variant="outlined" 
+                sx={{ color: '#1A1A40', ml: 2 }} 
+                startIcon={<PortalIcon />}
+              >
+                Portal Cliente
+              </Button>
             </Box>
-            <TableContainer component={Paper}>
+            <TableContainer component={Paper} sx={{ boxShadow: '0px 0px 10px rgba(0, 0, 0, 0.1)' }}>
               <Table>
-                <TableHead>
+                <TableHead sx={{ bgcolor: '#1A1A40' }}>
                   <TableRow>
-                    <TableCell>Nombre</TableCell>
-                    <TableCell>NIF</TableCell>
-                    <TableCell>Dirección</TableCell>
-                    <TableCell>Población</TableCell>
-                    <TableCell>Email</TableCell>
-                    <TableCell>Teléfono</TableCell>
-                    <TableCell>Acciones</TableCell>
+                    <TableCell sx={{ color: '#ffffff' }}>Nombre</TableCell>
+                    <TableCell sx={{ color: '#ffffff' }}>NIF</TableCell>
+                    <TableCell sx={{ color: '#ffffff' }}>Dirección</TableCell>
+                    <TableCell sx={{ color: '#ffffff' }}>Población</TableCell>
+                    <TableCell sx={{ color: '#ffffff' }}>Email</TableCell>
+                    <TableCell sx={{ color: '#ffffff' }}>Teléfono</TableCell>
+                    <TableCell sx={{ color: '#ffffff' }}>Acciones</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
