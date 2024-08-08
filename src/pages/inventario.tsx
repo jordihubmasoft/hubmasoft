@@ -1,14 +1,16 @@
-import { useState } from 'react'
-import { Box, Container, Typography, Button, TextField, IconButton, Paper, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, InputAdornment, Grid, List, ListItem, ListItemText, ListItemSecondaryAction, Checkbox, FormControlLabel, Menu, MenuItem, TableRow, TableContainer, TableHead, Table, TableCell, TableBody } from '@mui/material'
-import Header from '../componentes/Header'
-import Sidebar from '../componentes/Sidebar'
-import AddIcon from '@mui/icons-material/Add'
-import EditIcon from '@mui/icons-material/Edit'
-import DeleteIcon from '@mui/icons-material/Delete'
-import MoreVertIcon from '@mui/icons-material/MoreVert'
-import SearchIcon from '@mui/icons-material/Search'
-import ImportExportIcon from '@mui/icons-material/ImportExport'
-import PrintIcon from '@mui/icons-material/Print'
+// src/pages/inventory.tsx
+
+import { useState } from 'react';
+import { Box, Container, Typography, Button, TextField, IconButton, Paper, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, InputAdornment, MenuItem, TableCell, TableRow, TableBody, Table, TableContainer, TableHead, Menu } from '@mui/material';
+import Header from '../componentes/Header';
+import Sidebar from '../componentes/Sidebar';
+import AddIcon from '@mui/icons-material/Add';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
+import SearchIcon from '@mui/icons-material/Search';
+import ImportExportIcon from '@mui/icons-material/ImportExport';
+import PrintIcon from '@mui/icons-material/Print';
 
 const productsData = [
   // Example data for products
@@ -37,7 +39,7 @@ const productsData = [
     total: 1210,
   },
   // ... more example data
-]
+];
 
 const ProductForm = ({ open, handleClose, product, handleSave }) => {
   const [formData, setFormData] = useState(product || {
@@ -62,19 +64,19 @@ const ProductForm = ({ open, handleClose, product, handleSave }) => {
     equivalenceSurcharge: '',
     taxes: '',
     total: '',
-  })
+  });
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
-    })
-  }
+    });
+  };
 
   const handleSubmit = () => {
-    handleSave(formData)
-    handleClose()
-  }
+    handleSave(formData);
+    handleClose();
+  };
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
@@ -114,48 +116,53 @@ const ProductForm = ({ open, handleClose, product, handleSave }) => {
         </Button>
       </DialogActions>
     </Dialog>
-  )
-}
+  );
+};
 
 const Inventory = () => {
-  const [open, setOpen] = useState(false)
-  const [selectedProduct, setSelectedProduct] = useState(null)
-  const [products, setProducts] = useState(productsData)
-  const [anchorEl, setAnchorEl] = useState(null)
+  const [open, setOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [products, setProducts] = useState(productsData);
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [isMenuOpen, setIsMenuOpen] = useState(true);
 
   const handleOpen = (product = null) => {
-    setSelectedProduct(product)
-    setOpen(true)
-  }
+    setSelectedProduct(product);
+    setOpen(true);
+  };
 
   const handleClose = () => {
-    setOpen(false)
-    setSelectedProduct(null)
-  }
+    setOpen(false);
+    setSelectedProduct(null);
+  };
 
   const handleSave = (product) => {
     if (selectedProduct) {
-      setProducts(products.map((p) => (p.id === product.id ? product : p)))
+      setProducts(products.map((p) => (p.id === product.id ? product : p)));
     } else {
-      product.id = products.length + 1
-      setProducts([...products, product])
+      product.id = products.length + 1;
+      setProducts([...products, product]);
     }
-  }
+  };
 
   const handleMenuClick = (event) => {
-    setAnchorEl(event.currentTarget)
-  }
+    setAnchorEl(event.currentTarget);
+  };
 
   const handleMenuClose = () => {
-    setAnchorEl(null)
-  }
+    setAnchorEl(null);
+  };
+
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
+  };
 
   const operations = [
     { name: 'Update Stock', icon: <ImportExportIcon /> },
     { name: 'Transfer Stock', icon: <ImportExportIcon /> },
     { name: 'Print Barcodes', icon: <PrintIcon /> },
     { name: 'Import/Update via Excel', icon: <ImportExportIcon /> },
-  ]
+  ];
 
   const productProperties = [
     { name: 'Categories' },
@@ -163,16 +170,16 @@ const Inventory = () => {
     { name: 'Variant Groups' },
     { name: 'Price Lists' },
     { name: 'Logistics Stages' },
-  ]
+  ];
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', bgcolor: '#F3F4F6' }}>
-      <Header />
-      <Box sx={{ display: 'flex', flexGrow: 1 }}>
+      <Header isMenuOpen={isMenuOpen}/>
+      <Box sx={{ display: 'flex', flexGrow: 1, mt: 8 }}>
         <Box
           component="nav"
           sx={{
-            width: 240,
+            width: isMenuOpen ? 240 : 70,
             flexShrink: 0,
             bgcolor: '#1A1A40',
             borderRight: 1,
@@ -183,9 +190,10 @@ const Inventory = () => {
             zIndex: 1201,
             position: 'fixed',
             height: '100%',
+            transition: 'width 0.3s',
           }}
         >
-          <Sidebar />
+          <Sidebar isMenuOpen={isMenuOpen} toggleMenu={toggleMenu} />
         </Box>
         <Box
           component="main"
@@ -193,7 +201,8 @@ const Inventory = () => {
             flexGrow: 1,
             bgcolor: '#F3F4F6',
             p: 3,
-            marginLeft: '240px',
+            transition: 'margin-left 0.3s',
+            marginLeft: isMenuOpen ? '240px' : '70px',
           }}
         >
           <Container maxWidth="lg">
@@ -309,7 +318,7 @@ const Inventory = () => {
       </Box>
       <ProductForm open={open} handleClose={handleClose} product={selectedProduct} handleSave={handleSave} />
     </Box>
-  )
-}
+  );
+};
 
-export default Inventory
+export default Inventory;

@@ -1,13 +1,15 @@
-import { useState } from 'react'
-import { Box, Container, Grid, Paper, Typography, Button, TextField, IconButton, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, InputAdornment, MenuItem, FormControl, Select, InputLabel } from '@mui/material'
-import Header from '../componentes/Header'
-import Sidebar from '../componentes/Sidebar'
-import SearchIcon from '@mui/icons-material/Search'
-import AddIcon from '@mui/icons-material/Add'
-import EditIcon from '@mui/icons-material/Edit'
-import DeleteIcon from '@mui/icons-material/Delete'
-import ImportExportIcon from '@mui/icons-material/ImportExport'
-import PortalIcon from '@mui/icons-material/Language'
+// src/pages/contacts.tsx
+
+import { useState } from 'react';
+import { Box, Container, Typography, Button, TextField, IconButton, Paper, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, InputAdornment, MenuItem, FormControl, Select, InputLabel, TableCell, TableRow, TableBody, Table, TableContainer, TableHead } from '@mui/material';
+import Header from '../componentes/Header';
+import Sidebar from '../componentes/Sidebar';
+import SearchIcon from '@mui/icons-material/Search';
+import AddIcon from '@mui/icons-material/Add';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+import ImportExportIcon from '@mui/icons-material/ImportExport';
+import PortalIcon from '@mui/icons-material/Language';
 
 const contactsData = [
   {
@@ -29,7 +31,7 @@ const contactsData = [
     tipoContacto: 'Cliente',
   },
   // ... más datos de ejemplo
-]
+];
 
 const ContactForm = ({ open, handleClose, contact, handleSave }) => {
   const [formData, setFormData] = useState(contact || {
@@ -48,19 +50,19 @@ const ContactForm = ({ open, handleClose, contact, handleSave }) => {
     identificacionVAT: '',
     tags: '',
     tipoContacto: '',
-  })
+  });
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
-    })
-  }
+    });
+  };
 
   const handleSubmit = () => {
-    handleSave(formData)
-    handleClose()
-  }
+    handleSave(formData);
+    handleClose();
+  };
 
   return (
     <Dialog open={open} onClose={handleClose}>
@@ -109,48 +111,57 @@ const ContactForm = ({ open, handleClose, contact, handleSave }) => {
         </Button>
       </DialogActions>
     </Dialog>
-  )
-}
+  );
+};
 
 const Contacts = () => {
-  const [open, setOpen] = useState(false)
-  const [selectedContact, setSelectedContact] = useState(null)
-  const [contacts, setContacts] = useState(contactsData)
+  const [open, setOpen] = useState(false);
+  const [selectedContact, setSelectedContact] = useState(null);
+  const [contacts, setContacts] = useState(contactsData);
+  const [isMenuOpen, setIsMenuOpen] = useState(true);
 
   const handleOpen = (contact = null) => {
-    setSelectedContact(contact)
-    setOpen(true)
-  }
+    setSelectedContact(contact);
+    setOpen(true);
+  };
 
   const handleClose = () => {
-    setOpen(false)
-    setSelectedContact(null)
-  }
+    setOpen(false);
+    setSelectedContact(null);
+  };
 
   const handleSave = (contact) => {
     if (selectedContact) {
-      setContacts(contacts.map((c) => (c.id === contact.id ? contact : c)))
+      setContacts(contacts.map((c) => (c.id === contact.id ? contact : c)));
     } else {
-      contact.id = contacts.length + 1
-      setContacts([...contacts, contact])
+      contact.id = contacts.length + 1;
+      setContacts([...contacts, contact]);
     }
-  }
+  };
+
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
+  };
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', bgcolor: '#EFFFFD' }}>
-      <Header />
-      <Box sx={{ display: 'flex', flexGrow: 1 }}>
+      <Header isMenuOpen={isMenuOpen}/>
+      <Box sx={{ display: 'flex', flexGrow: 1, mt: 8 }}>
         <Box
           component="nav"
           sx={{
-            width: 240,
+            width: isMenuOpen ? 240 : 70,
             flexShrink: 0,
             bgcolor: '#1A1A40',
             borderRight: 1,
-            borderColor: 'divider'
+            borderColor: 'divider',
+            transition: 'width 0.3s',
+            zIndex: 1201,
+            position: 'fixed',
+            height: '100%',
           }}
         >
-          <Sidebar />
+          <Sidebar isMenuOpen={isMenuOpen} toggleMenu={toggleMenu} />
         </Box>
         <Box
           component="main"
@@ -158,6 +169,8 @@ const Contacts = () => {
             flexGrow: 1,
             bgcolor: '#EFFFFD',
             p: 3,
+            transition: 'margin-left 0.3s',
+            marginLeft: isMenuOpen ? '240px' : '70px',
           }}
         >
           <Container maxWidth="lg">
@@ -240,7 +253,7 @@ const Contacts = () => {
       </Box>
       <ContactForm open={open} handleClose={handleClose} contact={selectedContact} handleSave={handleSave} />
     </Box>
-  )
-}
+  );
+};
 
-export default Contacts
+export default Contacts;

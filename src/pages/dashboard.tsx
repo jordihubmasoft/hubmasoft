@@ -1,6 +1,6 @@
-import { useState } from 'react'
-import { Box, Container, Grid, Paper, Typography, Button, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, TextField, FormControl, FormLabel, RadioGroup, FormControlLabel, Radio } from '@mui/material'
-import { Line } from 'react-chartjs-2'
+import { useState } from 'react';
+import { Box, Container, Grid, Paper, Typography, Button, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, TextField, FormControl, FormLabel, RadioGroup, FormControlLabel, Radio } from '@mui/material';
+import { Line } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -10,9 +10,9 @@ import {
   Title,
   Tooltip,
   Legend,
-} from 'chart.js'
-import Header from '../componentes/Header'
-import Sidebar from '../componentes/Sidebar'
+} from 'chart.js';
+import Header from '../componentes/Header';
+import Sidebar from '../componentes/Sidebar';
 
 ChartJS.register(
   CategoryScale,
@@ -22,25 +22,30 @@ ChartJS.register(
   Title,
   Tooltip,
   Legend
-)
+);
 
 const Dashboard = () => {
-  const [open, setOpen] = useState(true)
-  const [userType, setUserType] = useState('')
+  const [open, setOpen] = useState(true);
+  const [userType, setUserType] = useState('');
+  const [isMenuOpen, setIsMenuOpen] = useState(true);
 
   const handleClose = () => {
-    setOpen(false)
-  }
+    setOpen(false);
+  };
 
   const handleUserTypeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setUserType((event.target as HTMLInputElement).value)
-  }
+    setUserType((event.target as HTMLInputElement).value);
+  };
 
   const handleFormSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
+    event.preventDefault();
     // TODO: logic to save additional user information
-    setOpen(false)
-  }
+    setOpen(false);
+  };
+
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
+  };
 
   const data = {
     labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
@@ -62,7 +67,7 @@ const Dashboard = () => {
         fill: false,
       },
     ],
-  }
+  };
 
   const options = {
     responsive: true,
@@ -105,29 +110,29 @@ const Dashboard = () => {
         },
       },
     },
-  }
+  };
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', bgcolor: '#F3F4F6' }}>
-      <Header />
-      <Box sx={{ display: 'flex', flexGrow: 1 }}>
+      <Header isMenuOpen={isMenuOpen} />
+      <Box sx={{ display: 'flex', flexGrow: 1, marginTop: '64px' }}> {/* Ajuste del margen superior */}
         <Box
           component="nav"
           sx={{
-            width: 240,
+            width: isMenuOpen ? '240px' : '70px',
             flexShrink: 0,
             bgcolor: '#1A1A40',
-            borderRight: 1,
-            borderColor: 'divider',
+            borderRight: 'none', // Eliminar el borde derecho
             borderRadius: 2,
             overflow: 'hidden',
             boxShadow: '0 3px 10px rgba(0, 0, 0, 0.1)',
             zIndex: 1201,
             position: 'fixed',
             height: '100%',
+            transition: 'width 0.3s ease',
           }}
         >
-          <Sidebar />
+          <Sidebar isMenuOpen={isMenuOpen} toggleMenu={toggleMenu} />
         </Box>
         <Box
           component="main"
@@ -135,7 +140,8 @@ const Dashboard = () => {
             flexGrow: 1,
             bgcolor: '#F3F4F6',
             p: 3,
-            marginLeft: '240px', 
+            transition: 'margin-left 0.3s ease',
+            marginLeft: isMenuOpen ? '240px' : '70px',
           }}
         >
           <Container maxWidth="lg">
@@ -263,7 +269,7 @@ const Dashboard = () => {
         </DialogContent>
       </Dialog>
     </Box>
-  )
-}
+  );
+};
 
-export default Dashboard
+export default Dashboard;

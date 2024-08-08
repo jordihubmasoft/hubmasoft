@@ -1,12 +1,11 @@
 import { useState } from 'react'
-import { Box, Container, Grid, Paper, Typography, Button, TextField, IconButton, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, InputAdornment, Menu, MenuItem, Checkbox, FormControlLabel } from '@mui/material'
+import { Box, Container, Grid, Paper, Typography, Button, TextField, IconButton, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, InputAdornment, Checkbox, FormControlLabel } from '@mui/material'
 import Header from '../componentes/Header'
 import Sidebar from '../componentes/Sidebar'
 import SearchIcon from '@mui/icons-material/Search'
 import AddIcon from '@mui/icons-material/Add'
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
-import MoreVertIcon from '@mui/icons-material/MoreVert'
 
 const employeesData = [
   // Example data for employees
@@ -109,6 +108,7 @@ const Employees = () => {
   const [open, setOpen] = useState(false)
   const [selectedEmployee, setSelectedEmployee] = useState(null)
   const [employees, setEmployees] = useState(employeesData)
+  const [isMenuOpen, setIsMenuOpen] = useState(true)
 
   const handleOpen = (employee = null) => {
     setSelectedEmployee(employee)
@@ -129,14 +129,18 @@ const Employees = () => {
     }
   }
 
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen)
+  }
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', bgcolor: '#F3F4F6' }}>
-      <Header />
+      <Header isMenuOpen={isMenuOpen} />
       <Box sx={{ display: 'flex', flexGrow: 1 }}>
         <Box
           component="nav"
           sx={{
-            width: 240,
+            width: isMenuOpen ? 240 : 70,
             flexShrink: 0,
             bgcolor: '#1A1A40',
             borderRight: 1,
@@ -147,9 +151,10 @@ const Employees = () => {
             zIndex: 1201,
             position: 'fixed',
             height: '100%',
+            transition: 'width 0.3s',
           }}
         >
-          <Sidebar />
+          <Sidebar isMenuOpen={isMenuOpen} toggleMenu={toggleMenu} />
         </Box>
         <Box
           component="main"
@@ -157,7 +162,8 @@ const Employees = () => {
             flexGrow: 1,
             bgcolor: '#F3F4F6',
             p: 3,
-            marginLeft: '240px',
+            transition: 'margin-left 0.3s',
+            marginLeft: isMenuOpen ? '240px' : '70px',
           }}
         >
           <Container maxWidth="lg">

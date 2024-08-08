@@ -1,12 +1,14 @@
-import { useState } from 'react'
-import { Box, Container, Grid, Paper, Typography, Button, TextField, IconButton, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, InputAdornment, Menu, MenuItem } from '@mui/material'
-import Header from '../componentes/Header'
-import Sidebar from '../componentes/Sidebar'
-import SearchIcon from '@mui/icons-material/Search'
-import AddIcon from '@mui/icons-material/Add'
-import EditIcon from '@mui/icons-material/Edit'
-import DeleteIcon from '@mui/icons-material/Delete'
-import MoreVertIcon from '@mui/icons-material/MoreVert'
+// src/pages/purchases.tsx
+
+import { useState } from 'react';
+import { Box, Container, Typography, Button, TextField, IconButton, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, InputAdornment, Menu, MenuItem } from '@mui/material';
+import Header from '../componentes/Header';
+import Sidebar from '../componentes/Sidebar';
+import SearchIcon from '@mui/icons-material/Search';
+import AddIcon from '@mui/icons-material/Add';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
 
 const purchasesData = [
   // Example data for purchases
@@ -20,7 +22,7 @@ const purchasesData = [
     status: 'PAID',
   },
   // ... more example data
-]
+];
 
 const PurchasesForm = ({ open, handleClose, purchase, handleSave }) => {
   const [formData, setFormData] = useState(purchase || {
@@ -30,19 +32,19 @@ const PurchasesForm = ({ open, handleClose, purchase, handleSave }) => {
     description: '',
     total: '',
     status: '',
-  })
+  });
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
-    })
-  }
+    });
+  };
 
   const handleSubmit = () => {
-    handleSave(formData)
-    handleClose()
-  }
+    handleSave(formData);
+    handleClose();
+  };
 
   return (
     <Dialog open={open} onClose={handleClose}>
@@ -67,59 +69,68 @@ const PurchasesForm = ({ open, handleClose, purchase, handleSave }) => {
         </Button>
       </DialogActions>
     </Dialog>
-  )
-}
+  );
+};
 
 const Purchases = () => {
-  const [open, setOpen] = useState(false)
-  const [selectedPurchase, setSelectedPurchase] = useState(null)
-  const [purchases, setPurchases] = useState(purchasesData)
-  const [anchorEl, setAnchorEl] = useState(null)
+  const [open, setOpen] = useState(false);
+  const [selectedPurchase, setSelectedPurchase] = useState(null);
+  const [purchases, setPurchases] = useState(purchasesData);
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [isMenuOpen, setIsMenuOpen] = useState(true);
 
   const handleOpen = (purchase = null) => {
-    setSelectedPurchase(purchase)
-    setOpen(true)
-  }
+    setSelectedPurchase(purchase);
+    setOpen(true);
+  };
 
   const handleClose = () => {
-    setOpen(false)
-    setSelectedPurchase(null)
-  }
+    setOpen(false);
+    setSelectedPurchase(null);
+  };
 
   const handleSave = (purchase) => {
     if (selectedPurchase) {
-      setPurchases(purchases.map((p) => (p.id === purchase.id ? purchase : p)))
+      setPurchases(purchases.map((p) => (p.id === purchase.id ? purchase : p)));
     } else {
-      purchase.id = purchases.length + 1
-      setPurchases([...purchases, purchase])
+      purchase.id = purchases.length + 1;
+      setPurchases([...purchases, purchase]);
     }
-  }
+  };
 
   const handleMenuClick = (event) => {
-    setAnchorEl(event.currentTarget)
-  }
+    setAnchorEl(event.currentTarget);
+  };
 
   const handleMenuClose = () => {
-    setAnchorEl(null)
-  }
+    setAnchorEl(null);
+  };
 
-  const subcategories = ['Quotes', 'Orders', 'Delivery Notes', 'Proforma Invoices', 'Invoices']
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
+  };
+
+  const subcategories = ['Quotes', 'Orders', 'Delivery Notes', 'Proforma Invoices', 'Invoices'];
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', bgcolor: '#EFFFFD' }}>
-      <Header />
-      <Box sx={{ display: 'flex', flexGrow: 1 }}>
+      <Header isMenuOpen={isMenuOpen} />
+      <Box sx={{ display: 'flex', flexGrow: 1, mt: 8 }}>
         <Box
           component="nav"
           sx={{
-            width: 240,
+            width: isMenuOpen ? 240 : 70,
             flexShrink: 0,
             bgcolor: '#1A1A40',
             borderRight: 1,
-            borderColor: 'divider'
+            borderColor: 'divider',
+            transition: 'width 0.3s',
+            zIndex: 1201,
+            position: 'fixed',
+            height: '100%',
           }}
         >
-          <Sidebar />
+          <Sidebar isMenuOpen={isMenuOpen} toggleMenu={toggleMenu} />
         </Box>
         <Box
           component="main"
@@ -127,6 +138,8 @@ const Purchases = () => {
             flexGrow: 1,
             bgcolor: '#EFFFFD',
             p: 3,
+            transition: 'margin-left 0.3s',
+            marginLeft: isMenuOpen ? '240px' : '70px',
           }}
         >
           <Container maxWidth="lg">
@@ -220,7 +233,7 @@ const Purchases = () => {
       </Box>
       <PurchasesForm open={open} handleClose={handleClose} purchase={selectedPurchase} handleSave={handleSave} />
     </Box>
-  )
-}
+  );
+};
 
-export default Purchases
+export default Purchases;
