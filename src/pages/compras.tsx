@@ -1,15 +1,16 @@
-import { useState } from 'react'
-import { Box, Container, Grid, Paper, Typography, Button, TextField, IconButton, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, InputAdornment, Menu, MenuItem } from '@mui/material'
-import Header from '../componentes/Header'
-import Sidebar from '../componentes/Sidebar'
-import SearchIcon from '@mui/icons-material/Search'
-import AddIcon from '@mui/icons-material/Add'
-import EditIcon from '@mui/icons-material/Edit'
-import DeleteIcon from '@mui/icons-material/Delete'
-import MoreVertIcon from '@mui/icons-material/MoreVert'
+import { useState } from 'react';
+import { Box, Container, Typography, Button, TextField, IconButton, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, InputAdornment, Menu, MenuItem } from '@mui/material';
+import Header from '../componentes/Header';
+import Sidebar from '../componentes/Sidebar';
+import SearchIcon from '@mui/icons-material/Search';
+import AddIcon from '@mui/icons-material/Add';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
+import { useTranslation } from '../hooks/useTranslations';
 
 const purchasesData = [
-  // Example data for purchases
+  // Datos de ejemplo para compras
   {
     id: 1,
     date: '2023-01-01',
@@ -19,10 +20,12 @@ const purchasesData = [
     total: 1000,
     status: 'PAID',
   },
-  // ... more example data
-]
+  // ... más datos de ejemplo
+];
 
 const PurchasesForm = ({ open, handleClose, purchase, handleSave }) => {
+  const { t } = useTranslation();
+
   const [formData, setFormData] = useState(purchase || {
     date: '',
     number: '',
@@ -30,113 +33,129 @@ const PurchasesForm = ({ open, handleClose, purchase, handleSave }) => {
     description: '',
     total: '',
     status: '',
-  })
+  });
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
-    })
-  }
+    });
+  };
 
   const handleSubmit = () => {
-    handleSave(formData)
-    handleClose()
-  }
+    handleSave(formData);
+    handleClose();
+  };
 
   return (
-    <Dialog open={open} onClose={handleClose}>
-      <DialogTitle>{purchase ? 'Edit Purchase' : 'Add Purchase'}</DialogTitle>
+    <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
+      <DialogTitle sx={{ fontWeight: '700', fontFamily: 'Roboto, sans-serif' }}>
+        {purchase ? t('purchases.edit') : t('purchases.add')}
+      </DialogTitle>
       <DialogContent>
-        <DialogContentText>
-          {purchase ? 'Edit the purchase information' : 'Enter the new purchase information'}
+        <DialogContentText sx={{ fontWeight: '400', fontFamily: 'Roboto, sans-serif' }}>
+          {purchase ? t('purchases.edit') : t('purchases.add')}
         </DialogContentText>
-        <TextField margin="dense" label="Date" name="date" fullWidth variant="outlined" value={formData.date} onChange={handleChange} />
-        <TextField margin="dense" label="Number" name="number" fullWidth variant="outlined" value={formData.number} onChange={handleChange} />
-        <TextField margin="dense" label="Supplier" name="supplier" fullWidth variant="outlined" value={formData.supplier} onChange={handleChange} />
-        <TextField margin="dense" label="Description" name="description" fullWidth variant="outlined" value={formData.description} onChange={handleChange} />
-        <TextField margin="dense" label="Total" name="total" fullWidth variant="outlined" value={formData.total} onChange={handleChange} />
-        <TextField margin="dense" label="Status" name="status" fullWidth variant="outlined" value={formData.status} onChange={handleChange} />
+        <TextField margin="dense" label={t('purchases.date')} name="date" fullWidth variant="outlined" value={formData.date} onChange={handleChange} />
+        <TextField margin="dense" label={t('purchases.number')} name="number" fullWidth variant="outlined" value={formData.number} onChange={handleChange} />
+        <TextField margin="dense" label={t('purchases.supplier')} name="supplier" fullWidth variant="outlined" value={formData.supplier} onChange={handleChange} />
+        <TextField margin="dense" label={t('purchases.description')} name="description" fullWidth variant="outlined" value={formData.description} onChange={handleChange} />
+        <TextField margin="dense" label={t('purchases.total')} name="total" fullWidth variant="outlined" value={formData.total} onChange={handleChange} />
+        <TextField margin="dense" label={t('purchases.status')} name="status" fullWidth variant="outlined" value={formData.status} onChange={handleChange} />
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClose} color="primary">
-          Cancel
+        <Button onClick={handleClose} sx={{ color: '#1A1A40', fontWeight: '500' }}>
+          {t('purchases.cancel')}
         </Button>
-        <Button onClick={handleSubmit} color="primary">
-          Save
+        <Button onClick={handleSubmit} sx={{ color: '#1A1A40', fontWeight: '500' }}>
+          {t('purchases.save')}
         </Button>
       </DialogActions>
     </Dialog>
-  )
-}
+  );
+};
 
 const Purchases = () => {
-  const [open, setOpen] = useState(false)
-  const [selectedPurchase, setSelectedPurchase] = useState(null)
-  const [purchases, setPurchases] = useState(purchasesData)
-  const [anchorEl, setAnchorEl] = useState(null)
+  const { t } = useTranslation();
+  const [open, setOpen] = useState(false);
+  const [selectedPurchase, setSelectedPurchase] = useState(null);
+  const [purchases, setPurchases] = useState(purchasesData);
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [isMenuOpen, setIsMenuOpen] = useState(true);
 
   const handleOpen = (purchase = null) => {
-    setSelectedPurchase(purchase)
-    setOpen(true)
-  }
+    setSelectedPurchase(purchase);
+    setOpen(true);
+  };
 
   const handleClose = () => {
-    setOpen(false)
-    setSelectedPurchase(null)
-  }
+    setOpen(false);
+    setSelectedPurchase(null);
+  };
 
   const handleSave = (purchase) => {
     if (selectedPurchase) {
-      setPurchases(purchases.map((p) => (p.id === purchase.id ? purchase : p)))
+      setPurchases(purchases.map((p) => (p.id === purchase.id ? purchase : p)));
     } else {
-      purchase.id = purchases.length + 1
-      setPurchases([...purchases, purchase])
+      purchase.id = purchases.length + 1;
+      setPurchases([...purchases, purchase]);
     }
-  }
+  };
 
   const handleMenuClick = (event) => {
-    setAnchorEl(event.currentTarget)
-  }
+    setAnchorEl(event.currentTarget);
+  };
 
   const handleMenuClose = () => {
-    setAnchorEl(null)
-  }
+    setAnchorEl(null);
+  };
 
-  const subcategories = ['Quotes', 'Orders', 'Delivery Notes', 'Proforma Invoices', 'Invoices']
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
+  };
+
+  const subcategories = ['Quotes', 'Orders', 'Delivery Notes', 'Proforma Invoices', 'Invoices'];
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', bgcolor: '#EFFFFD' }}>
-      <Header />
-      <Box sx={{ display: 'flex', flexGrow: 1 }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', bgcolor: '#F3F4F6' }}>
+      <Header isMenuOpen={isMenuOpen} />
+      <Box sx={{ display: 'flex', flexGrow: 1, mt: 8 }}>
         <Box
           component="nav"
           sx={{
-            width: 240,
+            width: isMenuOpen ? '240px' : '70px',
             flexShrink: 0,
             bgcolor: '#1A1A40',
-            borderRight: 1,
-            borderColor: 'divider'
+            borderRight: 'none',
+            borderRadius: 2,
+            overflow: 'hidden',
+            boxShadow: '0 3px 10px rgba(0, 0, 0, 0.1)',
+            zIndex: 1201,
+            position: 'fixed',
+            height: '100%',
+            transition: 'width 0.3s ease',
           }}
         >
-          <Sidebar />
+          <Sidebar isMenuOpen={isMenuOpen} toggleMenu={toggleMenu} />
         </Box>
         <Box
           component="main"
           sx={{
             flexGrow: 1,
-            bgcolor: '#EFFFFD',
+            bgcolor: '#F3F4F6',
             p: 3,
+            transition: 'margin-left 0.3s ease',
+            marginLeft: isMenuOpen ? '240px' : '70px',
           }}
         >
           <Container maxWidth="lg">
-            <Typography variant="h4" gutterBottom sx={{ color: '#000000' }}>
-              Purchases
+            <Typography variant="h3" gutterBottom sx={{ color: '#1A1A40', fontWeight: '600', fontFamily: 'Roboto, sans-serif' }}>
+              {t('purchases.title')}
             </Typography>
             <Box sx={{ display: 'flex', mb: 3 }}>
               <TextField 
                 variant="outlined" 
-                placeholder="Search..." 
+                placeholder={t('purchases.searchPlaceholder')} 
                 fullWidth 
                 InputProps={{
                   startAdornment: (
@@ -148,11 +167,11 @@ const Purchases = () => {
               />
               <Button 
                 variant="contained" 
-                sx={{ bgcolor: '#ffffff', color: '#000000', ml: 2 }} 
+                sx={{ bgcolor: '#2666CF', color: '#ffffff', ml: 2 }} 
                 startIcon={<AddIcon />} 
                 onClick={() => handleOpen()}
               >
-                Add Purchase
+                {t('purchases.addPurchase')}
               </Button>
             </Box>
             <Box sx={{ mb: 3 }}>
@@ -161,9 +180,9 @@ const Purchases = () => {
                 aria-haspopup="true" 
                 onClick={handleMenuClick}
                 variant="outlined"
-                sx={{ color: '#000000', borderColor: '#000000' }}
+                sx={{ color: '#2666CF', borderColor: '#2666CF', fontWeight: '500' }}
               >
-                Subcategories
+                {t('purchases.subcategories')}
                 <MoreVertIcon />
               </Button>
               <Menu
@@ -180,17 +199,17 @@ const Purchases = () => {
                 ))}
               </Menu>
             </Box>
-            <TableContainer component={Paper}>
+            <TableContainer component={Paper} sx={{ borderRadius: 2, boxShadow: '0 3px 10px rgba(0, 0, 0, 0.1)' }}>
               <Table>
-                <TableHead>
+                <TableHead sx={{ bgcolor: '#2666CF', '& th': { color: '#ffffff', fontWeight: '600' } }}>
                   <TableRow>
-                    <TableCell>Date</TableCell>
-                    <TableCell>Number</TableCell>
-                    <TableCell>Supplier</TableCell>
-                    <TableCell>Description</TableCell>
-                    <TableCell>Total</TableCell>
-                    <TableCell>Status</TableCell>
-                    <TableCell>Actions</TableCell>
+                    <TableCell>{t('purchases.date')}</TableCell>
+                    <TableCell>{t('purchases.number')}</TableCell>
+                    <TableCell>{t('purchases.supplier')}</TableCell>
+                    <TableCell>{t('purchases.description')}</TableCell>
+                    <TableCell>{t('purchases.total')}</TableCell>
+                    <TableCell>{t('purchases.status')}</TableCell>
+                    <TableCell>{t('purchases.actions')}</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -203,10 +222,10 @@ const Purchases = () => {
                       <TableCell>{purchase.total}</TableCell>
                       <TableCell>{purchase.status}</TableCell>
                       <TableCell>
-                        <IconButton onClick={() => handleOpen(purchase)}>
+                        <IconButton onClick={() => handleOpen(purchase)} sx={{ color: '#1A1A40' }}>
                           <EditIcon />
                         </IconButton>
-                        <IconButton onClick={() => setPurchases(purchases.filter((p) => p.id !== purchase.id))}>
+                        <IconButton onClick={() => setPurchases(purchases.filter((p) => p.id !== purchase.id))} sx={{ color: '#1A1A40' }}>
                           <DeleteIcon />
                         </IconButton>
                       </TableCell>
@@ -220,7 +239,7 @@ const Purchases = () => {
       </Box>
       <PurchasesForm open={open} handleClose={handleClose} purchase={selectedPurchase} handleSave={handleSave} />
     </Box>
-  )
-}
+  );
+};
 
-export default Purchases
+export default Purchases;

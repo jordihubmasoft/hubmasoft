@@ -1,12 +1,12 @@
-import { useState } from 'react'
-import { Box, Container, Grid, Paper, Typography, Button, TextField, IconButton, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, InputAdornment, Menu, MenuItem, Checkbox, FormControlLabel } from '@mui/material'
-import Header from '../componentes/Header'
-import Sidebar from '../componentes/Sidebar'
-import SearchIcon from '@mui/icons-material/Search'
-import AddIcon from '@mui/icons-material/Add'
-import EditIcon from '@mui/icons-material/Edit'
-import DeleteIcon from '@mui/icons-material/Delete'
-import MoreVertIcon from '@mui/icons-material/MoreVert'
+import { useState } from 'react';
+import { Box, Container, Typography, Button, TextField, IconButton, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, InputAdornment, Checkbox, FormControlLabel } from '@mui/material';
+import Header from '../componentes/Header';
+import Sidebar from '../componentes/Sidebar';
+import SearchIcon from '@mui/icons-material/Search';
+import AddIcon from '@mui/icons-material/Add';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+import { useTranslation } from '../hooks/useTranslations';
 
 const employeesData = [
   // Example data for employees
@@ -22,9 +22,11 @@ const employeesData = [
     access: ['inventory'],
   },
   // ... more example data
-]
+];
 
 const EmployeeForm = ({ open, handleClose, employee, handleSave }) => {
+  const { t } = useTranslation();
+
   const [formData, setFormData] = useState(employee || {
     name: '',
     position: '',
@@ -34,57 +36,61 @@ const EmployeeForm = ({ open, handleClose, employee, handleSave }) => {
     email: '',
     phone: '',
     access: [],
-  })
+  });
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
-    })
-  }
+    });
+  };
 
   const handleCheckboxChange = (e) => {
     if (e.target.checked) {
       setFormData({
         ...formData,
         access: [...formData.access, e.target.name],
-      })
+      });
     } else {
       setFormData({
         ...formData,
         access: formData.access.filter((item) => item !== e.target.name),
-      })
+      });
     }
-  }
+  };
 
   const handleSubmit = () => {
-    handleSave(formData)
-    handleClose()
-  }
+    handleSave(formData);
+    handleClose();
+  };
 
   const accessOptions = [
-    { name: 'inventory', label: 'Inventory' },
-    { name: 'sales', label: 'Sales' },
-    { name: 'purchases', label: 'Purchases' },
-    { name: 'clients', label: 'Clients' },
+    { name: 'inventory', label: t('employees.inventory') },
+    { name: 'sales', label: t('employees.sales') },
+    { name: 'purchases', label: t('employees.purchases') },
+    { name: 'clients', label: t('employees.clients') },
     // Add more access options as needed
-  ]
+  ];
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
-      <DialogTitle>{employee ? 'Edit Employee' : 'Add Employee'}</DialogTitle>
+      <DialogTitle sx={{ fontWeight: '700', fontFamily: 'Roboto, sans-serif' }}>
+        {employee ? t('employees.editEmployee') : t('employees.addEmployee')}
+      </DialogTitle>
       <DialogContent>
-        <DialogContentText>
-          {employee ? 'Edit the employee information' : 'Enter the new employee information'}
+        <DialogContentText sx={{ fontWeight: '400', fontFamily: 'Roboto, sans-serif' }}>
+          {employee ? t('employees.editEmployee') : t('employees.addEmployee')}
         </DialogContentText>
-        <TextField margin="dense" label="Name" name="name" fullWidth variant="outlined" value={formData.name} onChange={handleChange} />
-        <TextField margin="dense" label="Position" name="position" fullWidth variant="outlined" value={formData.position} onChange={handleChange} />
-        <TextField margin="dense" label="Salary" name="salary" fullWidth variant="outlined" value={formData.salary} onChange={handleChange} />
-        <TextField margin="dense" label="Tax (%)" name="tax" fullWidth variant="outlined" value={formData.tax} onChange={handleChange} />
-        <TextField margin="dense" label="Social Security (%)" name="socialSecurity" fullWidth variant="outlined" value={formData.socialSecurity} onChange={handleChange} />
-        <TextField margin="dense" label="Email" name="email" fullWidth variant="outlined" value={formData.email} onChange={handleChange} />
-        <TextField margin="dense" label="Phone" name="phone" fullWidth variant="outlined" value={formData.phone} onChange={handleChange} />
-        <Typography variant="subtitle1" gutterBottom>Access:</Typography>
+        <TextField margin="dense" label={t('employees.name')} name="name" fullWidth variant="outlined" value={formData.name} onChange={handleChange} />
+        <TextField margin="dense" label={t('employees.position')} name="position" fullWidth variant="outlined" value={formData.position} onChange={handleChange} />
+        <TextField margin="dense" label={t('employees.salary')} name="salary" fullWidth variant="outlined" value={formData.salary} onChange={handleChange} />
+        <TextField margin="dense" label={t('employees.tax')} name="tax" fullWidth variant="outlined" value={formData.tax} onChange={handleChange} />
+        <TextField margin="dense" label={t('employees.socialSecurity')} name="socialSecurity" fullWidth variant="outlined" value={formData.socialSecurity} onChange={handleChange} />
+        <TextField margin="dense" label={t('employees.email')} name="email" fullWidth variant="outlined" value={formData.email} onChange={handleChange} />
+        <TextField margin="dense" label={t('employees.phone')} name="phone" fullWidth variant="outlined" value={formData.phone} onChange={handleChange} />
+        <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: '500', fontFamily: 'Roboto, sans-serif' }}>
+          {t('employees.access')}:
+        </Typography>
         {accessOptions.map((access) => (
           <FormControlLabel
             key={access.name}
@@ -95,61 +101,67 @@ const EmployeeForm = ({ open, handleClose, employee, handleSave }) => {
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose} sx={{ color: '#1A1A40', fontWeight: '500' }}>
-          Cancel
+          {t('employees.cancel')}
         </Button>
         <Button onClick={handleSubmit} sx={{ color: '#1A1A40', fontWeight: '500' }}>
-          Save
+          {t('employees.save')}
         </Button>
       </DialogActions>
     </Dialog>
-  )
-}
+  );
+};
 
 const Employees = () => {
-  const [open, setOpen] = useState(false)
-  const [selectedEmployee, setSelectedEmployee] = useState(null)
-  const [employees, setEmployees] = useState(employeesData)
+  const { t } = useTranslation();
+  const [open, setOpen] = useState(false);
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
+  const [employees, setEmployees] = useState(employeesData);
+  const [isMenuOpen, setIsMenuOpen] = useState(true);
 
   const handleOpen = (employee = null) => {
-    setSelectedEmployee(employee)
-    setOpen(true)
-  }
+    setSelectedEmployee(employee);
+    setOpen(true);
+  };
 
   const handleClose = () => {
-    setOpen(false)
-    setSelectedEmployee(null)
-  }
+    setOpen(false);
+    setSelectedEmployee(null);
+  };
 
   const handleSave = (employee) => {
     if (selectedEmployee) {
-      setEmployees(employees.map((e) => (e.id === employee.id ? employee : e)))
+      setEmployees(employees.map((e) => (e.id === employee.id ? employee : e)));
     } else {
-      employee.id = employees.length + 1
-      setEmployees([...employees, employee])
+      employee.id = employees.length + 1;
+      setEmployees([...employees, employee]);
     }
-  }
+  };
+
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
+  };
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', bgcolor: '#F3F4F6' }}>
-      <Header />
-      <Box sx={{ display: 'flex', flexGrow: 1 }}>
+      <Header isMenuOpen={isMenuOpen} />
+      <Box sx={{ display: 'flex', flexGrow: 1, mt: 8 }}>
         <Box
           component="nav"
           sx={{
-            width: 240,
+            width: isMenuOpen ? '240px' : '70px',
             flexShrink: 0,
             bgcolor: '#1A1A40',
-            borderRight: 1,
-            borderColor: 'divider',
+            borderRight: 'none',
             borderRadius: 2,
             overflow: 'hidden',
             boxShadow: '0 3px 10px rgba(0, 0, 0, 0.1)',
             zIndex: 1201,
             position: 'fixed',
             height: '100%',
+            transition: 'width 0.3s ease',
           }}
         >
-          <Sidebar />
+          <Sidebar isMenuOpen={isMenuOpen} toggleMenu={toggleMenu} />
         </Box>
         <Box
           component="main"
@@ -157,17 +169,18 @@ const Employees = () => {
             flexGrow: 1,
             bgcolor: '#F3F4F6',
             p: 3,
-            marginLeft: '240px',
+            transition: 'margin-left 0.3s ease',
+            marginLeft: isMenuOpen ? '240px' : '70px',
           }}
         >
           <Container maxWidth="lg">
             <Typography variant="h3" gutterBottom sx={{ color: '#1A1A40', fontWeight: '600', fontFamily: 'Roboto, sans-serif' }}>
-              Employees
+              {t('employees.title')}
             </Typography>
             <Box sx={{ display: 'flex', mb: 3 }}>
               <TextField 
                 variant="outlined" 
-                placeholder="Search..." 
+                placeholder={t('employees.searchPlaceholder')} 
                 fullWidth 
                 InputProps={{
                   startAdornment: (
@@ -183,19 +196,19 @@ const Employees = () => {
                 startIcon={<AddIcon />} 
                 onClick={() => handleOpen()}
               >
-                Add Employee
+                {t('employees.addEmployee')}
               </Button>
             </Box>
-            <TableContainer component={Paper} sx={{ boxShadow: '0 3px 10px rgba(0, 0, 0, 0.1)' }}>
+            <TableContainer component={Paper} sx={{ borderRadius: 2, boxShadow: '0 3px 10px rgba(0, 0, 0, 0.1)' }}>
               <Table>
-                <TableHead>
+                <TableHead sx={{ bgcolor: '#2666CF', '& th': { color: '#ffffff', fontWeight: '600' } }}>
                   <TableRow>
-                    <TableCell>Name</TableCell>
-                    <TableCell>Position</TableCell>
-                    <TableCell>Salary</TableCell>
-                    <TableCell>Email</TableCell>
-                    <TableCell>Phone</TableCell>
-                    <TableCell>Actions</TableCell>
+                    <TableCell>{t('employees.name')}</TableCell>
+                    <TableCell>{t('employees.position')}</TableCell>
+                    <TableCell>{t('employees.salary')}</TableCell>
+                    <TableCell>{t('employees.email')}</TableCell>
+                    <TableCell>{t('employees.phone')}</TableCell>
+                    <TableCell>{t('employees.actions')}</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -224,7 +237,7 @@ const Employees = () => {
       </Box>
       <EmployeeForm open={open} handleClose={handleClose} employee={selectedEmployee} handleSave={handleSave} />
     </Box>
-  )
-}
+  );
+};
 
-export default Employees
+export default Employees;

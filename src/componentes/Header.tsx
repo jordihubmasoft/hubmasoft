@@ -1,54 +1,56 @@
-import AppBar from "@mui/material/AppBar";
-import Toolbar from "@mui/material/Toolbar";
-import IconButton from "@mui/material/IconButton";
-import AccountCircle from "@mui/icons-material/AccountCircle";
-import NotificationsIcon from "@mui/icons-material/Notifications";
-import Box from "@mui/material/Box";
-import Image from "next/image";
-import Logo from "@public/img/Logo.svg";
+import { AppBar, Toolbar, IconButton, Box, Menu, MenuItem } from '@mui/material';
+import AccountCircle from '@mui/icons-material/AccountCircle';
+import NotificationsIcon from '@mui/icons-material/Notifications';
+import LanguageIcon from '@mui/icons-material/Language';
+import Image from 'next/image';
+import { useState, useContext } from 'react';
+import { LanguageContext } from '../context/LanguageContext';
+import logo from '../../public/img/Logo.svg'; // Asegúrate de que esta ruta sea correcta
 
-const Header = () => {
+const Header = ({ isMenuOpen }: { isMenuOpen: boolean }) => {
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const { language, changeLanguage } = useContext(LanguageContext)!;
+
+  const handleMenuClick = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = (lang: string) => {
+    changeLanguage(lang);
+    setAnchorEl(null);
+  };
+
   return (
-    <AppBar
-      position="sticky"
-      sx={{ bgcolor: "#FFFFFF", boxShadow: "0 2px 4px rgba(0,0,0,0.1)" }}
+    <AppBar 
+      position="fixed" 
+      sx={{ 
+        bgcolor: '#FFFFFF', 
+        boxShadow: 'none', 
+        width: '100%',
+        zIndex: (theme) => theme.zIndex.drawer + 1 // Asegura que el header esté sobre el sidebar
+      }}
     >
-      <Toolbar>
-        <Box
-          sx={{
-            flexGrow: 1,
-            display: "flex",
-            alignItems: "center",
-            height: "70px",
-          }}
-        >
-          {" "}
-          {/*altura del contenedor */}
-          <Image
-            src={Logo}
-            alt="Logo"
-            width={150}
-            height={150}
-            style={{ maxHeight: "100%" }}
-          />{" "}
-          {/* Ajustae el tamaño del logo */}
+      <Toolbar sx={{ justifyContent: 'space-between' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <Image src={logo} alt="Logo" height={40} style={{ marginRight: 16 }} />
         </Box>
         <Box>
-          <IconButton
-            size="large"
-            aria-label="show new notifications"
-            color="inherit"
-          >
-            <NotificationsIcon sx={{ color: "#000000" }} />
+          <IconButton size="large" aria-label="show new notifications" color="inherit">
+            <NotificationsIcon sx={{ color: '#000000' }} />
           </IconButton>
-          <IconButton
-            size="large"
-            edge="end"
-            aria-label="account of current user"
-            aria-haspopup="true"
-            color="inherit"
+          <IconButton size="large" aria-label="change language" color="inherit" onClick={handleMenuClick}>
+            <LanguageIcon sx={{ color: '#000000' }} />
+          </IconButton>
+          <Menu
+            anchorEl={anchorEl}
+            open={Boolean(anchorEl)}
+            onClose={() => handleMenuClose(language)}
           >
-            <AccountCircle sx={{ color: "#000000" }} />
+            <MenuItem onClick={() => handleMenuClose('Castellano')}>Castellano</MenuItem>
+            <MenuItem onClick={() => handleMenuClose('English')}>English</MenuItem>
+          </Menu>
+          <IconButton size="large" edge="end" aria-label="account of current user" aria-haspopup="true" color="inherit">
+            <AccountCircle sx={{ color: '#000000' }} />
           </IconButton>
         </Box>
       </Toolbar>

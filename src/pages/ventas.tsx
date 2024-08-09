@@ -1,12 +1,13 @@
-import { useState } from 'react'
-import { Box, Container, Grid, Paper, Typography, Button, TextField, IconButton, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, InputAdornment, Menu, MenuItem } from '@mui/material'
-import Header from '../componentes/Header'
-import Sidebar from '../componentes/Sidebar'
-import SearchIcon from '@mui/icons-material/Search'
-import AddIcon from '@mui/icons-material/Add'
-import EditIcon from '@mui/icons-material/Edit'
-import DeleteIcon from '@mui/icons-material/Delete'
-import MoreVertIcon from '@mui/icons-material/MoreVert'
+import { useState } from 'react';
+import { Box, Container, Typography, Button, TextField, IconButton, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, InputAdornment, Menu, MenuItem } from '@mui/material';
+import Header from '../componentes/Header';
+import Sidebar from '../componentes/Sidebar';
+import SearchIcon from '@mui/icons-material/Search';
+import AddIcon from '@mui/icons-material/Add';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
+import { useTranslation } from '../hooks/useTranslations';
 
 const salesData = [
   // Example data for sales
@@ -20,9 +21,11 @@ const salesData = [
     status: 'PAID',
   },
   // ... more example data
-]
+];
 
 const SalesForm = ({ open, handleClose, sale, handleSave }) => {
+  const { t } = useTranslation();
+
   const [formData, setFormData] = useState(sale || {
     date: '',
     number: '',
@@ -30,102 +33,110 @@ const SalesForm = ({ open, handleClose, sale, handleSave }) => {
     description: '',
     total: '',
     status: '',
-  })
+  });
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
-    })
-  }
+    });
+  };
 
   const handleSubmit = () => {
-    handleSave(formData)
-    handleClose()
-  }
+    handleSave(formData);
+    handleClose();
+  };
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
-      <DialogTitle>{sale ? 'Edit Sale' : 'Add Sale'}</DialogTitle>
+      <DialogTitle sx={{ fontWeight: '700', fontFamily: 'Roboto, sans-serif' }}>
+        {sale ? t('sales.editSale') : t('sales.addSaleDialog')}
+      </DialogTitle>
       <DialogContent>
-        <DialogContentText>
-          {sale ? 'Edit the sale information' : 'Enter the new sale information'}
+        <DialogContentText sx={{ fontWeight: '400', fontFamily: 'Roboto, sans-serif' }}>
+          {sale ? t('sales.editSaleDialogDescription') : t('sales.addSaleDialogDescription')}
         </DialogContentText>
-        <TextField margin="dense" label="Date" name="date" fullWidth variant="outlined" value={formData.date} onChange={handleChange} />
-        <TextField margin="dense" label="Number" name="number" fullWidth variant="outlined" value={formData.number} onChange={handleChange} />
-        <TextField margin="dense" label="Client" name="client" fullWidth variant="outlined" value={formData.client} onChange={handleChange} />
-        <TextField margin="dense" label="Description" name="description" fullWidth variant="outlined" value={formData.description} onChange={handleChange} />
-        <TextField margin="dense" label="Total" name="total" fullWidth variant="outlined" value={formData.total} onChange={handleChange} />
-        <TextField margin="dense" label="Status" name="status" fullWidth variant="outlined" value={formData.status} onChange={handleChange} />
+        <TextField margin="dense" label={t('sales.date')} name="date" fullWidth variant="outlined" value={formData.date} onChange={handleChange} />
+        <TextField margin="dense" label={t('sales.number')} name="number" fullWidth variant="outlined" value={formData.number} onChange={handleChange} />
+        <TextField margin="dense" label={t('sales.client')} name="client" fullWidth variant="outlined" value={formData.client} onChange={handleChange} />
+        <TextField margin="dense" label={t('sales.description')} name="description" fullWidth variant="outlined" value={formData.description} onChange={handleChange} />
+        <TextField margin="dense" label={t('sales.total')} name="total" fullWidth variant="outlined" value={formData.total} onChange={handleChange} />
+        <TextField margin="dense" label={t('sales.status')} name="status" fullWidth variant="outlined" value={formData.status} onChange={handleChange} />
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose} sx={{ color: '#1A1A40', fontWeight: '500' }}>
-          Cancel
+          {t('sales.cancel')}
         </Button>
         <Button onClick={handleSubmit} sx={{ color: '#1A1A40', fontWeight: '500' }}>
-          Save
+          {t('sales.save')}
         </Button>
       </DialogActions>
     </Dialog>
-  )
-}
+  );
+};
 
 const Sales = () => {
-  const [open, setOpen] = useState(false)
-  const [selectedSale, setSelectedSale] = useState(null)
-  const [sales, setSales] = useState(salesData)
-  const [anchorEl, setAnchorEl] = useState(null)
+  const { t } = useTranslation();
+  const [open, setOpen] = useState(false);
+  const [selectedSale, setSelectedSale] = useState(null);
+  const [sales, setSales] = useState(salesData);
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [isMenuOpen, setIsMenuOpen] = useState(true);
 
   const handleOpen = (sale = null) => {
-    setSelectedSale(sale)
-    setOpen(true)
-  }
+    setSelectedSale(sale);
+    setOpen(true);
+  };
 
   const handleClose = () => {
-    setOpen(false)
-    setSelectedSale(null)
-  }
+    setOpen(false);
+    setSelectedSale(null);
+  };
 
   const handleSave = (sale) => {
     if (selectedSale) {
-      setSales(sales.map((s) => (s.id === sale.id ? sale : s)))
+      setSales(sales.map((s) => (s.id === sale.id ? sale : s)));
     } else {
-      sale.id = sales.length + 1
-      setSales([...sales, sale])
+      sale.id = sales.length + 1;
+      setSales([...sales, sale]);
     }
-  }
+  };
 
   const handleMenuClick = (event) => {
-    setAnchorEl(event.currentTarget)
-  }
+    setAnchorEl(event.currentTarget);
+  };
 
   const handleMenuClose = () => {
-    setAnchorEl(null)
-  }
+    setAnchorEl(null);
+  };
 
-  const subcategories = ['Quotes', 'Orders', 'Delivery Notes', 'Proforma Invoices', 'Invoices']
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
+  };
+
+  const subcategories = ['Quotes', 'Orders', 'Delivery Notes', 'Proforma Invoices', 'Invoices'];
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', bgcolor: '#F3F4F6' }}>
-      <Header />
-      <Box sx={{ display: 'flex', flexGrow: 1 }}>
+      <Header isMenuOpen={isMenuOpen} />
+      <Box sx={{ display: 'flex', flexGrow: 1, mt: 8 }}>
         <Box
           component="nav"
           sx={{
-            width: 240,
+            width: isMenuOpen ? '240px' : '70px',
             flexShrink: 0,
             bgcolor: '#1A1A40',
-            borderRight: 1,
-            borderColor: 'divider',
+            borderRight: 'none',
             borderRadius: 2,
             overflow: 'hidden',
             boxShadow: '0 3px 10px rgba(0, 0, 0, 0.1)',
             zIndex: 1201,
             position: 'fixed',
             height: '100%',
+            transition: 'width 0.3s ease',
           }}
         >
-          <Sidebar />
+          <Sidebar isMenuOpen={isMenuOpen} toggleMenu={toggleMenu} />
         </Box>
         <Box
           component="main"
@@ -133,17 +144,18 @@ const Sales = () => {
             flexGrow: 1,
             bgcolor: '#F3F4F6',
             p: 3,
-            marginLeft: '240px',
+            transition: 'margin-left 0.3s ease',
+            marginLeft: isMenuOpen ? '240px' : '70px',
           }}
         >
           <Container maxWidth="lg">
             <Typography variant="h3" gutterBottom sx={{ color: '#1A1A40', fontWeight: '600', fontFamily: 'Roboto, sans-serif' }}>
-              Sales
+              {t('sales.title')}
             </Typography>
             <Box sx={{ display: 'flex', mb: 3 }}>
               <TextField 
                 variant="outlined" 
-                placeholder="Search..." 
+                placeholder={t('sales.searchPlaceholder')} 
                 fullWidth 
                 InputProps={{
                   startAdornment: (
@@ -159,7 +171,7 @@ const Sales = () => {
                 startIcon={<AddIcon />} 
                 onClick={() => handleOpen()}
               >
-                Add Sale
+                {t('sales.addSale')}
               </Button>
             </Box>
             <Box sx={{ mb: 3 }}>
@@ -168,9 +180,9 @@ const Sales = () => {
                 aria-haspopup="true" 
                 onClick={handleMenuClick}
                 variant="outlined"
-                sx={{ color: '#1A1A40', borderColor: '#1A1A40' }}
+                sx={{ color: '#2666CF', borderColor: '#2666CF', fontWeight: '500' }}
               >
-                Subcategories
+                {t('sales.subcategories')}
                 <MoreVertIcon />
               </Button>
               <Menu
@@ -187,17 +199,17 @@ const Sales = () => {
                 ))}
               </Menu>
             </Box>
-            <TableContainer component={Paper} sx={{ boxShadow: '0 3px 10px rgba(0, 0, 0, 0.1)' }}>
+            <TableContainer component={Paper} sx={{ borderRadius: 2, boxShadow: '0 3px 10px rgba(0, 0, 0, 0.1)' }}>
               <Table>
-                <TableHead>
+                <TableHead sx={{ bgcolor: '#2666CF', '& th': { color: '#ffffff', fontWeight: '600' } }}>
                   <TableRow>
-                    <TableCell>Date</TableCell>
-                    <TableCell>Number</TableCell>
-                    <TableCell>Client</TableCell>
-                    <TableCell>Description</TableCell>
-                    <TableCell>Total</TableCell>
-                    <TableCell>Status</TableCell>
-                    <TableCell>Actions</TableCell>
+                    <TableCell>{t('sales.date')}</TableCell>
+                    <TableCell>{t('sales.number')}</TableCell>
+                    <TableCell>{t('sales.client')}</TableCell>
+                    <TableCell>{t('sales.description')}</TableCell>
+                    <TableCell>{t('sales.total')}</TableCell>
+                    <TableCell>{t('sales.status')}</TableCell>
+                    <TableCell>{t('sales.actions')}</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -227,7 +239,7 @@ const Sales = () => {
       </Box>
       <SalesForm open={open} handleClose={handleClose} sale={selectedSale} handleSave={handleSave} />
     </Box>
-  )
-}
+  );
+};
 
-export default Sales
+export default Sales;

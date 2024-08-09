@@ -15,33 +15,28 @@ import Container from "@mui/material/Container";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import Image from "next/image";
 import Logo from "@public/img/Logo.svg";
-import Dialog from "@mui/material/Dialog";
-import DialogActions from "@mui/material/DialogActions";
-import DialogContent from "@mui/material/DialogContent";
-import DialogContentText from "@mui/material/DialogContentText";
-import DialogTitle from "@mui/material/DialogTitle";
-import axios from "axios";
-import { Copyright } from "@mui/icons-material";
+import CircularProgress from "@mui/material/CircularProgress";
 import AuthenticationService from "../services/AuthenticatorService";
 import { LoginResponse, UserLogin } from "../types/UserLogin";
 import { useLogin } from "hooks/useAuthentication";
 import { useRegister } from "hooks/userRegister";
-import Register from "./login/register/Register";
-import { CircularProgress } from "@mui/material";
+import { Copyright } from "@mui/icons-material";
 
 const theme = createTheme();
 
 const Login = () => {
-  const { login, data, error, loading } = useLogin();
+  const { login, data: loginData, error: loginError, loading: loginLoading } = useLogin();
+  const { register, data: registerData, error: registerError, loading: registerLoading } = useRegister();
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [emailError, setEmailError] = useState(false);
   const [passwordError, setPasswordError] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [openRegister, setOpenRegister] = useState(false);
-  const [registerData, setRegisterData] = useState({
+  const [isRegistering, setIsRegistering] = useState(false);
+  const [registerForm, setRegisterForm] = useState({
     nombre: "",
+    apellidos: "",
     email: "",
     password: "",
     confirmPassword: "",
@@ -53,14 +48,50 @@ const Login = () => {
     setEmailError(false);
     setPasswordError(false);
     setErrorMessage("");
-    event.preventDefault();
+
+    if (isRegistering) {
+      await handleRegisterSubmit();
+    } else {
+      await handleLoginSubmit();
+    }
+  };
+
+  const handleLoginSubmit = async () => {
     const user: UserLogin = { username: email, password: password };
     await login(user);
-    if (data) {
+
+    if (loginData) {
       router.push("/dashboard");
     } else {
-      setErrorMessage(error);
+      setErrorMessage(loginError);
     }
+  };
+
+  const handleRegisterSubmit = async () => {
+    if (registerForm.password !== registerForm.confirmPassword) {
+      alert("Las contraseñas no coinciden");
+      return;
+    }
+    await register({
+      username: registerForm.nombre,
+      email: registerForm.email,
+      password: registerForm.password,
+    });
+
+    if (registerData) {
+      setIsRegistering(false);
+      router.push("/dashboard");
+    } else {
+      setErrorMessage(registerError);
+    }
+  };
+
+  const handleRegisterChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = event.target;
+    setRegisterForm((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
   };
 
   return (
@@ -77,28 +108,52 @@ const Login = () => {
             padding: 4,
             borderRadius: 2,
             boxShadow: "0 3px 10px rgba(0,0,0,0.1)",
+            transition: "all 0.3s ease",
+            width: isRegistering ? '450px' : '400px',
           }}
         >
-          <Box sx={{ mb: 2 }}>
-            <Image src={Logo} alt="Logo" width={150} height={150} />
+          <Box sx={{ mb: -3 }}>
+            <Image src={Logo} alt="Logo" width={200} height={200} />
           </Box>
           <Avatar sx={{ m: 1, bgcolor: "#1A1A40" }}>
             <LockOutlinedIcon />
           </Avatar>
           <Typography component="h1" variant="h5">
-            Iniciar Sesión
+            {isRegistering ? "Regístrate" : "Iniciar Sesión"}
           </Typography>
           {errorMessage && (
             <Typography color="error" variant="body2">
               {errorMessage}
             </Typography>
           )}
-          <Box
-            component="form"
-            onSubmit={handleSubmit}
-            noValidate
-            sx={{ mt: 1 }}
-          >
+          <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
+            {isRegistering && (
+              <>
+                <TextField
+                  margin="normal"
+                  required
+                  fullWidth
+                  id="nombre"
+                  label="Nombre"
+                  name="nombre"
+                  autoComplete="name"
+                  autoFocus
+                  value={registerForm.nombre}
+                  onChange={handleRegisterChange}
+                />
+                <TextField
+                  margin="normal"
+                  required
+                  fullWidth
+                  id="apellidos"
+                  label="Apellidos"
+                  name="apellidos"
+                  autoComplete="surname"
+                  value={registerForm.apellidos}
+                  onChange={handleRegisterChange}
+                />
+              </>
+            )}
             <TextField
               margin="normal"
               required
@@ -107,9 +162,13 @@ const Login = () => {
               label="Correo Electrónico"
               name="email"
               autoComplete="email"
-              autoFocus
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              autoFocus={!isRegistering}
+              value={isRegistering ? registerForm.email : email}
+              onChange={(e) => {
+                isRegistering
+                  ? setRegisterForm({ ...registerForm, email: e.target.value })
+                  : setEmail(e.target.value);
+              }}
               error={emailError}
               helperText={emailError && "Correo electrónico incorrecto"}
               sx={{
@@ -128,9 +187,13 @@ const Login = () => {
               label="Contraseña"
               type="password"
               id="password"
-              autoComplete="current-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              autoComplete={isRegistering ? "new-password" : "current-password"}
+              value={isRegistering ? registerForm.password : password}
+              onChange={(e) => {
+                isRegistering
+                  ? setRegisterForm({ ...registerForm, password: e.target.value })
+                  : setPassword(e.target.value);
+              }}
               error={passwordError}
               helperText={passwordError && "Contraseña incorrecta"}
               sx={{
@@ -141,35 +204,58 @@ const Login = () => {
                 },
               }}
             />
-            <FormControlLabel
-              control={<Checkbox value="remember" color="primary" />}
-              label="Recordarme"
-            />
+            {isRegistering && (
+              <>
+                <TextField
+                  margin="normal"
+                  required
+                  fullWidth
+                  name="confirmPassword"
+                  label="Confirmar Contraseña"
+                  type="password"
+                  id="confirmPassword"
+                  autoComplete="new-password"
+                  value={registerForm.confirmPassword}
+                  onChange={handleRegisterChange}
+                />
+                <FormControlLabel
+                  control={<Checkbox value="news" color="primary" />}
+                  label="Quiero recibir novedades y ofertas"
+                />
+              </>
+            )}
+            {!isRegistering && (
+              <FormControlLabel
+                control={<Checkbox value="remember" color="primary" />}
+                label="Recordarme"
+              />
+            )}
             <Button
               type="submit"
               fullWidth
               variant="contained"
               sx={{ mt: 3, mb: 2 }}
+              disabled={loginLoading || registerLoading}
             >
-              {loading ? (
-                <CircularProgress size={24} sx={{ ml: 2 }} />
-              ) : (
-                "Iniciar Sesión"
-              )}
+              {isRegistering ? (registerLoading ? <CircularProgress size={24} /> : "Regístrate") : (loginLoading ? <CircularProgress size={24} /> : "Iniciar Sesión")}
             </Button>
             <Grid container>
               <Grid item xs>
-                <Link href="#" variant="body2">
-                  ¿Has olvidado la contraseña?
-                </Link>
+                {!isRegistering && (
+                  <Link href="#" variant="body2">
+                    ¿Has olvidado la contraseña?
+                  </Link>
+                )}
               </Grid>
               <Grid item>
                 <Link
                   href="#"
                   variant="body2"
-                  onClick={() => setOpenRegister(true)}
+                  onClick={() => setIsRegistering(!isRegistering)}
                 >
-                  {"Regístrate"}
+                  {isRegistering
+                    ? "¿Ya tienes cuenta? Inicia sesión."
+                    : "¿No tienes cuenta? Regístrate."}
                 </Link>
               </Grid>
             </Grid>
@@ -177,8 +263,6 @@ const Login = () => {
         </Box>
         <Copyright sx={{ mt: 4, mb: 4 }} />
       </Container>
-
-      {openRegister && <Register />}
     </ThemeProvider>
   );
 };

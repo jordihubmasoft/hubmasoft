@@ -1,13 +1,13 @@
-import { useState } from 'react'
-import { Box, Container, Grid, Paper, Typography, Button, TextField, IconButton, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, InputAdornment, MenuItem, FormControl, Select, InputLabel } from '@mui/material'
-import Header from '../componentes/Header'
-import Sidebar from '../componentes/Sidebar'
-import SearchIcon from '@mui/icons-material/Search'
-import AddIcon from '@mui/icons-material/Add'
-import EditIcon from '@mui/icons-material/Edit'
-import DeleteIcon from '@mui/icons-material/Delete'
-import ImportExportIcon from '@mui/icons-material/ImportExport'
-import PortalIcon from '@mui/icons-material/Language'
+import { useState } from 'react';
+import { Box, Container, Typography, Button, TextField, IconButton, Paper, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, InputAdornment, MenuItem, FormControl, Select, InputLabel, TableCell, TableRow, TableBody, Table, TableContainer, TableHead } from '@mui/material';
+import Header from '../componentes/Header';
+import Sidebar from '../componentes/Sidebar';
+import SearchIcon from '@mui/icons-material/Search';
+import AddIcon from '@mui/icons-material/Add';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+import ImportExportIcon from '@mui/icons-material/ImportExport';
+import PortalIcon from '@mui/icons-material/Language';
 
 const contactsData = [
   {
@@ -29,7 +29,7 @@ const contactsData = [
     tipoContacto: 'Cliente',
   },
   // ... más datos de ejemplo
-]
+];
 
 const ContactForm = ({ open, handleClose, contact, handleSave }) => {
   const [formData, setFormData] = useState(contact || {
@@ -48,25 +48,27 @@ const ContactForm = ({ open, handleClose, contact, handleSave }) => {
     identificacionVAT: '',
     tags: '',
     tipoContacto: '',
-  })
+  });
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
-    })
-  }
+    });
+  };
 
   const handleSubmit = () => {
-    handleSave(formData)
-    handleClose()
-  }
+    handleSave(formData);
+    handleClose();
+  };
 
   return (
-    <Dialog open={open} onClose={handleClose}>
-      <DialogTitle>{contact ? 'Editar Contacto' : 'Agregar Contacto'}</DialogTitle>
+    <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
+      <DialogTitle sx={{ fontWeight: '700', fontFamily: 'Roboto, sans-serif' }}>
+        {contact ? 'Editar Contacto' : 'Agregar Contacto'}
+      </DialogTitle>
       <DialogContent>
-        <DialogContentText>
+        <DialogContentText sx={{ fontWeight: '400', fontFamily: 'Roboto, sans-serif' }}>
           {contact ? 'Edita la información del contacto' : 'Introduce la información del nuevo contacto'}
         </DialogContentText>
         <TextField margin="dense" label="Nombre" name="nombre" fullWidth variant="outlined" value={formData.nombre} onChange={handleChange} />
@@ -101,67 +103,80 @@ const ContactForm = ({ open, handleClose, contact, handleSave }) => {
         </FormControl>
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClose} color="primary">
+        <Button onClick={handleClose} sx={{ color: '#1A1A40', fontWeight: '500' }}>
           Cancelar
         </Button>
-        <Button onClick={handleSubmit} color="primary">
+        <Button onClick={handleSubmit} sx={{ color: '#1A1A40', fontWeight: '500' }}>
           Guardar
         </Button>
       </DialogActions>
     </Dialog>
-  )
-}
+  );
+};
 
 const Contacts = () => {
-  const [open, setOpen] = useState(false)
-  const [selectedContact, setSelectedContact] = useState(null)
-  const [contacts, setContacts] = useState(contactsData)
+  const [open, setOpen] = useState(false);
+  const [selectedContact, setSelectedContact] = useState(null);
+  const [contacts, setContacts] = useState(contactsData);
+  const [isMenuOpen, setIsMenuOpen] = useState(true);
 
   const handleOpen = (contact = null) => {
-    setSelectedContact(contact)
-    setOpen(true)
-  }
+    setSelectedContact(contact);
+    setOpen(true);
+  };
 
   const handleClose = () => {
-    setOpen(false)
-    setSelectedContact(null)
-  }
+    setOpen(false);
+    setSelectedContact(null);
+  };
 
   const handleSave = (contact) => {
     if (selectedContact) {
-      setContacts(contacts.map((c) => (c.id === contact.id ? contact : c)))
+      setContacts(contacts.map((c) => (c.id === contact.id ? contact : c)));
     } else {
-      contact.id = contacts.length + 1
-      setContacts([...contacts, contact])
+      contact.id = contacts.length + 1;
+      setContacts([...contacts, contact]);
     }
-  }
+  };
+
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
+  };
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', bgcolor: '#EFFFFD' }}>
-      <Header />
-      <Box sx={{ display: 'flex', flexGrow: 1 }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', bgcolor: '#F3F4F6' }}>
+      <Header isMenuOpen={isMenuOpen}/>
+      <Box sx={{ display: 'flex', flexGrow: 1, mt: 8 }}>
         <Box
           component="nav"
           sx={{
-            width: 240,
+            width: isMenuOpen ? '240px' : '70px',
             flexShrink: 0,
             bgcolor: '#1A1A40',
-            borderRight: 1,
-            borderColor: 'divider'
+            borderRight: 'none',
+            borderRadius: 2,
+            overflow: 'hidden',
+            boxShadow: '0 3px 10px rgba(0, 0, 0, 0.1)',
+            zIndex: 1201,
+            position: 'fixed',
+            height: '100%',
+            transition: 'width 0.3s ease',
           }}
         >
-          <Sidebar />
+          <Sidebar isMenuOpen={isMenuOpen} toggleMenu={toggleMenu} />
         </Box>
         <Box
           component="main"
           sx={{
             flexGrow: 1,
-            bgcolor: '#EFFFFD',
+            bgcolor: '#F3F4F6',
             p: 3,
+            transition: 'margin-left 0.3s ease',
+            marginLeft: isMenuOpen ? '240px' : '70px',
           }}
         >
           <Container maxWidth="lg">
-            <Typography variant="h4" gutterBottom sx={{ color: '#000000' }}>
+            <Typography variant="h3" gutterBottom sx={{ color: '#1A1A40', fontWeight: '600', fontFamily: 'Roboto, sans-serif' }}>
               Contactos
             </Typography>
             <Box sx={{ display: 'flex', mb: 3 }}>
@@ -179,7 +194,7 @@ const Contacts = () => {
               />
               <Button 
                 variant="contained" 
-                sx={{ bgcolor: '#1A1A40', color: '#ffffff', ml: 2 }} 
+                sx={{ bgcolor: 'linear-gradient(90deg, #2666CF, #6A82FB)', color: '#ffffff', fontWeight: '500', textTransform: 'none', borderRadius: 2, boxShadow: '0 3px 6px rgba(0,0,0,0.1)', ml: 2 }} 
                 startIcon={<AddIcon />} 
                 onClick={() => handleOpen()}
               >
@@ -187,35 +202,35 @@ const Contacts = () => {
               </Button>
               <Button 
                 variant="outlined" 
-                sx={{ color: '#1A1A40', ml: 2 }} 
+                sx={{ color: '#2666CF', borderColor: '#2666CF', fontWeight: '500', ml: 2 }} 
                 startIcon={<ImportExportIcon />}
               >
                 Importar/Exportar
               </Button>
               <Button 
                 variant="outlined" 
-                sx={{ color: '#1A1A40', ml: 2 }} 
+                sx={{ color: '#2666CF', borderColor: '#2666CF', fontWeight: '500', ml: 2 }} 
                 startIcon={<PortalIcon />}
               >
                 Portal Cliente
               </Button>
             </Box>
-            <TableContainer component={Paper} sx={{ boxShadow: '0px 0px 10px rgba(0, 0, 0, 0.1)' }}>
+            <TableContainer component={Paper} sx={{ borderRadius: 2, boxShadow: '0 3px 10px rgba(0, 0, 0, 0.1)' }}>
               <Table>
-                <TableHead sx={{ bgcolor: '#1A1A40' }}>
+                <TableHead sx={{ bgcolor: '#2666CF', '& th': { color: '#ffffff', fontWeight: '600' } }}>
                   <TableRow>
-                    <TableCell sx={{ color: '#ffffff' }}>Nombre</TableCell>
-                    <TableCell sx={{ color: '#ffffff' }}>NIF</TableCell>
-                    <TableCell sx={{ color: '#ffffff' }}>Dirección</TableCell>
-                    <TableCell sx={{ color: '#ffffff' }}>Población</TableCell>
-                    <TableCell sx={{ color: '#ffffff' }}>Email</TableCell>
-                    <TableCell sx={{ color: '#ffffff' }}>Teléfono</TableCell>
-                    <TableCell sx={{ color: '#ffffff' }}>Acciones</TableCell>
+                    <TableCell>Nombre</TableCell>
+                    <TableCell>NIF</TableCell>
+                    <TableCell>Dirección</TableCell>
+                    <TableCell>Población</TableCell>
+                    <TableCell>Email</TableCell>
+                    <TableCell>Teléfono</TableCell>
+                    <TableCell>Acciones</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {contacts.map((contact) => (
-                    <TableRow key={contact.id}>
+                    <TableRow key={contact.id} sx={{ '&:hover': { bgcolor: '#F1F1F1' } }}>
                       <TableCell>{contact.nombre}</TableCell>
                       <TableCell>{contact.nif}</TableCell>
                       <TableCell>{contact.direccion}</TableCell>
@@ -223,10 +238,10 @@ const Contacts = () => {
                       <TableCell>{contact.email}</TableCell>
                       <TableCell>{contact.telefono}</TableCell>
                       <TableCell>
-                        <IconButton onClick={() => handleOpen(contact)}>
+                        <IconButton onClick={() => handleOpen(contact)} sx={{ color: '#1A1A40' }}>
                           <EditIcon />
                         </IconButton>
-                        <IconButton onClick={() => setContacts(contacts.filter((c) => c.id !== contact.id))}>
+                        <IconButton onClick={() => setContacts(contacts.filter((c) => c.id !== contact.id))} sx={{ color: '#B00020' }}>
                           <DeleteIcon />
                         </IconButton>
                       </TableCell>
@@ -240,7 +255,7 @@ const Contacts = () => {
       </Box>
       <ContactForm open={open} handleClose={handleClose} contact={selectedContact} handleSave={handleSave} />
     </Box>
-  )
-}
+  );
+};
 
-export default Contacts
+export default Contacts;
