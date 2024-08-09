@@ -18,9 +18,12 @@ import { useState } from 'react';
 import { Box, Button, IconButton } from '@mui/material';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import MenuIcon from '@mui/icons-material/Menu';
+import { useTranslation } from '../hooks/useTranslations';
 
 const Sidebar = ({ isMenuOpen, toggleMenu }) => {
   const router = useRouter();
+  const { t } = useTranslation();
+
   const [openContacts, setOpenContacts] = useState(false);
   const [openSales, setOpenSales] = useState(false);
   const [openPurchases, setOpenPurchases] = useState(false);
@@ -45,7 +48,7 @@ const Sidebar = ({ isMenuOpen, toggleMenu }) => {
           <ListItemIcon>
             <DashboardIcon sx={{ color: '#6C757D' }} />
           </ListItemIcon>
-          {isMenuOpen && <ListItemText primary="Dashboard" />}
+          {isMenuOpen && <ListItemText primary={t('sidebar.dashboard')} />}
         </ListItem>
 
         <ListItem button onClick={() => handleToggle(setOpenContacts, openContacts)} sx={{ borderRadius: '10px', marginBottom: '10px' }}>
@@ -54,7 +57,7 @@ const Sidebar = ({ isMenuOpen, toggleMenu }) => {
           </ListItemIcon>
           {isMenuOpen && (
             <>
-              <ListItemText primary="Contacts" onClick={() => !openContacts && handleItemClick('/contacts')} />
+              <ListItemText primary={t('sidebar.contacts')} onClick={() => !openContacts && handleItemClick('/contacts')} />
               {openContacts ? <ExpandLess onClick={() => handleToggle(setOpenContacts, openContacts)} /> : <ExpandMore onClick={() => handleToggle(setOpenContacts, openContacts)} />}
             </>
           )}
@@ -62,10 +65,10 @@ const Sidebar = ({ isMenuOpen, toggleMenu }) => {
         <Collapse in={openContacts && isMenuOpen} timeout="auto" unmountOnExit>
           <List component="div" disablePadding>
             <ListItem button sx={{ pl: 4 }} onClick={() => handleItemClick('/clients')}>
-              <ListItemText primary="Clients" />
+              <ListItemText primary={t('sidebar.clients')} />
             </ListItem>
             <ListItem button sx={{ pl: 4 }} onClick={() => handleItemClick('/suppliers')}>
-              <ListItemText primary="Suppliers" />
+              <ListItemText primary={t('sidebar.suppliers')} />
             </ListItem>
           </List>
         </Collapse>
@@ -76,7 +79,7 @@ const Sidebar = ({ isMenuOpen, toggleMenu }) => {
           </ListItemIcon>
           {isMenuOpen && (
             <>
-              <ListItemText primary="Sales" onClick={() => !openSales && handleItemClick('/ventas')} />
+              <ListItemText primary={t('sidebar.sales')} onClick={() => !openSales && handleItemClick('/ventas')} />
               {openSales ? <ExpandLess onClick={() => handleToggle(setOpenSales, openSales)} /> : <ExpandMore onClick={() => handleToggle(setOpenSales, openSales)} />}
             </>
           )}
@@ -84,19 +87,19 @@ const Sidebar = ({ isMenuOpen, toggleMenu }) => {
         <Collapse in={openSales && isMenuOpen} timeout="auto" unmountOnExit>
           <List component="div" disablePadding>
             <ListItem button sx={{ pl: 4 }} onClick={() => handleItemClick('/sales-quotes')}>
-              <ListItemText primary="Quotes" />
+              <ListItemText primary={t('sidebar.quotes')} />
             </ListItem>
             <ListItem button sx={{ pl: 4 }} onClick={() => handleItemClick('/sales-orders')}>
-              <ListItemText primary="Orders" />
+              <ListItemText primary={t('sidebar.orders')} />
             </ListItem>
             <ListItem button sx={{ pl: 4 }} onClick={() => handleItemClick('/sales-delivery-notes')}>
-              <ListItemText primary="Delivery Notes" />
+              <ListItemText primary={t('sidebar.deliveryNotes')} />
             </ListItem>
             <ListItem button sx={{ pl: 4 }} onClick={() => handleItemClick('/sales-proformas')}>
-              <ListItemText primary="Proformas" />
+              <ListItemText primary={t('sidebar.proformas')} />
             </ListItem>
             <ListItem button sx={{ pl: 4 }} onClick={() => handleItemClick('/sales-invoices')}>
-              <ListItemText primary="Invoices" />
+              <ListItemText primary={t('sidebar.invoices')} />
             </ListItem>
           </List>
         </Collapse>
@@ -107,7 +110,7 @@ const Sidebar = ({ isMenuOpen, toggleMenu }) => {
           </ListItemIcon>
           {isMenuOpen && (
             <>
-              <ListItemText primary="Purchases" onClick={() => !openPurchases && handleItemClick('/compras')} />
+              <ListItemText primary={t('sidebar.purchases')} onClick={() => !openPurchases && handleItemClick('/compras')} />
               {openPurchases ? <ExpandLess onClick={() => handleToggle(setOpenPurchases, openPurchases)} /> : <ExpandMore onClick={() => handleToggle(setOpenPurchases, openPurchases)} />}
             </>
           )}
@@ -115,19 +118,19 @@ const Sidebar = ({ isMenuOpen, toggleMenu }) => {
         <Collapse in={openPurchases && isMenuOpen} timeout="auto" unmountOnExit>
           <List component="div" disablePadding>
             <ListItem button sx={{ pl: 4 }} onClick={() => handleItemClick('/purchase-quotes')}>
-              <ListItemText primary="Quotes" />
+              <ListItemText primary={t('sidebar.quotes')} />
             </ListItem>
             <ListItem button sx={{ pl: 4 }} onClick={() => handleItemClick('/purchase-orders')}>
-              <ListItemText primary="Orders" />
+              <ListItemText primary={t('sidebar.orders')} />
             </ListItem>
             <ListItem button sx={{ pl: 4 }} onClick={() => handleItemClick('/purchase-delivery-notes')}>
-              <ListItemText primary="Delivery Notes" />
+              <ListItemText primary={t('sidebar.deliveryNotes')} />
             </ListItem>
             <ListItem button sx={{ pl: 4 }} onClick={() => handleItemClick('/purchase-proformas')}>
-              <ListItemText primary="Proformas" />
+              <ListItemText primary={t('sidebar.proformas')} />
             </ListItem>
             <ListItem button sx={{ pl: 4 }} onClick={() => handleItemClick('/purchase-invoices')}>
-              <ListItemText primary="Invoices" />
+              <ListItemText primary={t('sidebar.invoices')} />
             </ListItem>
           </List>
         </Collapse>
@@ -138,7 +141,7 @@ const Sidebar = ({ isMenuOpen, toggleMenu }) => {
           </ListItemIcon>
           {isMenuOpen && (
             <>
-              <ListItemText primary="Inventory" onClick={() => !openInventory && handleItemClick('/inventario')} />
+              <ListItemText primary={t('sidebar.inventory')} onClick={() => !openInventory && handleItemClick('/inventario')} />
               {openInventory ? <ExpandLess onClick={() => handleToggle(setOpenInventory, openInventory)} /> : <ExpandMore onClick={() => handleToggle(setOpenInventory, openInventory)} />}
             </>
           )}
@@ -146,22 +149,22 @@ const Sidebar = ({ isMenuOpen, toggleMenu }) => {
         <Collapse in={openInventory && isMenuOpen} timeout="auto" unmountOnExit>
           <List component="div" disablePadding>
             <ListItem button sx={{ pl: 4 }} onClick={() => handleItemClick('/control-panel')}>
-              <ListItemText primary="Control Panel" />
+              <ListItemText primary={t('sidebar.controlPanel')} />
             </ListItem>
             <ListItem button sx={{ pl: 4 }} onClick={() => handleItemClick('/warehouses')}>
-              <ListItemText primary="Warehouses" />
+              <ListItemText primary={t('sidebar.warehouses')} />
             </ListItem>
             <ListItem button sx={{ pl: 4 }} onClick={() => handleItemClick('/products')}>
-              <ListItemText primary="Products" />
+              <ListItemText primary={t('sidebar.products')} />
             </ListItem>
             <ListItem button sx={{ pl: 4 }} onClick={() => handleItemClick('/inventory-orders')}>
-              <ListItemText primary="Orders" />
+              <ListItemText primary={t('sidebar.orders')} />
             </ListItem>
             <ListItem button sx={{ pl: 4 }} onClick={() => handleItemClick('/sales-orders')}>
-              <ListItemText primary="Sales Orders" />
+              <ListItemText primary={t('sidebar.salesOrders')} />
             </ListItem>
             <ListItem button sx={{ pl: 4 }} onClick={() => handleItemClick('/purchase-orders')}>
-              <ListItemText primary="Purchase Orders" />
+              <ListItemText primary={t('sidebar.purchaseOrders')} />
             </ListItem>
           </List>
         </Collapse>
@@ -172,7 +175,7 @@ const Sidebar = ({ isMenuOpen, toggleMenu }) => {
           </ListItemIcon>
           {isMenuOpen && (
             <>
-              <ListItemText primary="Accounting" onClick={() => !openAccounting && handleItemClick('/contabilidad')} />
+              <ListItemText primary={t('sidebar.accounting')} onClick={() => !openAccounting && handleItemClick('/contabilidad')} />
               {openAccounting ? <ExpandLess onClick={() => handleToggle(setOpenAccounting, openAccounting)} /> : <ExpandMore onClick={() => handleToggle(setOpenAccounting, openAccounting)} />}
             </>
           )}
@@ -180,13 +183,13 @@ const Sidebar = ({ isMenuOpen, toggleMenu }) => {
         <Collapse in={openAccounting && isMenuOpen} timeout="auto" unmountOnExit>
           <List component="div" disablePadding>
             <ListItem button sx={{ pl: 4 }} onClick={() => handleItemClick('/cashflow')}>
-              <ListItemText primary="Cashflow" />
+              <ListItemText primary={t('sidebar.cashflow')} />
             </ListItem>
             <ListItem button sx={{ pl: 4 }} onClick={() => handleItemClick('/payments-receipts')}>
-              <ListItemText primary="Payments and Receipts" />
+              <ListItemText primary={t('sidebar.paymentsReceipts')} />
             </ListItem>
             <ListItem button sx={{ pl: 4 }} onClick={() => handleItemClick('/taxes')}>
-              <ListItemText primary="Taxes" />
+              <ListItemText primary={t('sidebar.taxes')} />
             </ListItem>
           </List>
         </Collapse>
@@ -195,7 +198,7 @@ const Sidebar = ({ isMenuOpen, toggleMenu }) => {
           <ListItemIcon>
             <ShoppingCartIcon sx={{ color: '#6C757D' }} />
           </ListItemIcon>
-          {isMenuOpen && <ListItemText primary="Expenses" />}
+          {isMenuOpen && <ListItemText primary={t('sidebar.expenses')} />}
           <IconButton
             size="large"
             color="inherit"
@@ -210,14 +213,14 @@ const Sidebar = ({ isMenuOpen, toggleMenu }) => {
           <ListItemIcon>
             <AssignmentIndIcon sx={{ color: '#6C757D' }} />
           </ListItemIcon>
-          {isMenuOpen && <ListItemText primary="Employees" />}
+          {isMenuOpen && <ListItemText primary={t('sidebar.employees')} />}
         </ListItem>
 
         <ListItem button onClick={() => handleItemClick('/proyectos')} sx={{ borderRadius: '10px', marginBottom: '10px' }}>
           <ListItemIcon>
             <BusinessCenterIcon sx={{ color: '#6C757D' }} />
           </ListItemIcon>
-          {isMenuOpen && <ListItemText primary="Projects" />}
+          {isMenuOpen && <ListItemText primary={t('sidebar.projects')} />}
         </ListItem>
       </List>
     </Box>
