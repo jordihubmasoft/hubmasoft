@@ -15,6 +15,7 @@
         "@mui/material": "^5.16.4",
         "axios": "^1.7.2",
         "chart.js": "^4.4.3",
+        "framer-motion": "^11.3.24",
         "next": "latest",
         "react": "latest",
         "react-chartjs-2": "^5.2.0",
