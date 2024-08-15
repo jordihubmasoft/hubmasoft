@@ -78,10 +78,10 @@ const ProjectForm = ({ open, handleClose, project, handleSave }) => {
         />
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClose} sx={{ color: '#1A1A40', fontWeight: '500' }}>
+        <Button onClick={handleClose} sx={{ color: '#2666CF', fontWeight: '500', textTransform: 'none', bgcolor: '#ffffff', border: '1px solid #2666CF', borderRadius: 2 }}>
           {t('projects.cancel')}
         </Button>
-        <Button onClick={handleSubmit} sx={{ color: '#1A1A40', fontWeight: '500' }}>
+        <Button onClick={handleSubmit} sx={{ color: '#ffffff', fontWeight: '500', textTransform: 'none', bgcolor: '#2666CF', borderRadius: 2 }}>
           {t('projects.save')}
         </Button>
       </DialogActions>
@@ -187,8 +187,9 @@ const Projects = () => {
             flexGrow: 1,
             bgcolor: '#F3F4F6',
             p: 3,
-            transition: 'margin-left 0.3s ease',
+            transition: 'margin-left 0.3s ease, max-width 0.3s ease',
             marginLeft: isMenuOpen ? '240px' : '70px',
+            maxWidth: isMenuOpen ? 'calc(100% - 240px)' : 'calc(100% - 70px)', // Ajuste para expandirse y cubrir toda la página
           }}
         >
           <Container maxWidth="lg">
@@ -198,7 +199,7 @@ const Projects = () => {
             <Box sx={{ display: 'flex', mb: 3 }}>
               <Button 
                 variant="contained" 
-                sx={{ bgcolor: 'linear-gradient(90deg, #2666CF, #6A82FB)', color: '#ffffff', fontWeight: '500', textTransform: 'none', borderRadius: 2, boxShadow: '0 3px 6px rgba(0,0,0,0.1)', ml: 2 }} 
+                sx={{ bgcolor: 'linear-gradient(90deg, #2666CF, #6A82FB)', color: '#ffffff', fontWeight: '500', textTransform: 'none', borderRadius: 2, boxShadow: '0 3px 6px rgba(0,0,0,0.1)' }} 
                 startIcon={<AddIcon />} 
                 onClick={() => handleOpen()}
               >

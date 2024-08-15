@@ -86,7 +86,7 @@ const ProductForm = ({ open, handleClose, product, handleSave }) => {
       </DialogTitle>
       <DialogContent>
         <DialogContentText sx={{ fontWeight: '400', fontFamily: 'Roboto, sans-serif' }}>
-          {product ? t('inventory.editProduct') : t('inventory.addProduct')}
+          {product ? t('inventory.editProductDialogDescription') : t('inventory.addProductDialogDescription')}
         </DialogContentText>
         <TextField margin="dense" label={t('inventory.name')} name="name" fullWidth variant="outlined" value={formData.name} onChange={handleChange} />
         <TextField margin="dense" label={t('inventory.description')} name="description" fullWidth variant="outlined" value={formData.description} onChange={handleChange} />
@@ -111,10 +111,10 @@ const ProductForm = ({ open, handleClose, product, handleSave }) => {
         <TextField margin="dense" label={t('inventory.total')} name="total" fullWidth variant="outlined" value={formData.total} onChange={handleChange} />
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClose} sx={{ color: '#1A1A40', fontWeight: '500' }}>
+        <Button onClick={handleClose} sx={{ color: '#2666CF', fontWeight: '500', textTransform: 'none', bgcolor: '#ffffff', border: '1px solid #2666CF', borderRadius: 2 }}>
           {t('inventory.cancel')}
         </Button>
-        <Button onClick={handleSubmit} sx={{ color: '#1A1A40', fontWeight: '500' }}>
+        <Button onClick={handleSubmit} sx={{ color: '#ffffff', fontWeight: '500', textTransform: 'none', bgcolor: '#2666CF', borderRadius: 2 }}>
           {t('inventory.save')}
         </Button>
       </DialogActions>
@@ -206,6 +206,7 @@ const Inventory = () => {
             p: 3,
             transition: 'margin-left 0.3s ease',
             marginLeft: isMenuOpen ? '240px' : '70px',
+            maxWidth: 'calc(100% - 240px)', // Ajuste para que se vea todo
           }}
         >
           <Container maxWidth="lg">
@@ -233,7 +234,21 @@ const Inventory = () => {
               >
                 {t('inventory.newProduct')}
               </Button>
-              <IconButton aria-controls="simple-menu" aria-haspopup="true" onClick={handleMenuClick}>
+              <IconButton
+                sx={{
+                  bgcolor: '#FFA500', // Cambiado a un color naranja para resaltar
+                  color: '#ffffff',
+                  borderRadius: 2,
+                  boxShadow: '0 3px 6px rgba(0, 0, 0, 0.1)',
+                  transition: 'background-color 0.3s ease',
+                  '&:hover': {
+                    bgcolor: '#FF8C00', // Color de hover para un efecto visual atractivo
+                  },
+                }}
+                aria-controls="simple-menu" 
+                aria-haspopup="true" 
+                onClick={handleMenuClick}
+              >
                 <MoreVertIcon />
               </IconButton>
               <Menu

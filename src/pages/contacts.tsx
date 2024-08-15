@@ -99,13 +99,13 @@ const ContactForm = ({ open, handleClose, contact, handleSave }) => {
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
-      <DialogTitle>{contact ? 'Editar Contacto' : 'Agregar Contacto'}</DialogTitle>
+      <DialogTitle sx={{ fontWeight: '700', fontFamily: 'Roboto, sans-serif' }}>{contact ? 'Editar Contacto' : 'Agregar Contacto'}</DialogTitle>
       <DialogContent>
-        <DialogContentText>
+        <DialogContentText sx={{ fontWeight: '400', fontFamily: 'Roboto, sans-serif' }}>
           {contact ? 'Edita la información del contacto' : 'Introduce la información del nuevo contacto'}
         </DialogContentText>
 
-        <Typography variant="h6">Información: Datos Fiscales</Typography>
+        <Typography variant="h6" sx={{ mt: 3 }}>Información: Datos Fiscales</Typography>
         <Grid container spacing={2}>
           <Grid item xs={6}>
             <TextField margin="dense" label="Nombre" name="nombre" fullWidth variant="outlined" value={formData.nombre} onChange={handleChange} required />
@@ -268,8 +268,12 @@ const ContactForm = ({ open, handleClose, contact, handleSave }) => {
         />
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClose}>Cancelar</Button>
-        <Button onClick={handleSubmit}>Guardar</Button>
+        <Button onClick={handleClose} sx={{ color: '#2666CF', fontWeight: '500', textTransform: 'none', bgcolor: '#ffffff', border: '1px solid #2666CF', borderRadius: 2 }}>
+          Cancelar
+        </Button>
+        <Button onClick={handleSubmit} sx={{ color: '#ffffff', fontWeight: '500', textTransform: 'none', bgcolor: '#2666CF', borderRadius: 2 }}>
+          Guardar
+        </Button>
       </DialogActions>
     </Dialog>
   );
@@ -352,6 +356,7 @@ const Contacts = () => {
             p: 3,
             transition: 'margin-left 0.3s ease',
             marginLeft: isMenuOpen ? '240px' : '70px',
+            maxWidth: 'calc(100% - 240px)', // Ajuste para que se vea todo
           }}
         >
           <Container maxWidth="lg">

@@ -54,7 +54,7 @@ const PurchasesForm = ({ open, handleClose, purchase, handleSave }) => {
       </DialogTitle>
       <DialogContent>
         <DialogContentText sx={{ fontWeight: '400', fontFamily: 'Roboto, sans-serif' }}>
-          {purchase ? t('purchases.edit') : t('purchases.add')}
+          {purchase ? t('purchases.editSaleDialogDescription') : t('purchases.addSaleDialogDescription')}
         </DialogContentText>
         <TextField margin="dense" label={t('purchases.date')} name="date" fullWidth variant="outlined" value={formData.date} onChange={handleChange} />
         <TextField margin="dense" label={t('purchases.number')} name="number" fullWidth variant="outlined" value={formData.number} onChange={handleChange} />
@@ -64,10 +64,10 @@ const PurchasesForm = ({ open, handleClose, purchase, handleSave }) => {
         <TextField margin="dense" label={t('purchases.status')} name="status" fullWidth variant="outlined" value={formData.status} onChange={handleChange} />
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClose} sx={{ color: '#1A1A40', fontWeight: '500' }}>
+        <Button onClick={handleClose} sx={{ color: '#1A1A40', fontWeight: '500', textTransform: 'none', bgcolor: '#ffffff', border: '1px solid #2666CF', borderRadius: 2 }}>
           {t('purchases.cancel')}
         </Button>
-        <Button onClick={handleSubmit} sx={{ color: '#1A1A40', fontWeight: '500' }}>
+        <Button onClick={handleSubmit} sx={{ color: '#ffffff', fontWeight: '500', textTransform: 'none', bgcolor: '#2666CF', borderRadius: 2 }}>
           {t('purchases.save')}
         </Button>
       </DialogActions>
@@ -114,7 +114,13 @@ const Purchases = () => {
     setIsMenuOpen(!isMenuOpen);
   };
 
-  const subcategories = ['Quotes', 'Orders', 'Delivery Notes', 'Proforma Invoices', 'Invoices'];
+  const subcategories = [
+    t('purchases.quotes'),
+    t('purchases.orders'),
+    t('purchases.deliveryNotes'),
+    t('purchases.proformas'),
+    t('purchases.invoices')
+  ];
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', bgcolor: '#F3F4F6' }}>
@@ -146,6 +152,7 @@ const Purchases = () => {
             p: 3,
             transition: 'margin-left 0.3s ease',
             marginLeft: isMenuOpen ? '240px' : '70px',
+            maxWidth: 'calc(100% - 240px)', // Ajuste para que se vea todo
           }}
         >
           <Container maxWidth="lg">
@@ -167,7 +174,7 @@ const Purchases = () => {
               />
               <Button 
                 variant="contained" 
-                sx={{ bgcolor: '#2666CF', color: '#ffffff', ml: 2 }} 
+                sx={{ bgcolor: 'linear-gradient(90deg, #2666CF, #6A82FB)', color: '#ffffff', ml: 2, fontWeight: '500', textTransform: 'none', borderRadius: 2, boxShadow: '0 3px 6px rgba(0,0,0,0.1)', padding: '10px 20px' }} 
                 startIcon={<AddIcon />} 
                 onClick={() => handleOpen()}
               >
@@ -180,7 +187,7 @@ const Purchases = () => {
                 aria-haspopup="true" 
                 onClick={handleMenuClick}
                 variant="outlined"
-                sx={{ color: '#2666CF', borderColor: '#2666CF', fontWeight: '500' }}
+                sx={{ color: '#2666CF', borderColor: '#2666CF', fontWeight: '500', textTransform: 'none', borderRadius: 2 }}
               >
                 {t('purchases.subcategories')}
                 <MoreVertIcon />

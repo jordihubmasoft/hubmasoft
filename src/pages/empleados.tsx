@@ -79,7 +79,7 @@ const EmployeeForm = ({ open, handleClose, employee, handleSave }) => {
       </DialogTitle>
       <DialogContent>
         <DialogContentText sx={{ fontWeight: '400', fontFamily: 'Roboto, sans-serif' }}>
-          {employee ? t('employees.editEmployee') : t('employees.addEmployee')}
+          {employee ? t('employees.editEmployeeDialogDescription') : t('employees.addEmployeeDialogDescription')}
         </DialogContentText>
         <TextField margin="dense" label={t('employees.name')} name="name" fullWidth variant="outlined" value={formData.name} onChange={handleChange} />
         <TextField margin="dense" label={t('employees.position')} name="position" fullWidth variant="outlined" value={formData.position} onChange={handleChange} />
@@ -88,7 +88,7 @@ const EmployeeForm = ({ open, handleClose, employee, handleSave }) => {
         <TextField margin="dense" label={t('employees.socialSecurity')} name="socialSecurity" fullWidth variant="outlined" value={formData.socialSecurity} onChange={handleChange} />
         <TextField margin="dense" label={t('employees.email')} name="email" fullWidth variant="outlined" value={formData.email} onChange={handleChange} />
         <TextField margin="dense" label={t('employees.phone')} name="phone" fullWidth variant="outlined" value={formData.phone} onChange={handleChange} />
-        <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: '500', fontFamily: 'Roboto, sans-serif' }}>
+        <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: '500', fontFamily: 'Roboto, sans-serif', mt: 2 }}>
           {t('employees.access')}:
         </Typography>
         {accessOptions.map((access) => (
@@ -100,10 +100,10 @@ const EmployeeForm = ({ open, handleClose, employee, handleSave }) => {
         ))}
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClose} sx={{ color: '#1A1A40', fontWeight: '500' }}>
+        <Button onClick={handleClose} sx={{ color: '#2666CF', fontWeight: '500', textTransform: 'none', bgcolor: '#ffffff', border: '1px solid #2666CF', borderRadius: 2 }}>
           {t('employees.cancel')}
         </Button>
-        <Button onClick={handleSubmit} sx={{ color: '#1A1A40', fontWeight: '500' }}>
+        <Button onClick={handleSubmit} sx={{ color: '#ffffff', fontWeight: '500', textTransform: 'none', bgcolor: '#2666CF', borderRadius: 2 }}>
           {t('employees.save')}
         </Button>
       </DialogActions>
@@ -171,6 +171,7 @@ const Employees = () => {
             p: 3,
             transition: 'margin-left 0.3s ease',
             marginLeft: isMenuOpen ? '240px' : '70px',
+            maxWidth: 'calc(100% - 240px)', // Ajuste para que se vea todo
           }}
         >
           <Container maxWidth="lg">

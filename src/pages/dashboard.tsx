@@ -144,6 +144,7 @@ const Dashboard = () => {
             p: 3,
             transition: 'margin-left 0.3s ease',
             marginLeft: isMenuOpen ? '240px' : '70px',
+            maxWidth: 'calc(100% - 240px)', // Ajuste para que se vea todo
           }}
         >
           <Container maxWidth="lg">
@@ -151,7 +152,7 @@ const Dashboard = () => {
               {t('dashboard.title')}
             </Typography>
             <Box sx={{ display: 'flex', mb: 3 }}>
-              <Button variant="contained" sx={{ bgcolor: 'linear-gradient(90deg, #2666CF, #6A82FB)', color: '#ffffff', fontWeight: '500', textTransform: 'none', borderRadius: 2, boxShadow: '0 3px 6px rgba(0,0,0,0.1)', padding: '10px 20px' }}>
+              <Button variant="contained" sx={{ bgcolor: '#2666CF', color: '#ffffff', fontWeight: '500', textTransform: 'none', borderRadius: 2, boxShadow: '0 3px 6px rgba(0,0,0,0.1)', padding: '10px 20px' }}>
                 {t('dashboard.newContactRequests')}
               </Button>
               <Button variant="outlined" sx={{ ml: 2, borderColor: '#2666CF', color: '#2666CF', fontWeight: '500', textTransform: 'none', borderRadius: 2, padding: '10px 20px', boxShadow: '0 3px 6px rgba(0,0,0,0.1)' }}>
@@ -202,6 +203,12 @@ const Dashboard = () => {
                 </Paper>
               </Grid>
             </Grid>
+            {/* Botón para agregar widgets - Se movió hacia la parte superior derecha */}
+            <Box sx={{ textAlign: 'right', mt: 2 }}>
+              <Button variant="contained" sx={{ bgcolor: '#2666CF', color: '#ffffff', fontWeight: '500', textTransform: 'none', borderRadius: 2, boxShadow: '0 3px 6px rgba(0,0,0,0.1)' }}>
+                {t('dashboard.addWidget') || 'Agregar Widget'}
+              </Button>
+            </Box>
           </Container>
         </Box>
       </Box>
@@ -260,10 +267,10 @@ const Dashboard = () => {
               </Grid>
             </Grid>
             <DialogActions>
-              <Button onClick={handleClose} sx={{ color: '#1A1A40', fontWeight: '500' }}>
+              <Button onClick={handleClose} sx={{ color: '#2666CF', fontWeight: '500', textTransform: 'none', bgcolor: '#ffffff', border: '1px solid #2666CF', borderRadius: 2 }}>
                 {t('dashboard.fillOutLater')}
               </Button>
-              <Button type="submit" sx={{ color: '#1A1A40', fontWeight: '500' }}>
+              <Button type="submit" sx={{ color: '#ffffff', fontWeight: '500', textTransform: 'none', bgcolor: '#2666CF', borderRadius: 2 }}>
                 {t('dashboard.save')}
               </Button>
             </DialogActions>

@@ -144,11 +144,12 @@ const Sales = () => {
             flexGrow: 1,
             bgcolor: '#F3F4F6',
             p: 3,
-            transition: 'margin-left 0.3s ease',
+            transition: 'margin-left 0.3s ease, max-width 0.3s ease',
             marginLeft: isMenuOpen ? '240px' : '70px',
+            maxWidth: isMenuOpen ? 'calc(100% - 240px)' : 'calc(100% - 70px)', // Ajuste para expandirse y cubrir toda la página
           }}
         >
-          <Container maxWidth="lg">
+          <Container maxWidth="lg" sx={{ maxWidth: '100%' }}> {/* Se asegura que el contenedor cubra todo el ancho posible */}
             <Typography variant="h3" gutterBottom sx={{ color: '#1A1A40', fontWeight: '600', fontFamily: 'Roboto, sans-serif' }}>
               {t('sales.title')}
             </Typography>
