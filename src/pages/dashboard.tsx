@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Box, Container, Grid, Paper, Typography, Button, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, TextField, FormControl, FormLabel, RadioGroup, FormControlLabel, Radio } from '@mui/material';
+import { Box, Container, Grid, Paper, Typography, Button, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, TextField, FormControl, FormLabel, RadioGroup, FormControlLabel, Radio, IconButton } from '@mui/material';
 import { Line } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -14,6 +14,9 @@ import {
 import Header from '../componentes/Header';
 import Sidebar from '../componentes/Sidebar';
 import { useTranslation } from '../hooks/useTranslations';
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
+import Fade from '@mui/material/Fade';
+import Zoom from '@mui/material/Zoom';
 
 ChartJS.register(
   CategoryScale,
@@ -144,71 +147,84 @@ const Dashboard = () => {
             p: 3,
             transition: 'margin-left 0.3s ease',
             marginLeft: isMenuOpen ? '240px' : '70px',
-            maxWidth: 'calc(100% - 240px)', // Ajuste para que se vea todo
+            maxWidth: 'calc(100% - 240px)',
           }}
         >
           <Container maxWidth="lg">
-            <Typography variant="h3" gutterBottom sx={{ color: '#1A1A40', fontWeight: '600', fontFamily: 'Roboto, sans-serif' }}>
+            <Typography variant="h3" gutterBottom sx={{ color: '#1A1A40', fontWeight: '600', fontFamily: 'Roboto, sans-serif', transition: '0.3s', '&:hover': { transform: 'translateY(-5px)' } }}>
               {t('dashboard.title')}
             </Typography>
-            <Box sx={{ display: 'flex', mb: 3 }}>
-              <Button variant="contained" sx={{ bgcolor: '#2666CF', color: '#ffffff', fontWeight: '500', textTransform: 'none', borderRadius: 2, boxShadow: '0 3px 6px rgba(0,0,0,0.1)', padding: '10px 20px' }}>
-                {t('dashboard.newContactRequests')}
-              </Button>
-              <Button variant="outlined" sx={{ ml: 2, borderColor: '#2666CF', color: '#2666CF', fontWeight: '500', textTransform: 'none', borderRadius: 2, padding: '10px 20px', boxShadow: '0 3px 6px rgba(0,0,0,0.1)' }}>
-                {t('dashboard.newDocumentsReceived')}
-              </Button>
+            <Box sx={{ display: 'flex', mb: 3, justifyContent: 'flex-start', alignItems: 'center', gap: '10px', maxWidth: '50%' }}>
+              <Fade in timeout={500}>
+                <Button variant="contained" sx={{ bgcolor: '#2666CF', color: '#ffffff', fontWeight: '500', textTransform: 'none', borderRadius: 2, boxShadow: '0 3px 6px rgba(0,0,0,0.1)', padding: '10px 20px' }}>
+                  {t('dashboard.newContactRequests')}
+                </Button>
+              </Fade>
+              <Fade in timeout={1000}>
+                <Button variant="outlined" sx={{ borderColor: '#2666CF', color: '#2666CF', fontWeight: '500', textTransform: 'none', borderRadius: 2, padding: '10px 20px', boxShadow: '0 3px 6px rgba(0,0,0,0.1)' }}>
+                  {t('dashboard.newDocumentsReceived')}
+                </Button>
+              </Fade>
+              <Zoom in timeout={1500}>
+                <IconButton sx={{ bgcolor: '#2666CF', color: '#fff', borderRadius: 2, boxShadow: '0 3px 6px rgba(0,0,0,0.1)' }}>
+                  <AddCircleOutlineIcon sx={{ fontSize: 32 }} />
+                </IconButton>
+              </Zoom>
             </Box>
             <Grid container spacing={3}>
               <Grid item xs={12} md={3}>
-                <Paper sx={{ p: 3, display: 'flex', flexDirection: 'column', bgcolor: '#ffffff', borderRadius: 2, boxShadow: '0 3px 10px rgba(0, 0, 0, 0.1)', transition: '0.3s', '&:hover': { transform: 'translateY(-5px)', boxShadow: '0 6px 15px rgba(0, 0, 0, 0.15)' } }}>
-                  <Typography variant="h6" gutterBottom sx={{ color: '#1A1A40', fontWeight: '500', fontFamily: 'Roboto, sans-serif' }}>
-                    {t('dashboard.totalSales')}
-                  </Typography>
-                  <Typography variant="h4" sx={{ color: '#1A1A40', fontWeight: '700', fontFamily: 'Roboto, sans-serif' }}>$1,000</Typography>
-                </Paper>
+                <Zoom in timeout={500}>
+                  <Paper sx={{ p: 3, display: 'flex', flexDirection: 'column', bgcolor: '#ffffff', borderRadius: 2, boxShadow: '0 3px 10px rgba(0, 0, 0, 0.1)', transition: '0.3s', '&:hover': { transform: 'translateY(-5px)', boxShadow: '0 6px 15px rgba(0, 0, 0, 0.15)' } }}>
+                    <Typography variant="h6" gutterBottom sx={{ color: '#1A1A40', fontWeight: '500', fontFamily: 'Roboto, sans-serif' }}>
+                      {t('dashboard.totalSales')}
+                    </Typography>
+                    <Typography variant="h4" sx={{ color: '#1A1A40', fontWeight: '700', fontFamily: 'Roboto, sans-serif' }}>$1,000</Typography>
+                  </Paper>
+                </Zoom>
               </Grid>
               <Grid item xs={12} md={3}>
-                <Paper sx={{ p: 3, display: 'flex', flexDirection: 'column', bgcolor: '#ffffff', borderRadius: 2, boxShadow: '0 3px 10px rgba(0, 0, 0, 0.1)', transition: '0.3s', '&:hover': { transform: 'translateY(-5px)', boxShadow: '0 6px 15px rgba(0, 0, 0, 0.15)' } }}>
-                  <Typography variant="h6" gutterBottom sx={{ color: '#1A1A40', fontWeight: '500', fontFamily: 'Roboto, sans-serif' }}>
-                    {t('dashboard.totalPurchases')}
-                  </Typography>
-                  <Typography variant="h4" sx={{ color: '#1A1A40', fontWeight: '700', fontFamily: 'Roboto, sans-serif' }}>$2,000</Typography>
-                </Paper>
+                <Zoom in timeout={700}>
+                  <Paper sx={{ p: 3, display: 'flex', flexDirection: 'column', bgcolor: '#ffffff', borderRadius: 2, boxShadow: '0 3px 10px rgba(0, 0, 0, 0.1)', transition: '0.3s', '&:hover': { transform: 'translateY(-5px)', boxShadow: '0 6px 15px rgba(0, 0, 0, 0.15)' } }}>
+                    <Typography variant="h6" gutterBottom sx={{ color: '#1A1A40', fontWeight: '500', fontFamily: 'Roboto, sans-serif' }}>
+                      {t('dashboard.totalPurchases')}
+                    </Typography>
+                    <Typography variant="h4" sx={{ color: '#1A1A40', fontWeight: '700', fontFamily: 'Roboto, sans-serif' }}>$2,000</Typography>
+                  </Paper>
+                </Zoom>
               </Grid>
               <Grid item xs={12} md={3}>
-                <Paper sx={{ p: 3, display: 'flex', flexDirection: 'column', bgcolor: '#ffffff', borderRadius: 2, boxShadow: '0 3px 10px rgba(0, 0, 0, 0.1)', transition: '0.3s', '&:hover': { transform: 'translateY(-5px)', boxShadow: '0 6px 15px rgba(0, 0, 0, 0.15)' } }}>
-                  <Typography variant="h6" gutterBottom sx={{ color: '#1A1A40', fontWeight: '500', fontFamily: 'Roboto, sans-serif' }}>
-                    {t('dashboard.profitThisMonth')}
-                  </Typography>
-                  <Typography variant="h4" sx={{ color: '#1A1A40', fontWeight: '700', fontFamily: 'Roboto, sans-serif' }}>$1,000</Typography>
-                </Paper>
+                <Zoom in timeout={900}>
+                  <Paper sx={{ p: 3, display: 'flex', flexDirection: 'column', bgcolor: '#ffffff', borderRadius: 2, boxShadow: '0 3px 10px rgba(0, 0, 0, 0.1)', transition: '0.3s', '&:hover': { transform: 'translateY(-5px)', boxShadow: '0 6px 15px rgba(0, 0, 0, 0.15)' } }}>
+                    <Typography variant="h6" gutterBottom sx={{ color: '#1A1A40', fontWeight: '500', fontFamily: 'Roboto, sans-serif' }}>
+                      {t('dashboard.profitThisMonth')}
+                    </Typography>
+                    <Typography variant="h4" sx={{ color: '#1A1A40', fontWeight: '700', fontFamily: 'Roboto, sans-serif' }}>$1,000</Typography>
+                  </Paper>
+                </Zoom>
               </Grid>
               <Grid item xs={12} md={3}>
-                <Paper sx={{ p: 3, display: 'flex', flexDirection: 'column', bgcolor: '#ffffff', borderRadius: 2, boxShadow: '0 3px 10px rgba(0, 0, 0, 0.1)', transition: '0.3s', '&:hover': { transform: 'translateY(-5px)', boxShadow: '0 6px 15px rgba(0, 0, 0, 0.15)' } }}>
-                  <Typography variant="h6" gutterBottom sx={{ color: '#1A1A40', fontWeight: '500', fontFamily: 'Roboto, sans-serif' }}>
-                    {t('dashboard.balance')}
-                  </Typography>
-                  <Typography variant="h4" sx={{ color: '#1A1A40', fontWeight: '700', fontFamily: 'Roboto, sans-serif' }}>$10,000</Typography>
-                </Paper>
+                <Zoom in timeout={1100}>
+                  <Paper sx={{ p: 3, display: 'flex', flexDirection: 'column', bgcolor: '#ffffff', borderRadius: 2, boxShadow: '0 3px 10px rgba(0, 0, 0, 0.1)', transition: '0.3s', '&:hover': { transform: 'translateY(-5px)', boxShadow: '0 6px 15px rgba(0, 0, 0, 0.15)' } }}>
+                    <Typography variant="h6" gutterBottom sx={{ color: '#1A1A40', fontWeight: '500', fontFamily: 'Roboto, sans-serif' }}>
+                      {t('dashboard.balance')}
+                    </Typography>
+                    <Typography variant="h4" sx={{ color: '#1A1A40', fontWeight: '700', fontFamily: 'Roboto, sans-serif' }}>$10,000</Typography>
+                  </Paper>
+                </Zoom>
               </Grid>
               <Grid item xs={12}>
-                <Paper sx={{ p: 3, display: 'flex', flexDirection: 'column', bgcolor: '#ffffff', borderRadius: 2, boxShadow: '0 3px 10px rgba(0, 0, 0, 0.1)' }}>
-                  <Typography variant="h6" gutterBottom sx={{ color: '#1A1A40', fontWeight: '500', fontFamily: 'Roboto, sans-serif' }}>
-                    {t('dashboard.salesAndPurchases')}
-                  </Typography>
-                  <Box sx={{ height: 400 }}>
-                    <Line data={data} options={options} />
-                  </Box>
-                </Paper>
+                <Zoom in timeout={1300}>
+                  <Paper sx={{ p: 3, display: 'flex', flexDirection: 'column', bgcolor: '#ffffff', borderRadius: 2, boxShadow: '0 3px 10px rgba(0, 0, 0, 0.1)', transition: '0.3s', '&:hover': { transform: 'translateY(-5px)', boxShadow: '0 6px 15px rgba(0, 0, 0, 0.15)' } }}>
+                    <Typography variant="h6" gutterBottom sx={{ color: '#1A1A40', fontWeight: '500', fontFamily: 'Roboto, sans-serif' }}>
+                      {t('dashboard.salesAndPurchases')}
+                    </Typography>
+                    <Box sx={{ height: 400 }}>
+                      <Line data={data} options={options} />
+                    </Box>
+                  </Paper>
+                </Zoom>
               </Grid>
             </Grid>
-            {/* Botón para agregar widgets - Se movió hacia la parte superior derecha */}
-            <Box sx={{ textAlign: 'right', mt: 2 }}>
-              <Button variant="contained" sx={{ bgcolor: '#2666CF', color: '#ffffff', fontWeight: '500', textTransform: 'none', borderRadius: 2, boxShadow: '0 3px 6px rgba(0,0,0,0.1)' }}>
-                {t('dashboard.addWidget') || 'Agregar Widget'}
-              </Button>
-            </Box>
           </Container>
         </Box>
       </Box>
