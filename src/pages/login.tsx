@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import Avatar from "@mui/material/Avatar";
 import Button from "@mui/material/Button";
@@ -19,8 +19,6 @@ import CircularProgress from "@mui/material/CircularProgress";
 import IconButton from "@mui/material/IconButton";
 import InputAdornment from "@mui/material/InputAdornment";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
-import AuthenticationService from "../services/AuthenticatorService";
-import { LoginResponse, UserLogin } from "../types/UserLogin";
 import { useLogin } from "hooks/useAuthentication";
 import { useRegister } from "hooks/userRegister";
 import { Copyright } from "@mui/icons-material";
@@ -47,6 +45,12 @@ const Login = () => {
     phone: "",
   });
 
+  useEffect(() => {
+    if (loginData && !loginError) {
+      router.push("/dashboard");
+    }
+  }, [loginData, loginError, router]);
+
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setEmailError(false);
@@ -61,19 +65,17 @@ const Login = () => {
   };
 
   const handleLoginSubmit = async () => {
-    const user: UserLogin = { username: email, password: password };
+    const user = { username: email, password: password };
     await login(user);
 
-    if (loginData) {
-      router.push("/dashboard");
-    } else {
+    if (loginError) {
       setErrorMessage(loginError || "Error de inicio de sesión");
     }
   };
 
   const handleRegisterSubmit = async () => {
     if (registerForm.password !== registerForm.confirmPassword) {
-      alert("Las contraseñas no coinciden");
+      setErrorMessage("Las contraseñas no coinciden");
       return;
     }
     await register({
@@ -82,11 +84,11 @@ const Login = () => {
       password: registerForm.password,
     });
 
-    if (registerData) {
+    if (registerData && !registerError) {
       setIsRegistering(false);
       router.push("/dashboard");
-    } else {
-      setErrorMessage(registerError || "Error de registro");
+    } else if (registerError) {
+      setErrorMessage(registerError);
     }
   };
 

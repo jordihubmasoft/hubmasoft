@@ -18,6 +18,7 @@ export const useLogin = (): UseLoginResult => {
   const login = async (user: UserLogin): Promise<void> => {
     setLoading(true);
     setError(null);
+    setData(null);  // Reiniciar data antes de la solicitud
     try {
       console.log('Attempting to log in with user:', user);
       const response: CommonResponse<LoginResponse> = await AuthenticatorService.userLogin(user);
