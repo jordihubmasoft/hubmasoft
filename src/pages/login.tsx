@@ -16,6 +16,9 @@ import { createTheme, ThemeProvider } from "@mui/material/styles";
 import Image from "next/image";
 import Logo from "@public/img/Logo.svg";
 import CircularProgress from "@mui/material/CircularProgress";
+import IconButton from "@mui/material/IconButton";
+import InputAdornment from "@mui/material/InputAdornment";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
 import AuthenticationService from "../services/AuthenticatorService";
 import { LoginResponse, UserLogin } from "../types/UserLogin";
 import { useLogin } from "hooks/useAuthentication";
@@ -30,6 +33,7 @@ const Login = () => {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [emailError, setEmailError] = useState(false);
   const [passwordError, setPasswordError] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -63,7 +67,7 @@ const Login = () => {
     if (loginData) {
       router.push("/dashboard");
     } else {
-      setErrorMessage(loginError);
+      setErrorMessage(loginError || "Error de inicio de sesión");
     }
   };
 
@@ -82,7 +86,7 @@ const Login = () => {
       setIsRegistering(false);
       router.push("/dashboard");
     } else {
-      setErrorMessage(registerError);
+      setErrorMessage(registerError || "Error de registro");
     }
   };
 
@@ -122,7 +126,7 @@ const Login = () => {
             {isRegistering ? "Regístrate" : "Iniciar Sesión"}
           </Typography>
           {errorMessage && (
-            <Typography color="error" variant="body2">
+            <Typography color="error" variant="body2" sx={{ mt: 2 }}>
               {errorMessage}
             </Typography>
           )}
@@ -185,7 +189,7 @@ const Login = () => {
               fullWidth
               name="password"
               label="Contraseña"
-              type="password"
+              type={showPassword ? "text" : "password"}
               id="password"
               autoComplete={isRegistering ? "new-password" : "current-password"}
               value={isRegistering ? registerForm.password : password}
@@ -203,6 +207,19 @@ const Login = () => {
                   },
                 },
               }}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      aria-label="toggle password visibility"
+                      onClick={() => setShowPassword(!showPassword)}
+                      edge="end"
+                    >
+                      {showPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
             />
             {isRegistering && (
               <>
@@ -212,7 +229,7 @@ const Login = () => {
                   fullWidth
                   name="confirmPassword"
                   label="Confirmar Contraseña"
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   id="confirmPassword"
                   autoComplete="new-password"
                   value={registerForm.confirmPassword}
