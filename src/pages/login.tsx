@@ -19,6 +19,8 @@ import CircularProgress from "@mui/material/CircularProgress";
 import IconButton from "@mui/material/IconButton";
 import InputAdornment from "@mui/material/InputAdornment";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
+import Snackbar from "@mui/material/Snackbar";
+import Alert, { AlertColor } from "@mui/material/Alert";  // Import AlertColor
 import { useLogin } from "hooks/useAuthentication";
 import { useRegister } from "hooks/userRegister";
 import { Copyright } from "@mui/icons-material";
@@ -45,9 +47,21 @@ const Login = () => {
     phone: "",
   });
 
+  // State for Snackbar with correct type
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [snackbarSeverity, setSnackbarSeverity] = useState<AlertColor>('success'); // Use AlertColor type
+
   useEffect(() => {
     if (loginData && !loginError) {
+      setSnackbarSeverity("success");
+      setSnackbarMessage("¡Inicio de sesión exitoso! Redirigiendo...");
+      setOpenSnackbar(true);
       router.push("/dashboard");
+    } else if (loginError) {
+      setSnackbarSeverity("error");
+      setSnackbarMessage(loginError || "Error de inicio de sesión");
+      setOpenSnackbar(true);
     }
   }, [loginData, loginError, router]);
 
@@ -67,17 +81,17 @@ const Login = () => {
   const handleLoginSubmit = async () => {
     const user = { username: email, password: password };
     await login(user);
-
-    if (loginError) {
-      setErrorMessage(loginError || "Error de inicio de sesión");
-    }
   };
 
   const handleRegisterSubmit = async () => {
     if (registerForm.password !== registerForm.confirmPassword) {
       setErrorMessage("Las contraseñas no coinciden");
+      setSnackbarSeverity("error");
+      setSnackbarMessage("Las contraseñas no coinciden");
+      setOpenSnackbar(true);
       return;
     }
+
     await register({
       username: registerForm.nombre,
       email: registerForm.email,
@@ -86,9 +100,15 @@ const Login = () => {
 
     if (registerData && !registerError) {
       setIsRegistering(false);
-      router.push("/dashboard");
+      setSnackbarSeverity("success");
+      setSnackbarMessage("¡Registro exitoso! Por favor, inicia sesión.");
+      setOpenSnackbar(true);
+      router.push("/login");
     } else if (registerError) {
       setErrorMessage(registerError);
+      setSnackbarSeverity("error");
+      setSnackbarMessage(registerError);
+      setOpenSnackbar(true);
     }
   };
 
@@ -115,7 +135,7 @@ const Login = () => {
             borderRadius: 2,
             boxShadow: "0 3px 10px rgba(0,0,0,0.1)",
             transition: "all 0.3s ease",
-            width: isRegistering ? '450px' : '400px',
+            width: isRegistering ? "450px" : "400px",
           }}
         >
           <Box sx={{ mb: -3 }}>
@@ -280,6 +300,16 @@ const Login = () => {
             </Grid>
           </Box>
         </Box>
+        <Snackbar
+          open={openSnackbar}
+          autoHideDuration={2000}
+          onClose={() => setOpenSnackbar(false)}
+          anchorOrigin={{ vertical: "top", horizontal: "center" }}
+        >
+          <Alert onClose={() => setOpenSnackbar(false)} severity={snackbarSeverity} sx={{ width: "100%" }}>
+            {snackbarMessage}
+          </Alert>
+        </Snackbar>
         <Copyright sx={{ mt: 4, mb: 4 }} />
       </Container>
     </ThemeProvider>

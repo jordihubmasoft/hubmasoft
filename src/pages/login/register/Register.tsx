@@ -40,16 +40,18 @@ const Register: React.FC = () => {
   const [openSnackbar, setOpenSnackbar] = useState<boolean>(false);
 
   useEffect(() => {
-    if (data && !error) {
-      setOpenSnackbar(true); // Mostrar el popup de éxito
+    if (data) {
+      // If there's data and no error, it means registration was successful
+      setOpenSnackbar(true); // Show the success popup
       setTimeout(() => {
-        setOpenRegister(false); // Cerrar el diálogo de registro
-        router.push("/login"); // Redirigir a la página de login después de 2 segundos
+        setOpenRegister(false); // Close the registration dialog
+        router.push("/login"); // Redirect to the login page after 2 seconds
       }, 2000);
     } else if (error) {
-      setErrorMessage(error); // Mostrar el mensaje de error si ocurre un error
+      setErrorMessage(error); // Display the error message if there's an error
     }
   }, [data, error, router]);
+  
 
   const handleRegisterSubmit = async (
     event: React.FormEvent<HTMLFormElement>
@@ -178,6 +180,7 @@ const Register: React.FC = () => {
           ¡Registro exitoso! Redirigiendo al inicio de sesión...
         </Alert>
       </Snackbar>
+
     </>
   );
 };
