@@ -65,7 +65,14 @@ export const translations = {
         add: 'Añadir Compra',
         cancel: 'Cancelar',
         save: 'Guardar',
+        quotes: 'Cotizaciones',
+        orders: 'Órdenes',
+        deliveryNotes: 'Notas de Entrega',
+        proformas: 'Proformas',
+        invoices: 'Facturas',
+        addSaleDialogDescription: 'Introduce la nueva información de la venta',
       },
+    
       inventory: {
         title: 'Inventario',
         newProduct: 'Nuevo Producto',
@@ -105,7 +112,9 @@ export const translations = {
         addProduct: 'Añadir Producto',
         cancel: 'Cancelar',
         save: 'Guardar',
+        addProductDialogDescription: 'Introduce la nueva información del producto', // Added translation
       },
+    
       employees: {
         title: 'Empleados',
         addEmployee: 'Añadir Empleado',
@@ -126,7 +135,9 @@ export const translations = {
         cancel: 'Cancelar',
         save: 'Guardar',
         actions: 'Acciones',
+        addEmployeeDialogDescription: 'Introduce la nueva información del empleado', // Added translation
       },
+    
       projects: {
         title: 'Proyectos',
         addProject: 'Añadir Proyecto',

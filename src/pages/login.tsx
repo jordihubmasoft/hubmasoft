@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import Avatar from "@mui/material/Avatar";
 import Button from "@mui/material/Button";
@@ -16,13 +16,43 @@ import { createTheme, ThemeProvider } from "@mui/material/styles";
 import Image from "next/image";
 import Logo from "@public/img/Logo.svg";
 import CircularProgress from "@mui/material/CircularProgress";
-import AuthenticationService from "../services/AuthenticatorService";
-import { LoginResponse, UserLogin } from "../types/UserLogin";
+import IconButton from "@mui/material/IconButton";
+import InputAdornment from "@mui/material/InputAdornment";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
+import Snackbar from "@mui/material/Snackbar";
+import Alert, { AlertColor } from "@mui/material/Alert";
+import Popper from '@mui/material/Popper';
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
+import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import { useLogin } from "hooks/useAuthentication";
 import { useRegister } from "hooks/userRegister";
-import { Copyright } from "@mui/icons-material";
+import LinearProgress from "@mui/material/LinearProgress";
+import Grow from "@mui/material/Grow";
 
-const theme = createTheme();
+const theme = createTheme({
+  typography: {
+    fontFamily: ['Roboto', 'Arial', 'sans-serif'].join(','),
+    fontSize: 14,
+    body1: {
+      fontWeight: 500,
+    },
+    body2: {
+      color: "#555",
+      fontSize: "0.875rem",
+    },
+  },
+  palette: {
+    primary: {
+      main: '#1a73e8',
+    },
+    success: {
+      main: '#34a853',
+    },
+    error: {
+      main: '#ea4335',
+    }
+  }
+});
 
 const Login = () => {
   const { login, data: loginData, error: loginError, loading: loginLoading } = useLogin();
@@ -30,6 +60,7 @@ const Login = () => {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [emailError, setEmailError] = useState(false);
   const [passwordError, setPasswordError] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -42,6 +73,40 @@ const Login = () => {
     confirmPassword: "",
     phone: "",
   });
+
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [snackbarSeverity, setSnackbarSeverity] = useState<AlertColor>('success');
+  const [hasMinLength, setHasMinLength] = useState(false);
+  const [hasUpperCase, setHasUpperCase] = useState(false);
+  const [hasLowerCase, setHasLowerCase] = useState(false);
+  const [hasNumber, setHasNumber] = useState(false);
+  const [hasSpecialChar, setHasSpecialChar] = useState(false);
+  const [anchorEl, setAnchorEl] = useState(null);
+
+  const allRequirementsMet = hasMinLength && hasUpperCase && hasLowerCase && hasNumber && hasSpecialChar;
+
+  useEffect(() => {
+    if (loginData && !loginError) {
+      setSnackbarSeverity("success");
+      setSnackbarMessage("¡Inicio de sesión exitoso! Redirigiendo...");
+      setOpenSnackbar(true);
+      router.push("/dashboard");
+    } else if (loginError) {
+      setSnackbarSeverity("error");
+      setSnackbarMessage(loginError || "Error de inicio de sesión");
+      setOpenSnackbar(true);
+    }
+  }, [loginData, loginError, router]);
+
+  useEffect(() => {
+    const password = registerForm.password;
+    setHasMinLength(password.length >= 8);
+    setHasUpperCase(/[A-Z]/.test(password));
+    setHasLowerCase(/[a-z]/.test(password));
+    setHasNumber(/[0-9]/.test(password));
+    setHasSpecialChar(/[\W_]/.test(password));
+  }, [registerForm.password]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -57,32 +122,44 @@ const Login = () => {
   };
 
   const handleLoginSubmit = async () => {
-    const user: UserLogin = { username: email, password: password };
+    const user = { username: email, password: password };
     await login(user);
-
-    if (loginData) {
-      router.push("/dashboard");
-    } else {
-      setErrorMessage(loginError);
-    }
   };
 
   const handleRegisterSubmit = async () => {
     if (registerForm.password !== registerForm.confirmPassword) {
-      alert("Las contraseñas no coinciden");
+      setErrorMessage("Las contraseñas no coinciden");
+      setSnackbarSeverity("error");
+      setSnackbarMessage("Las contraseñas no coinciden");
+      setOpenSnackbar(true);
       return;
     }
+
+    if (!allRequirementsMet) {
+      setErrorMessage("La contraseña no es lo suficientemente fuerte");
+      setSnackbarSeverity("error");
+      setSnackbarMessage("La contraseña no es lo suficientemente fuerte");
+      setOpenSnackbar(true);
+      return;
+    }
+
     await register({
       username: registerForm.nombre,
       email: registerForm.email,
       password: registerForm.password,
     });
 
-    if (registerData) {
+    if (registerData && !registerError) {
       setIsRegistering(false);
-      router.push("/dashboard");
-    } else {
+      setSnackbarSeverity("success");
+      setSnackbarMessage("¡Registro exitoso! Por favor, inicia sesión.");
+      setOpenSnackbar(true);
+      router.push("/login");
+    } else if (registerError) {
       setErrorMessage(registerError);
+      setSnackbarSeverity("error");
+      setSnackbarMessage(registerError);
+      setOpenSnackbar(true);
     }
   };
 
@@ -92,6 +169,14 @@ const Login = () => {
       ...prevData,
       [name]: value,
     }));
+  };
+
+  const handlePasswordFocus = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handlePasswordBlur = () => {
+    setAnchorEl(null);
   };
 
   return (
@@ -109,7 +194,8 @@ const Login = () => {
             borderRadius: 2,
             boxShadow: "0 3px 10px rgba(0,0,0,0.1)",
             transition: "all 0.3s ease",
-            width: isRegistering ? '450px' : '400px',
+            width: isRegistering ? "450px" : "400px",
+            position: 'relative',
           }}
         >
           <Box sx={{ mb: -3 }}>
@@ -122,7 +208,7 @@ const Login = () => {
             {isRegistering ? "Regístrate" : "Iniciar Sesión"}
           </Typography>
           {errorMessage && (
-            <Typography color="error" variant="body2">
+            <Typography color="error" variant="body2" sx={{ mt: 2 }}>
               {errorMessage}
             </Typography>
           )}
@@ -185,7 +271,7 @@ const Login = () => {
               fullWidth
               name="password"
               label="Contraseña"
-              type="password"
+              type={showPassword ? "text" : "password"}
               id="password"
               autoComplete={isRegistering ? "new-password" : "current-password"}
               value={isRegistering ? registerForm.password : password}
@@ -196,6 +282,8 @@ const Login = () => {
               }}
               error={passwordError}
               helperText={passwordError && "Contraseña incorrecta"}
+              onFocus={handlePasswordFocus}
+              onBlur={handlePasswordBlur}
               sx={{
                 "& .MuiOutlinedInput-root": {
                   "&.Mui-focused fieldset": {
@@ -203,7 +291,86 @@ const Login = () => {
                   },
                 },
               }}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      aria-label="toggle password visibility"
+                      onClick={() => setShowPassword(!showPassword)}
+                      edge="end"
+                    >
+                      {showPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
             />
+            
+            <Popper
+              open={Boolean(anchorEl)}
+              anchorEl={anchorEl}
+              placement="right-start"
+              modifiers={[
+                { name: 'offset', options: { offset: [0, 100] } },
+              ]}
+              style={{
+                position: 'fixed',
+                top: '50%',
+                right: '20%',
+                transform: 'translateY(-50%)',
+                zIndex: 1000
+              }}
+            >
+              <Grow in={Boolean(anchorEl)} timeout={300}>
+                <Box
+                  sx={{
+                    width: '280px',
+                    padding: '16px',
+                    backgroundColor: 'white',
+                    border: '1px solid #d1d1d1',
+                    borderRadius: '8px',
+                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                    transition: 'transform 0.3s ease',
+                    '&:hover': {
+                      transform: 'scale(1.05)',
+                    },
+                  }}
+                >
+                  <LinearProgress
+                    variant="determinate"
+                    value={
+                      (Number(hasMinLength) +
+                      Number(hasUpperCase) +
+                      Number(hasLowerCase) +
+                      Number(hasNumber) +
+                      Number(hasSpecialChar)) / 5 * 100
+                    }
+                    sx={{
+                      mb: 2,
+                      backgroundColor: allRequirementsMet ? 'success.main' : 'error.main',
+                    }}
+                  />
+                  <div className="space-y-2">
+                    <Typography variant="body2" className={`flex items-center text-sm ${hasMinLength ? 'text-green-600' : 'text-red-600'}`}>
+                      {hasMinLength ? <CheckCircleOutlineIcon fontSize="small" className="mr-2" /> : <RadioButtonUncheckedIcon fontSize="small" className="mr-2" />} Mínimo 8 caracteres
+                    </Typography>
+                    <Typography variant="body2" className={`flex items-center text-sm ${hasUpperCase ? 'text-green-600' : 'text-red-600'}`}>
+                      {hasUpperCase ? <CheckCircleOutlineIcon fontSize="small" className="mr-2" /> : <RadioButtonUncheckedIcon fontSize="small" className="mr-2" />} Al menos una letra mayúscula
+                    </Typography>
+                    <Typography variant="body2" className={`flex items-center text-sm ${hasLowerCase ? 'text-green-600' : 'text-red-600'}`}>
+                      {hasLowerCase ? <CheckCircleOutlineIcon fontSize="small" className="mr-2" /> : <RadioButtonUncheckedIcon fontSize="small" className="mr-2" />} Al menos una letra minúscula
+                    </Typography>
+                    <Typography variant="body2" className={`flex items-center text-sm ${hasNumber ? 'text-green-600' : 'text-red-600'}`}>
+                      {hasNumber ? <CheckCircleOutlineIcon fontSize="small" className="mr-2" /> : <RadioButtonUncheckedIcon fontSize="small" className="mr-2" />} Al menos un número
+                    </Typography>
+                    <Typography variant="body2" className={`flex items-center text-sm ${hasSpecialChar ? 'text-green-600' : 'text-red-600'}`}>
+                      {hasSpecialChar ? <CheckCircleOutlineIcon fontSize="small" className="mr-2" /> : <RadioButtonUncheckedIcon fontSize="small" className="mr-2" />} Al menos un carácter especial
+                    </Typography>
+                  </div>
+                </Box>
+              </Grow>
+            </Popper>
+
             {isRegistering && (
               <>
                 <TextField
@@ -212,7 +379,7 @@ const Login = () => {
                   fullWidth
                   name="confirmPassword"
                   label="Confirmar Contraseña"
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   id="confirmPassword"
                   autoComplete="new-password"
                   value={registerForm.confirmPassword}
@@ -235,7 +402,7 @@ const Login = () => {
               fullWidth
               variant="contained"
               sx={{ mt: 3, mb: 2 }}
-              disabled={loginLoading || registerLoading}
+              disabled={registerLoading || (isRegistering && !allRequirementsMet)}
             >
               {isRegistering ? (registerLoading ? <CircularProgress size={24} /> : "Regístrate") : (loginLoading ? <CircularProgress size={24} /> : "Iniciar Sesión")}
             </Button>
@@ -261,7 +428,19 @@ const Login = () => {
             </Grid>
           </Box>
         </Box>
-        <Copyright sx={{ mt: 4, mb: 4 }} />
+        <Snackbar
+          open={openSnackbar}
+          autoHideDuration={2000}
+          onClose={() => setOpenSnackbar(false)}
+          anchorOrigin={{ vertical: "top", horizontal: "center" }}
+        >
+          <Alert onClose={() => setOpenSnackbar(false)} severity={snackbarSeverity} sx={{ width: "100%" }}>
+            {snackbarMessage}
+          </Alert>
+        </Snackbar>
+        <Box component="footer" sx={{ mt: 4, mb: 4, textAlign: 'center' }}>
+          © {new Date().getFullYear()} Hubmasoft. All rights reserved.
+        </Box>
       </Container>
     </ThemeProvider>
   );

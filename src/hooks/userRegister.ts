@@ -23,14 +23,14 @@ export const useRegister = (): UseRegisterResult => {
 
   const register = async (user: UserRegister): Promise<void> => {
     setLoading(true);
-    setError(null);
+    setError(null); // Reset error state before attempting registration
     try {
       const response: CommonResponse<LoginResponse> =
         await AuthenticatorService.userRegister(user);
       if (response.result.resultNumber === 0) {
-        setData(response.data);
+        setData(response.data); // Set data on success
       } else {
-        setError(response.result.errorMessage);
+        setError(response.result.errorMessage || "Unknown error occurred."); // Handle error
       }
     } catch (err) {
       setError(err.message || "Unexpected error occurred");
