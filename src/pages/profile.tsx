@@ -16,7 +16,7 @@ import {
   TableHead, 
   TableRow, 
   TableCell, 
-  TableBody
+  TableBody 
 } from '@mui/material';
 import { motion } from 'framer-motion';
 import Header from '../componentes/Header';
@@ -53,7 +53,6 @@ const Profile = () => {
             width: isMenuOpen ? '240px' : '70px',
             flexShrink: 0,
             bgcolor: '#1A1A40',
-            borderRight: 'none',
             overflow: 'hidden',
             boxShadow: '0 3px 10px rgba(0, 0, 0, 0.1)',
             zIndex: 1201,
@@ -73,6 +72,7 @@ const Profile = () => {
             marginLeft: isMenuOpen ? '240px' : '70px',
             bgcolor: '#F9FAFC',
             borderRadius: 3,
+            overflow: 'auto',
           }}
         >
           <Container maxWidth="lg">
@@ -87,22 +87,66 @@ const Profile = () => {
                 <motion.div
                   initial={{ opacity: 0, x: -50 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.5 }}
+                  transition={{ duration: 0.7 }}
+                  whileHover={{ scale: 1.05 }}
                   style={{ display: 'flex', flexDirection: 'column', height: '100%' }}
                 >
-                  <Card sx={{ textAlign: 'center', padding: '20px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                  <Card
+                    sx={{
+                      textAlign: 'center',
+                      padding: '30px',
+                      flex: 1,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                      borderRadius: 5,
+                      boxShadow: '0px 10px 30px rgba(0,0,0,0.15)',
+                      background: 'linear-gradient(145deg, #f0f0f0, #cacaca)',
+                      transition: 'all 0.3s ease',
+                    }}
+                  >
                     <Box>
                       <Avatar
-                        sx={{ bgcolor: '#1A1A40', width: 100, height: 100, fontSize: 50, mx: 'auto', marginBottom: 2 }}
+                        sx={{
+                          bgcolor: '#1A1A40',
+                          width: 100,
+                          height: 100,
+                          fontSize: 50,
+                          mx: 'auto',
+                          marginBottom: 2,
+                          transition: 'transform 0.3s ease',
+                          '&:hover': {
+                            transform: 'scale(1.2)',
+                          },
+                        }}
                       >
-                        {user?.name?.charAt(0)} {/* Muestra la inicial del nombre del usuario */}
+                        {user?.name?.charAt(0)}
                       </Avatar>
-                      <Typography variant="h6" sx={{ fontWeight: '600' }}>{user?.name || "Nombre no disponible"}</Typography>
-                      <Typography variant="body2" color="textSecondary" sx={{ marginBottom: 2 }}>{user?.email || "Email no disponible"}</Typography>
+                      <Typography variant="h6" sx={{ fontWeight: '600' }}>
+                        {user?.name || "Nombre no disponible"}
+                      </Typography>
+                      <Typography variant="body2" color="textSecondary" sx={{ marginBottom: 2 }}>
+                        {user?.email || "Email no disponible"}
+                      </Typography>
                     </Box>
                     <Box>
-                      <Button variant="outlined" fullWidth sx={{ padding: '10px 20px', marginBottom: 2 }}>Cambiar Foto</Button>
-                      <Button variant="text" color="error" fullWidth onClick={logout}>Eliminar Cuenta</Button> {/* Agrega la funcionalidad de logout */}
+                      <Button variant="outlined" fullWidth sx={{ padding: '10px 20px', marginBottom: 2, borderRadius: 3 }}>
+                        Cambiar Foto
+                      </Button>
+                      <Button
+                        variant="text"
+                        color="error"
+                        fullWidth
+                        onClick={logout}
+                        sx={{
+                          transition: 'color 0.3s ease',
+                          '&:hover': {
+                            color: '#ff4d4f',
+                          },
+                        }}
+                      >
+                        Eliminar Cuenta
+                      </Button>
                     </Box>
                   </Card>
                 </motion.div>
@@ -113,10 +157,21 @@ const Profile = () => {
                 <motion.div
                   initial={{ opacity: 0, x: 50 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.5 }}
+                  transition={{ duration: 0.7 }}
+                  whileHover={{ scale: 1.02 }}
                   style={{ display: 'flex', flexDirection: 'column', height: '100%' }}
                 >
-                  <Card sx={{ padding: '20px', flex: 1 }}>
+                  <Card
+                    sx={{
+                      padding: '30px',
+                      flex: 1,
+                      borderRadius: 5,
+                      boxShadow: '0px 10px 30px rgba(0,0,0,0.15)',
+                      background: 'rgba(255, 255, 255, 0.75)',
+                      backdropFilter: 'blur(10px)',
+                      border: '1px solid rgba(255, 255, 255, 0.3)',
+                    }}
+                  >
                     <Typography variant="h5" gutterBottom sx={{ color: '#1A1A40', fontWeight: '500' }}>
                       Editar Perfil
                     </Typography>
@@ -152,8 +207,32 @@ const Profile = () => {
                       sx={{ marginBottom: 3 }}
                       defaultValue={user?.email || ""}
                     />
-                    <Button variant="contained" sx={{ width: '100%', padding: '12px 0' }}>Guardar Cambios</Button>
-                    <Button variant="text" sx={{ width: '100%', marginTop: 2 }}>Cambiar Contraseña</Button>
+                    <Button
+                      variant="contained"
+                      sx={{
+                        width: '100%',
+                        padding: '12px 0',
+                        backgroundColor: '#1A1A40',
+                        '&:hover': {
+                          backgroundColor: '#333366',
+                        },
+                      }}
+                    >
+                      Guardar Cambios
+                    </Button>
+                    <Button
+                      variant="text"
+                      sx={{
+                        width: '100%',
+                        marginTop: 2,
+                        color: '#1A1A40',
+                        '&:hover': {
+                          color: '#333366',
+                        },
+                      }}
+                    >
+                      Cambiar Contraseña
+                    </Button>
                   </Card>
                 </motion.div>
               </Grid>
@@ -165,9 +244,25 @@ const Profile = () => {
             <Typography variant="h5" gutterBottom sx={{ color: '#1A1A40', fontWeight: '500' }}>
               Configuración
             </Typography>
-            <Card>
+            <Card
+              sx={{
+                borderRadius: 5,
+                boxShadow: '0px 10px 30px rgba(0,0,0,0.15)',
+                background: 'linear-gradient(145deg, #f0f0f0, #cacaca)',
+                backdropFilter: 'blur(10px)',
+              }}
+            >
               <CardContent>
-                <Tabs value={value} onChange={handleChange} aria-label="configuración tabs">
+                <Tabs
+                  value={value}
+                  onChange={handleChange}
+                  aria-label="configuración tabs"
+                  sx={{
+                    '& .MuiTabs-flexContainer': {
+                      justifyContent: 'space-between',
+                    },
+                  }}
+                >
                   <Tab label="Cuenta" {...a11yProps(0)} />
                   <Tab label="Email" {...a11yProps(1)} />
                   <Tab label="Facturación" {...a11yProps(2)} />
@@ -182,7 +277,7 @@ const Profile = () => {
                   <Tab label="Importar" {...a11yProps(11)} />
                   <Tab label="Votar Mejoras" {...a11yProps(12)} />
                   <Tab label="Añadir Cuenta" {...a11yProps(13)} />
-                  <Tab label="Cerrar Sesión" {...a11yProps(14)} sx={{ color: 'red' }} onClick={logout} /> {/* Cierra sesión al hacer clic */}
+                  <Tab label="Cerrar Sesión" {...a11yProps(14)} sx={{ color: 'red' }} onClick={logout} />
                 </Tabs>
 
                 {/* Ejemplo de Contenidos para Cada Pestaña */}
