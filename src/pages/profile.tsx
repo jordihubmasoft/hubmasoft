@@ -21,6 +21,7 @@ import {
 import { motion } from 'framer-motion';
 import Header from '../componentes/Header';
 import Sidebar from '../componentes/Sidebar';
+import { useAuth } from '../context/AuthContext'; // Importa el hook useAuth
 
 function a11yProps(index: number) {
   return {
@@ -30,6 +31,7 @@ function a11yProps(index: number) {
 }
 
 const Profile = () => {
+  const { user, logout } = useAuth(); // Usa el hook useAuth para acceder al usuario y la función de cerrar sesión
   const [isMenuOpen, setIsMenuOpen] = React.useState(true);
   const [value, setValue] = React.useState(0);
 
@@ -93,14 +95,14 @@ const Profile = () => {
                       <Avatar
                         sx={{ bgcolor: '#1A1A40', width: 100, height: 100, fontSize: 50, mx: 'auto', marginBottom: 2 }}
                       >
-                        J
+                        {user?.name?.charAt(0)} {/* Muestra la inicial del nombre del usuario */}
                       </Avatar>
-                      <Typography variant="h6" sx={{ fontWeight: '600' }}>Juan Pérez</Typography>
-                      <Typography variant="body2" color="textSecondary" sx={{ marginBottom: 2 }}>juan.perez@empresa.com</Typography>
+                      <Typography variant="h6" sx={{ fontWeight: '600' }}>{user?.name || "Nombre no disponible"}</Typography>
+                      <Typography variant="body2" color="textSecondary" sx={{ marginBottom: 2 }}>{user?.email || "Email no disponible"}</Typography>
                     </Box>
                     <Box>
                       <Button variant="outlined" fullWidth sx={{ padding: '10px 20px', marginBottom: 2 }}>Cambiar Foto</Button>
-                      <Button variant="text" color="error" fullWidth>Eliminar Cuenta</Button>
+                      <Button variant="text" color="error" fullWidth onClick={logout}>Eliminar Cuenta</Button> {/* Agrega la funcionalidad de logout */}
                     </Box>
                   </Card>
                 </motion.div>
@@ -125,6 +127,7 @@ const Profile = () => {
                           label="Nombre"
                           variant="outlined"
                           sx={{ marginBottom: 2 }}
+                          defaultValue={user?.name || ""}
                         />
                       </Grid>
                       <Grid item xs={12} sm={6}>
@@ -147,6 +150,7 @@ const Profile = () => {
                       label="Correo Electrónico"
                       variant="outlined"
                       sx={{ marginBottom: 3 }}
+                      defaultValue={user?.email || ""}
                     />
                     <Button variant="contained" sx={{ width: '100%', padding: '12px 0' }}>Guardar Cambios</Button>
                     <Button variant="text" sx={{ width: '100%', marginTop: 2 }}>Cambiar Contraseña</Button>
@@ -178,7 +182,7 @@ const Profile = () => {
                   <Tab label="Importar" {...a11yProps(11)} />
                   <Tab label="Votar Mejoras" {...a11yProps(12)} />
                   <Tab label="Añadir Cuenta" {...a11yProps(13)} />
-                  <Tab label="Cerrar Sesión" {...a11yProps(14)} sx={{ color: 'red' }} />
+                  <Tab label="Cerrar Sesión" {...a11yProps(14)} sx={{ color: 'red' }} onClick={logout} /> {/* Cierra sesión al hacer clic */}
                 </Tabs>
 
                 {/* Ejemplo de Contenidos para Cada Pestaña */}

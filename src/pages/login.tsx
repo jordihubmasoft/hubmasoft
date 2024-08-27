@@ -88,6 +88,7 @@ const Login = () => {
 
   useEffect(() => {
     if (loginData && !loginError) {
+      localStorage.setItem("user", JSON.stringify(loginData));
       setSnackbarSeverity("success");
       setSnackbarMessage("¡Inicio de sesión exitoso! Redirigiendo...");
       setOpenSnackbar(true);
