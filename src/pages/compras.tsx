@@ -1,5 +1,8 @@
 import { useState } from 'react';
-import { Box, Container, Typography, Button, TextField, IconButton, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, InputAdornment, Menu, MenuItem } from '@mui/material';
+import {
+  Box, Container, Typography, Button, TextField, IconButton, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, InputAdornment, Menu, MenuItem, Grid, Switch, FormControlLabel
+} from '@mui/material';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import Header from '../componentes/Header';
 import Sidebar from '../componentes/Sidebar';
 import SearchIcon from '@mui/icons-material/Search';
@@ -7,6 +10,7 @@ import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
+import SettingsIcon from '@mui/icons-material/Settings';
 import { useTranslation } from '../hooks/useTranslations';
 
 const purchasesData = [
@@ -21,6 +25,17 @@ const purchasesData = [
     status: 'PAID',
   },
   // ... más datos de ejemplo
+];
+
+// Datos de ejemplo para gráficos
+const chartData = [
+  { name: 'Enero', compras: 4000, gastos: 2400, amt: 2400 },
+  { name: 'Febrero', compras: 3000, gastos: 1398, amt: 2210 },
+  { name: 'Marzo', compras: 2000, gastos: 9800, amt: 2290 },
+  { name: 'Abril', compras: 2780, gastos: 3908, amt: 2000 },
+  { name: 'Mayo', compras: 1890, gastos: 4800, amt: 2181 },
+  { name: 'Junio', compras: 2390, gastos: 3800, amt: 2500 },
+  { name: 'Julio', compras: 3490, gastos: 4300, amt: 2100 },
 ];
 
 const PurchasesForm = ({ open, handleClose, purchase, handleSave }) => {
@@ -82,6 +97,10 @@ const Purchases = () => {
   const [purchases, setPurchases] = useState(purchasesData);
   const [anchorEl, setAnchorEl] = useState(null);
   const [isMenuOpen, setIsMenuOpen] = useState(true);
+  const [widgets, setWidgets] = useState({
+    purchasesGraph: true,
+    expensesBreakdown: true,
+  });
 
   const handleOpen = (purchase = null) => {
     setSelectedPurchase(purchase);
@@ -112,6 +131,13 @@ const Purchases = () => {
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
+  };
+
+  const handleWidgetToggle = (widget) => {
+    setWidgets((prevWidgets) => ({
+      ...prevWidgets,
+      [widget]: !prevWidgets[widget],
+    }));
   };
 
   const subcategories = [
@@ -150,63 +176,117 @@ const Purchases = () => {
             flexGrow: 1,
             bgcolor: '#F3F4F6',
             p: 3,
-            transition: 'margin-left 0.3s ease',
+            transition: 'margin-left 0.3s ease, max-width 0.3s ease',
             marginLeft: isMenuOpen ? '240px' : '70px',
-            maxWidth: 'calc(100% - 240px)', // Ajuste para que se vea todo
+            maxWidth: isMenuOpen ? 'calc(100% - 240px)' : 'calc(100% - 70px)',
           }}
         >
-          <Container maxWidth="lg">
-            <Typography variant="h3" gutterBottom sx={{ color: '#1A1A40', fontWeight: '600', fontFamily: 'Roboto, sans-serif' }}>
-              {t('purchases.title')}
-            </Typography>
+          <Container maxWidth="lg" sx={{ maxWidth: '100%' }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+              <Typography variant="h3" sx={{ color: '#1A1A40', fontWeight: '600', fontFamily: 'Roboto, sans-serif' }}>
+                {t('purchases.title')}
+              </Typography>
+              <IconButton onClick={handleMenuClick} sx={{ color: '#1A1A40' }}>
+                <SettingsIcon />
+              </IconButton>
+            </Box>
+
+            <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose}>
+              <MenuItem>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={widgets.purchasesGraph}
+                      onChange={() => handleWidgetToggle('purchasesGraph')}
+                      color="primary"
+                    />
+                  }
+                  label={t('purchases.purchasesGraph')}
+                />
+              </MenuItem>
+              <MenuItem>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={widgets.expensesBreakdown}
+                      onChange={() => handleWidgetToggle('expensesBreakdown')}
+                      color="primary"
+                    />
+                  }
+                  label={t('purchases.expensesBreakdown')}
+                />
+              </MenuItem>
+            </Menu>
+
             <Box sx={{ display: 'flex', mb: 3 }}>
-              <TextField 
-                variant="outlined" 
-                placeholder={t('purchases.searchPlaceholder')} 
-                fullWidth 
+              <TextField
+                variant="outlined"
+                placeholder={t('purchases.searchPlaceholder')}
+                fullWidth
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
                       <SearchIcon />
                     </InputAdornment>
                   ),
-                }} 
+                }}
               />
-              <Button 
-                variant="contained" 
-                sx={{ bgcolor: 'linear-gradient(90deg, #2666CF, #6A82FB)', color: '#ffffff', ml: 2, fontWeight: '500', textTransform: 'none', borderRadius: 2, boxShadow: '0 3px 6px rgba(0,0,0,0.1)', padding: '10px 20px' }} 
-                startIcon={<AddIcon />} 
+              <Button
+                variant="contained"
+                sx={{ bgcolor: 'linear-gradient(90deg, #2666CF, #6A82FB)', color: '#ffffff', ml: 2, fontWeight: '500', textTransform: 'none', borderRadius: 2, boxShadow: '0 3px 6px rgba(0,0,0,0.1)', padding: '10px 20px' }}
+                startIcon={<AddIcon />}
                 onClick={() => handleOpen()}
               >
                 {t('purchases.addPurchase')}
               </Button>
             </Box>
-            <Box sx={{ mb: 3 }}>
-              <Button 
-                aria-controls="simple-menu" 
-                aria-haspopup="true" 
-                onClick={handleMenuClick}
-                variant="outlined"
-                sx={{ color: '#2666CF', borderColor: '#2666CF', fontWeight: '500', textTransform: 'none', borderRadius: 2 }}
-              >
-                {t('purchases.subcategories')}
-                <MoreVertIcon />
-              </Button>
-              <Menu
-                id="simple-menu"
-                anchorEl={anchorEl}
-                keepMounted
-                open={Boolean(anchorEl)}
-                onClose={handleMenuClose}
-              >
-                {subcategories.map((subcategory) => (
-                  <MenuItem key={subcategory} onClick={handleMenuClose}>
-                    {subcategory}
-                  </MenuItem>
-                ))}
-              </Menu>
-            </Box>
-            <TableContainer component={Paper} sx={{ borderRadius: 2, boxShadow: '0 3px 10px rgba(0, 0, 0, 0.1)' }}>
+
+            {/* Dashboard de Widgets */}
+            <Grid container spacing={3} sx={{ mb: 3 }}>
+              {widgets.purchasesGraph && (
+                <Grid item xs={12} md={6}>
+                  <Paper sx={{ p: 2, borderRadius: 4, boxShadow: '0 6px 12px rgba(0, 0, 0, 0.1)', transition: 'box-shadow 0.3s ease', '&:hover': { boxShadow: '0 12px 24px rgba(0, 0, 0, 0.2)' } }}>
+                    <Typography variant="h6" sx={{ fontWeight: '600', mb: 2 }}>
+                      {t('purchases.purchasesGraph')}
+                    </Typography>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <LineChart data={chartData}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="name" />
+                        <YAxis />
+                        <Tooltip />
+                        <Legend />
+                        <Line type="monotone" dataKey="compras" stroke="#2666CF" activeDot={{ r: 8 }} />
+                        <Line type="monotone" dataKey="gastos" stroke="#82ca9d" />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </Paper>
+                </Grid>
+              )}
+              {widgets.expensesBreakdown && (
+                <Grid item xs={12}>
+                  <Paper sx={{ p: 2, borderRadius: 4, boxShadow: '0 6px 12px rgba(0, 0, 0, 0.1)', transition: 'box-shadow 0.3s ease', '&:hover': { boxShadow: '0 12px 24px rgba(0, 0, 0, 0.2)' } }}>
+                    <Typography variant="h6" sx={{ fontWeight: '600', mb: 2 }}>
+                      {t('purchases.expensesBreakdown')}
+                    </Typography>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <BarChart data={chartData}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="name" />
+                        <YAxis />
+                        <Tooltip />
+                        <Legend />
+                        <Bar dataKey="compras" fill="#2666CF" />
+                        <Bar dataKey="gastos" fill="#82ca9d" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </Paper>
+                </Grid>
+              )}
+            </Grid>
+
+            {/* Tabla de Compras */}
+            <TableContainer component={Paper} sx={{ borderRadius: 4, boxShadow: '0 6px 12px rgba(0, 0, 0, 0.1)', transition: 'box-shadow 0.3s ease', '&:hover': { boxShadow: '0 12px 24px rgba(0, 0, 0, 0.2)' } }}>
               <Table>
                 <TableHead sx={{ bgcolor: '#2666CF', '& th': { color: '#ffffff', fontWeight: '600' } }}>
                   <TableRow>
@@ -221,7 +301,7 @@ const Purchases = () => {
                 </TableHead>
                 <TableBody>
                   {purchases.map((purchase) => (
-                    <TableRow key={purchase.id}>
+                    <TableRow key={purchase.id} sx={{ '&:hover': { bgcolor: '#F1F1F1' } }}>
                       <TableCell>{purchase.date}</TableCell>
                       <TableCell>{purchase.number}</TableCell>
                       <TableCell>{purchase.supplier}</TableCell>
@@ -232,7 +312,7 @@ const Purchases = () => {
                         <IconButton onClick={() => handleOpen(purchase)} sx={{ color: '#1A1A40' }}>
                           <EditIcon />
                         </IconButton>
-                        <IconButton onClick={() => setPurchases(purchases.filter((p) => p.id !== purchase.id))} sx={{ color: '#1A1A40' }}>
+                        <IconButton onClick={() => setPurchases(purchases.filter((p) => p.id !== purchase.id))} sx={{ color: '#B00020' }}>
                           <DeleteIcon />
                         </IconButton>
                       </TableCell>
