@@ -227,7 +227,7 @@ const Sidebar = ({ isMenuOpen, toggleMenu }) => {
         </Tooltip>
         <Collapse in={openSales && isMenuOpen} timeout="auto" unmountOnExit>
           <List component="div" disablePadding>
-            {['/sales-quotes', '/sales-orders', '/sales-delivery-notes', '/sales-proformas', '/sales-invoices', '/sales-recurring-invoices'].map((path, index) => (
+            {['/sales-quotes', '/pedidos-ventas', '/albaranes-ventas', '/sales-proformas', '/facturas-ventas', '/sales-recurring-invoices'].map((path, index) => (
               <ListItem
                 button
                 sx={{ pl: 4, '&:hover': { bgcolor: '#E3F2FD', transform: 'scale(1.05)', transition: 'transform 0.2s ease' } }}
