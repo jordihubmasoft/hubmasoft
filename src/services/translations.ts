@@ -27,6 +27,11 @@ export const translations = {
       email: 'Correo Electrónico',
       website: 'Sitio Web',
       fillOutLater: 'Rellenar más tarde',
+      invoicesToReceive: 'Cuentas por cobrar',
+      current: 'Vigentes',
+      expired:'Vencidas',
+      documents: 'documentos',
+      invoicesToPay:'Cuentas por pagar',
       save: 'Guardar',
     },
     sales: {

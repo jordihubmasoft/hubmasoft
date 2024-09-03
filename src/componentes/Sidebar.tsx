@@ -413,13 +413,13 @@ const Sidebar = ({ isMenuOpen, toggleMenu }) => {
             <ListItem
               button
               sx={{ pl: 4, '&:hover': { bgcolor: '#E3F2FD', transform: 'scale(1.05)', transition: 'transform 0.2s ease' } }}
-              onClick={() => handleItemClick('/control-panel')}
+              onClick={() => handleItemClick('/panel-control-inventario')}
             >
               <ListItemText primary={t('sidebar.controlPanel')} sx={{ color: '#6C757D' }} />
               {/* No button for the first submenu */}
             </ListItem>
             {/* Submenus with "+" button */}
-            {['/warehouses', '/products', '/categories', '/sales-orders', '/sales-delivery-notes', '/purchase-delivery-notes'].map((path, index) => (
+            {['/instalaciones-inventario', '/products', '/categories', '/sales-orders', '/sales-delivery-notes', '/purchase-delivery-notes'].map((path, index) => (
               <ListItem
                 button
                 sx={{ pl: 4, '&:hover': { bgcolor: '#E3F2FD', transform: 'scale(1.05)', transition: 'transform 0.2s ease' } }}
