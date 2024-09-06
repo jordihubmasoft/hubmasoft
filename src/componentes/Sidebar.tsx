@@ -108,7 +108,7 @@ const Sidebar = ({ isMenuOpen, toggleMenu }) => {
         <Tooltip title="Contactos" placement="right">
           <ListItem
             button
-            onClick={() => handleToggle(setOpenContacts, openContacts)}
+            onClick={() => handleItemClick('/contacts')}
             sx={{
               borderRadius: '10px',
               marginBottom: '10px',
@@ -121,82 +121,39 @@ const Sidebar = ({ isMenuOpen, toggleMenu }) => {
             }}
           >
             <ListItemIcon>
-              <ContactsIcon sx={{ color: '#6C757D', transition: 'color 0.2s ease', '&:hover': { color: '#1A73E8' } }} />
+              <BusinessCenterIcon sx={{ color: '#6C757D', transition: 'color 0.2s ease', '&:hover': { color: '#1A73E8' } }} />
             </ListItemIcon>
             {isMenuOpen && (
               <>
-                <ListItemText primary={t('sidebar.contacts')} onClick={() => !openContacts && handleItemClick('/contacts')} sx={{ color: '#343A40', fontWeight: 'bold' }} />
-                {openContacts ? <ExpandLess sx={{ color: '#1A73E8' }} /> : <ExpandMore sx={{ color: '#1A73E8' }} />}
+                <ListItemText primary={t('sidebar.contacts')} sx={{ color: '#343A40', fontWeight: 'bold' }} />
+                {/* Botón con el símbolo de "+" con esquinas redondeadas */}
+                <IconButton
+                  size="small"
+                  sx={{
+                    bgcolor: 'transparent',
+                    color: '#6C757D',
+                    borderRadius: '8px', // Esquinas redondeadas
+                    border: '1px solid transparent',
+                    transition: 'all 0.3s ease',
+                    '&:hover': {
+                      bgcolor: '#1A73E8', // Fondo azul al hacer hover
+                      color: '#FFFFFF',   // Color del icono blanco al hacer hover
+                      transform: 'scale(1.1)', // Aumenta ligeramente el tamaño
+                      boxShadow: '0px 8px 16px rgba(26, 115, 232, 0.2)', // Sombra sutil
+                      border: '1px solid #1A73E8', // Borde del mismo color al hacer hover
+                    },
+                    '&:active': {
+                      transform: 'scale(1)', // Reducción del efecto de escala al hacer clic
+                      boxShadow: '0px 4px 12px rgba(26, 115, 232, 0.1)', // Menor sombra al hacer clic
+                    },
+                  }}
+                >
+                  <AddIcon />
+                </IconButton>
               </>
             )}
           </ListItem>
         </Tooltip>
-        <Collapse in={openContacts && isMenuOpen} timeout="auto" unmountOnExit>
-          <List component="div" disablePadding>
-            <ListItem
-              button
-              sx={{ pl: 4, '&:hover': { bgcolor: '#E3F2FD', transform: 'scale(1.05)', transition: 'transform 0.2s ease' } }}
-              onClick={() => handleItemClick('/clients')}
-            >
-              <ListItemText primary={t('sidebar.clients')} sx={{ color: '#6C757D' }} />
-              {/* Botón con el símbolo de "+" con esquinas redondeadas */}
-              <IconButton
-                size="small"
-                sx={{
-                  bgcolor: 'transparent',
-                  color: '#6C757D',
-                  borderRadius: '8px', // Cambiado a esquinas redondeadas
-                  border: '1px solid transparent',
-                  transition: 'all 0.3s ease',
-                  '&:hover': {
-                    bgcolor: '#1A73E8', // Fondo azul al hacer hover
-                    color: '#FFFFFF',   // Color del icono blanco al hacer hover
-                    transform: 'scale(1.1)', // Aumenta ligeramente el tamaño
-                    boxShadow: '0px 8px 16px rgba(26, 115, 232, 0.2)', // Sombra sutil
-                    border: '1px solid #1A73E8', // Borde del mismo color al hacer hover
-                  },
-                  '&:active': {
-                    transform: 'scale(1)', // Reducción del efecto de escala al hacer clic
-                    boxShadow: '0px 4px 12px rgba(26, 115, 232, 0.1)', // Menor sombra al hacer clic
-                  },
-                }}
-              >
-                <AddIcon />
-              </IconButton>
-            </ListItem>
-            <ListItem
-              button
-              sx={{ pl: 4, '&:hover': { bgcolor: '#E3F2FD', transform: 'scale(1.05)', transition: 'transform 0.2s ease' } }}
-              onClick={() => handleItemClick('/suppliers')}
-            >
-              <ListItemText primary={t('sidebar.suppliers')} sx={{ color: '#6C757D' }} />
-              {/* Botón con el símbolo de "+" con esquinas redondeadas */}
-              <IconButton
-                size="small"
-                sx={{
-                  bgcolor: 'transparent',
-                  color: '#6C757D',
-                  borderRadius: '8px', // Cambiado a esquinas redondeadas
-                  border: '1px solid transparent',
-                  transition: 'all 0.3s ease',
-                  '&:hover': {
-                    bgcolor: '#1A73E8', // Fondo azul al hacer hover
-                    color: '#FFFFFF',   // Color del icono blanco al hacer hover
-                    transform: 'scale(1.1)', // Aumenta ligeramente el tamaño
-                    boxShadow: '0px 8px 16px rgba(26, 115, 232, 0.2)', // Sombra sutil
-                    border: '1px solid #1A73E8', // Borde del mismo color al hacer hover
-                  },
-                  '&:active': {
-                    transform: 'scale(1)', // Reducción del efecto de escala al hacer clic
-                    boxShadow: '0px 4px 12px rgba(26, 115, 232, 0.1)', // Menor sombra al hacer clic
-                  },
-                }}
-              >
-                <AddIcon />
-              </IconButton>
-            </ListItem>
-          </List>
-        </Collapse>
 
         {/* Ventas */}
         <Tooltip title="Ventas" placement="right">
@@ -227,7 +184,7 @@ const Sidebar = ({ isMenuOpen, toggleMenu }) => {
         </Tooltip>
         <Collapse in={openSales && isMenuOpen} timeout="auto" unmountOnExit>
           <List component="div" disablePadding>
-            {['/sales-quotes', '/pedidos-ventas', '/albaranes-ventas', '/sales-proformas', '/facturas-ventas', '/sales-recurring-invoices'].map((path, index) => (
+            {['/sales-quotes', '/pedidos-ventas', '/albaranes-ventas', '/sales-proformas', '/facturas-ventas', '/facturas-recurrentes-ventas'].map((path, index) => (
               <ListItem
                 button
                 sx={{ pl: 4, '&:hover': { bgcolor: '#E3F2FD', transform: 'scale(1.05)', transition: 'transform 0.2s ease' } }}
@@ -419,7 +376,7 @@ const Sidebar = ({ isMenuOpen, toggleMenu }) => {
               {/* No button for the first submenu */}
             </ListItem>
             {/* Submenus with "+" button */}
-            {['/instalaciones-inventario', '/products', '/categories', '/sales-orders', '/sales-delivery-notes', '/purchase-delivery-notes'].map((path, index) => (
+            {['/instalaciones-inventario', '/productos-inventario', '/categories', '/sales-orders', '/sales-delivery-notes', '/purchase-delivery-notes'].map((path, index) => (
               <ListItem
                 button
                 sx={{ pl: 4, '&:hover': { bgcolor: '#E3F2FD', transform: 'scale(1.05)', transition: 'transform 0.2s ease' } }}

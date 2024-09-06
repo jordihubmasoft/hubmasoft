@@ -106,22 +106,25 @@ const Profile = () => {
                     }}
                   >
                     <Box>
-                      <Avatar
-                        sx={{
-                          bgcolor: '#1A1A40',
-                          width: 100,
-                          height: 100,
-                          fontSize: 50,
-                          mx: 'auto',
-                          marginBottom: 2,
-                          transition: 'transform 0.3s ease',
-                          '&:hover': {
-                            transform: 'scale(1.2)',
-                          },
-                        }}
-                      >
-                        {user?.name?.charAt(0)}
-                      </Avatar>
+                    <Avatar
+                      sx={{
+                        bgcolor: '#1A1A40',
+                        width: 100,
+                        height: 100,
+                        fontSize: 50,
+                        mx: 'auto',
+                        marginBottom: 2,
+                        // Remueve la transformación que puede causar el efecto de borrosidad
+                        transition: 'all 0.3s ease',
+                        '&:hover': {
+                          // Ajusta el hover para que no use transform si eso causa el blur
+                          transform: 'scale(1.05)', // Ajusta el escalado a un valor menor si es necesario
+                        },
+                      }}
+                    >
+                      {user?.name?.charAt(0)}
+                    </Avatar>
+
                       <Typography variant="h6" sx={{ fontWeight: '600' }}>
                         {user?.name || "Nombre no disponible"}
                       </Typography>
@@ -166,10 +169,12 @@ const Profile = () => {
                       padding: '30px',
                       flex: 1,
                       borderRadius: 5,
+                      // Elimina el boxShadow gris y cambia el background por un color blanco puro
                       boxShadow: '0px 10px 30px rgba(0,0,0,0.15)',
-                      background: 'rgba(255, 255, 255, 0.75)',
-                      backdropFilter: 'blur(10px)',
+                      background: '#FFFFFF', // Cambia el fondo a blanco puro
+                      // Remueve el backdropFilter para evitar el efecto borroso
                       border: '1px solid rgba(255, 255, 255, 0.3)',
+                      transition: 'all 0.3s ease',
                     }}
                   >
                     <Typography variant="h5" gutterBottom sx={{ color: '#1A1A40', fontWeight: '500' }}>

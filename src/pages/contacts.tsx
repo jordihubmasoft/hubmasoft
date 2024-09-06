@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Box, Container, Typography, Button, TextField, IconButton, Paper, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, InputAdornment,
-  MenuItem, FormControl, Select, InputLabel, TableCell, TableRow, TableBody, Table, TableContainer, TableHead, Checkbox, FormControlLabel, Menu, MenuItem as DropdownMenuItem, Grid
+  MenuItem, FormControl, Select, InputLabel, TableCell, TableRow, TableBody, Table, TableContainer, TableHead, Checkbox, FormControlLabel, Menu, MenuItem as DropdownMenuItem, Grid, FormHelperText
 } from '@mui/material';
 import Header from '../componentes/Header';
 import Sidebar from '../componentes/Sidebar';
@@ -46,55 +46,77 @@ const allColumns = [
   { id: 'tipoIVA', label: 'Tipo de IVA' },
 ];
 
-const contactsData = [
-  // ...tus datos de contactos aquí
-];
+const initialFormData = {
+  nombre: '',
+  nombreComercial: '',
+  nif: '',
+  direccion: '',
+  poblacion: '',
+  codigoPostal: '',
+  provincia: '',
+  pais: '',
+  email: '',
+  telefono: '',
+  movil: '',
+  sitioWeb: '',
+  identificacionVAT: '',
+  tags: '',
+  tipoContacto: '',
+  idioma: '',
+  moneda: '',
+  formaPago: '',
+  diasVencimiento: '',
+  diaVencimiento: '',
+  tarifa: '',
+  descuento: '',
+  cuentaCompras: '',
+  cuentaPagos: '',
+  swift: '',
+  iban: '',
+  refMandato: '',
+  referenciaInterna: '',
+  comercialAsignado: '',
+  tipoIVA: [],
+  informacionAdicional: ''
+};
+
+const contactsData = [];
 
 const ContactForm = ({ open, handleClose, contact, handleSave }) => {
-  const [formData, setFormData] = useState(contact || {
-    nombre: '',
-    nombreComercial: '',
-    nif: '',
-    direccion: '',
-    poblacion: '',
-    codigoPostal: '',
-    provincia: '',
-    pais: '',
-    email: '',
-    telefono: '',
-    movil: '',
-    sitioWeb: '',
-    identificacionVAT: '',
-    tags: '',
-    tipoContacto: '',
-    idioma: '',
-    moneda: '',
-    formaPago: '',
-    diasVencimiento: '',
-    diaVencimiento: '',
-    tarifa: '',
-    descuento: '',
-    cuentaCompras: '',
-    cuentaPagos: '',
-    swift: '',
-    iban: '',
-    refMandato: '',
-    referenciaInterna: '',
-    comercialAsignado: '',
-    tipoIVA: [], // Asegúrate de que este campo comience como un array vacío
-  });
+  const [formData, setFormData] = useState(contact || initialFormData);
+  const [shippingAddresses, setShippingAddresses] = useState([{ direccion: '', poblacion: '', codigoPostal: '', provincia: '', pais: '' }]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({
       ...formData,
-      [name]: e.target.multiple ? [...value] : value, // Si el campo es múltiple, asegúrate de manejar el valor como un array
+      [name]: e.target.multiple ? [...value] : value,
     });
   };
 
+  const addShippingAddress = () => {
+    setShippingAddresses([...shippingAddresses, { direccion: '', poblacion: '', codigoPostal: '', provincia: '', pais: '' }]);
+  };
+
+  const handleShippingChange = (index, e) => {
+    const updatedAddresses = [...shippingAddresses];
+    updatedAddresses[index][e.target.name] = e.target.value;
+    setShippingAddresses(updatedAddresses);
+  };
+
+  const validateForm = () => {
+    if (!formData.nombre || !formData.nif || !formData.direccion || !formData.pais || !formData.provincia) {
+      alert("Por favor, rellena todos los campos obligatorios.");
+      return false;
+    }
+    return true;
+  };
+
   const handleSubmit = () => {
-    handleSave(formData);
-    handleClose();
+    if (validateForm()) {
+      handleSave(formData);
+      handleClose();
+    }
   };
 
   return (
@@ -105,155 +127,208 @@ const ContactForm = ({ open, handleClose, contact, handleSave }) => {
           {contact ? 'Edita la información del contacto' : 'Introduce la información del nuevo contacto'}
         </DialogContentText>
 
+        {/* Información: Datos Fiscales */}
         <Typography variant="h6" sx={{ mt: 3 }}>Información: Datos Fiscales</Typography>
         <Grid container spacing={2}>
-          <Grid item xs={6}>
+          <Grid item xs={12} sm={6}>
             <TextField margin="dense" label="Nombre" name="nombre" fullWidth variant="outlined" value={formData.nombre} onChange={handleChange} required />
           </Grid>
-          <Grid item xs={6}>
+          <Grid item xs={12} sm={6}>
             <TextField margin="dense" label="Nombre Comercial" name="nombreComercial" fullWidth variant="outlined" value={formData.nombreComercial} onChange={handleChange} />
           </Grid>
-          <Grid item xs={6}>
+          <Grid item xs={12} sm={6}>
             <TextField margin="dense" label="NIF" name="nif" fullWidth variant="outlined" value={formData.nif} onChange={handleChange} required />
           </Grid>
-          <Grid item xs={6}>
+          <Grid item xs={12} sm={6}>
             <TextField margin="dense" label="Dirección" name="direccion" fullWidth variant="outlined" value={formData.direccion} onChange={handleChange} required />
           </Grid>
-          <Grid item xs={6}>
-            <TextField margin="dense" label="Población" name="poblacion" fullWidth variant="outlined" value={formData.poblacion} onChange={handleChange} required />
+          <Grid item xs={12} sm={6}>
+            <TextField margin="dense" label="Código Postal" name="codigoPostal" fullWidth variant="outlined" value={formData.codigoPostal} onChange={handleChange} />
           </Grid>
-          <Grid item xs={6}>
-            <TextField margin="dense" label="Código Postal" name="codigoPostal" fullWidth variant="outlined" value={formData.codigoPostal} onChange={handleChange} required />
+          <Grid item xs={12} sm={6}>
+            <TextField margin="dense" label="Población" name="poblacion" fullWidth variant="outlined" value={formData.poblacion} onChange={handleChange} />
           </Grid>
-          <Grid item xs={6}>
-            <FormControl fullWidth margin="dense">
+          <Grid item xs={12} sm={6}>
+            <FormControl fullWidth>
               <InputLabel>Provincia</InputLabel>
               <Select name="provincia" value={formData.provincia} onChange={handleChange}>
-                <MenuItem value="Provincia1">Provincia 1</MenuItem>
-                <MenuItem value="Provincia2">Provincia 2</MenuItem>
+                <MenuItem value="Predeterminada">Predeterminada</MenuItem>
+                {/* Other options */}
               </Select>
             </FormControl>
           </Grid>
-          <Grid item xs={6}>
-            <FormControl fullWidth margin="dense">
+          <Grid item xs={12} sm={6}>
+            <FormControl fullWidth>
               <InputLabel>País</InputLabel>
               <Select name="pais" value={formData.pais} onChange={handleChange}>
-                <MenuItem value="Pais1">País 1</MenuItem>
-                <MenuItem value="Pais2">País 2</MenuItem>
+                <MenuItem value="Predeterminada">Predeterminada</MenuItem>
+                {/* Other options */}
               </Select>
             </FormControl>
           </Grid>
         </Grid>
 
+        {/* Información de Contacto (Empresa) */}
         <Typography variant="h6" sx={{ mt: 3 }}>Información de Contacto (Empresa)</Typography>
         <Grid container spacing={2}>
-          <Grid item xs={6}>
+          <Grid item xs={12} sm={6}>
             <TextField margin="dense" label="Email" name="email" fullWidth variant="outlined" value={formData.email} onChange={handleChange} />
           </Grid>
-          <Grid item xs={6}>
+          <Grid item xs={12} sm={6}>
             <TextField margin="dense" label="Teléfono" name="telefono" fullWidth variant="outlined" value={formData.telefono} onChange={handleChange} />
           </Grid>
-          <Grid item xs={6}>
+          <Grid item xs={12} sm={6}>
             <TextField margin="dense" label="Móvil" name="movil" fullWidth variant="outlined" value={formData.movil} onChange={handleChange} />
           </Grid>
-          <Grid item xs={6}>
+          <Grid item xs={12} sm={6}>
             <TextField margin="dense" label="Sitio Web" name="sitioWeb" fullWidth variant="outlined" value={formData.sitioWeb} onChange={handleChange} />
           </Grid>
         </Grid>
 
+        {/* Temas de IVA */}
         <Typography variant="h6" sx={{ mt: 3 }}>Temas de IVA</Typography>
-        <TextField margin="dense" label="Identificación VAT" name="identificacionVAT" fullWidth variant="outlined" value={formData.identificacionVAT} onChange={handleChange} />
-        <FormControl fullWidth margin="dense">
-          <InputLabel>Tipo de IVA</InputLabel>
-          <Select
-            name="tipoIVA"
-            value={formData.tipoIVA}
-            onChange={handleChange}
-            multiple
-          >
-            <MenuItem value="IVA 1">IVA 1</MenuItem>
-            <MenuItem value="IVA 2">IVA 2</MenuItem>
-          </Select>
-        </FormControl>
+        <Grid container spacing={2}>
+          <Grid item xs={12} sm={6}>
+            <TextField margin="dense" label="Identificación VAT" name="identificacionVAT" fullWidth variant="outlined" value={formData.identificacionVAT} onChange={handleChange} />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <FormControl fullWidth margin="dense">
+              <InputLabel>Tipo de IVA</InputLabel>
+              <Select name="tipoIVA" value={formData.tipoIVA} onChange={handleChange} multiple required>
+                <MenuItem value="IVA 1">IVA 1</MenuItem>
+                <MenuItem value="IVA 2">IVA 2</MenuItem>
+              </Select>
+              <FormHelperText>Selecciona al menos un tipo de IVA.</FormHelperText>
+            </FormControl>
+          </Grid>
+        </Grid>
 
+        {/* Dirección de Envío */}
+        <Typography variant="h6" sx={{ mt: 3 }}>Dirección de Envío</Typography>
+        {shippingAddresses.map((address, index) => (
+          <Grid container spacing={2} key={index}>
+            <Grid item xs={12} sm={6}>
+              <TextField label="Dirección" name="direccion" value={address.direccion} onChange={(e) => handleShippingChange(index, e)} fullWidth />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField label="Población" name="poblacion" value={address.poblacion} onChange={(e) => handleShippingChange(index, e)} fullWidth />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField label="Código Postal" name="codigoPostal" value={address.codigoPostal} onChange={(e) => handleShippingChange(index, e)} fullWidth />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <FormControl fullWidth>
+                <InputLabel>Provincia</InputLabel>
+                <Select name="provincia" value={address.provincia} onChange={(e) => handleShippingChange(index, e)}>
+                  <MenuItem value="Predeterminada">Predeterminada</MenuItem>
+                  {/* Other options */}
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <FormControl fullWidth>
+                <InputLabel>País</InputLabel>
+                <Select name="pais" value={address.pais} onChange={(e) => handleShippingChange(index, e)}>
+                  <MenuItem value="Predeterminada">Predeterminada</MenuItem>
+                  {/* Other options */}
+                </Select>
+              </FormControl>
+            </Grid>
+          </Grid>
+        ))}
+        <Button onClick={addShippingAddress} variant="contained" startIcon={<AddIcon />}>Agregar Dirección</Button>
+
+        {/* Cosas Internas */}
         <Typography variant="h6" sx={{ mt: 3 }}>Cosas Internas</Typography>
-        <TextField margin="dense" label="Tags" name="tags" fullWidth variant="outlined" value={formData.tags} onChange={handleChange} />
-        <TextField margin="dense" label="Referencia Interna" name="referenciaInterna" fullWidth variant="outlined" value={formData.referenciaInterna} onChange={handleChange} />
-        <TextField margin="dense" label="Comercial Asignado" name="comercialAsignado" fullWidth variant="outlined" value={formData.comercialAsignado} onChange={handleChange} />
+        <Grid container spacing={2}>
+          <Grid item xs={12} sm={6}>
+            <TextField margin="dense" label="Tags" name="tags" fullWidth variant="outlined" value={formData.tags} onChange={handleChange} />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField margin="dense" label="Referencia Interna" name="referenciaInterna" fullWidth variant="outlined" value={formData.referenciaInterna} onChange={handleChange} />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <FormControl fullWidth>
+              <InputLabel>Comercial Asignado</InputLabel>
+              <Select name="comercialAsignado" value={formData.comercialAsignado} onChange={handleChange}>
+                {/* Options to assign commercial */}
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <FormControl fullWidth>
+              <InputLabel>Tipo de Contacto</InputLabel>
+              <Select name="tipoContacto" value={formData.tipoContacto} onChange={handleChange}>
+                <MenuItem value="Cliente">Cliente</MenuItem>
+                <MenuItem value="Proveedor">Proveedor</MenuItem>
+                <MenuItem value="Lead">Lead</MenuItem>
+                <MenuItem value="Deudor">Deudor</MenuItem>
+                <MenuItem value="Acreedor">Acreedor</MenuItem>
+              </Select>
+            </FormControl>
+          </Grid>
+        </Grid>
 
-        <FormControl fullWidth margin="dense">
-          <InputLabel>Tipo de Contacto</InputLabel>
-          <Select name="tipoContacto" value={formData.tipoContacto} onChange={handleChange}>
-            <MenuItem value="Cliente">Cliente</MenuItem>
-            <MenuItem value="Proveedor">Proveedor</MenuItem>
-            <MenuItem value="Lead">Lead</MenuItem>
-            <MenuItem value="Deudor">Deudor</MenuItem>
-            <MenuItem value="Acreedor">Acreedor</MenuItem>
-          </Select>
-        </FormControl>
-
+        {/* Preferencias */}
         <Typography variant="h6" sx={{ mt: 3 }}>Preferencias</Typography>
         <Grid container spacing={2}>
-          <Grid item xs={6}>
-            <FormControl fullWidth margin="dense">
+          <Grid item xs={12} sm={6}>
+            <FormControl fullWidth>
               <InputLabel>Idioma</InputLabel>
               <Select name="idioma" value={formData.idioma} onChange={handleChange}>
-                <MenuItem value="Español">Español</MenuItem>
-                <MenuItem value="Inglés">Inglés</MenuItem>
+                <MenuItem value="Predeterminada">Predeterminada</MenuItem>
+                {/* Other options */}
               </Select>
             </FormControl>
           </Grid>
-          <Grid item xs={6}>
-            <FormControl fullWidth margin="dense">
+          <Grid item xs={12} sm={6}>
+            <FormControl fullWidth>
               <InputLabel>Moneda</InputLabel>
               <Select name="moneda" value={formData.moneda} onChange={handleChange}>
-                <MenuItem value="EUR">EUR</MenuItem>
-                <MenuItem value="USD">USD</MenuItem>
+                <MenuItem value="Predeterminada">Predeterminada</MenuItem>
+                {/* Other options */}
               </Select>
             </FormControl>
           </Grid>
-          <Grid item xs={6}>
-            <FormControl fullWidth margin="dense">
-              <InputLabel>Forma de Pago</InputLabel>
-              <Select name="formaPago" value={formData.formaPago} onChange={handleChange}>
-                <MenuItem value="Transferencia">Transferencia</MenuItem>
-                <MenuItem value="Tarjeta">Tarjeta</MenuItem>
-              </Select>
-            </FormControl>
-          </Grid>
-          <Grid item xs={6}>
+          <Grid item xs={12} sm={6}>
             <TextField margin="dense" label="Días de Vencimiento" name="diasVencimiento" fullWidth variant="outlined" value={formData.diasVencimiento} onChange={handleChange} />
           </Grid>
-          <Grid item xs={6}>
+          <Grid item xs={12} sm={6}>
             <TextField margin="dense" label="Día de Vencimiento" name="diaVencimiento" fullWidth variant="outlined" value={formData.diaVencimiento} onChange={handleChange} />
           </Grid>
-          <Grid item xs={6}>
+          <Grid item xs={12} sm={6}>
+            <FormControl fullWidth>
+              <InputLabel>Forma de Pago</InputLabel>
+              <Select name="formaPago" value={formData.formaPago} onChange={handleChange}>
+                <MenuItem value="Predeterminada">Predeterminada</MenuItem>
+                {/* Other options */}
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid item xs={12} sm={6}>
             <TextField margin="dense" label="Tarifa" name="tarifa" fullWidth variant="outlined" value={formData.tarifa} onChange={handleChange} />
           </Grid>
-          <Grid item xs={6}>
+          <Grid item xs={12} sm={6}>
             <TextField margin="dense" label="Descuento" name="descuento" fullWidth variant="outlined" value={formData.descuento} onChange={handleChange} />
           </Grid>
-        </Grid>
-
-        <Typography variant="h6" sx={{ mt: 3 }}>Información Bancaria</Typography>
-        <Grid container spacing={2}>
-          <Grid item xs={6}>
+          <Grid item xs={12} sm={6}>
             <TextField margin="dense" label="Cuenta Compras" name="cuentaCompras" fullWidth variant="outlined" value={formData.cuentaCompras} onChange={handleChange} />
           </Grid>
-          <Grid item xs={6}>
+          <Grid item xs={12} sm={6}>
             <TextField margin="dense" label="Cuenta Pagos" name="cuentaPagos" fullWidth variant="outlined" value={formData.cuentaPagos} onChange={handleChange} />
           </Grid>
-          <Grid item xs={6}>
+          <Grid item xs={12} sm={6}>
             <TextField margin="dense" label="Swift" name="swift" fullWidth variant="outlined" value={formData.swift} onChange={handleChange} />
           </Grid>
-          <Grid item xs={6}>
+          <Grid item xs={12} sm={6}>
             <TextField margin="dense" label="IBAN" name="iban" fullWidth variant="outlined" value={formData.iban} onChange={handleChange} />
           </Grid>
-          <Grid item xs={12}>
-            <TextField margin="dense" label="Ref. Mandato" name="refMandato" fullWidth variant="outlined" value={formData.refMandato} onChange={handleChange} />
+          <Grid item xs={12} sm={6}>
+            <TextField margin="dense" label="Ref. Mandato (SEPA)" name="refMandato" fullWidth variant="outlined" value={formData.refMandato} onChange={handleChange} />
           </Grid>
         </Grid>
 
+        {/* Información Adicional */}
         <Typography variant="h6" sx={{ mt: 3 }}>Información Adicional</Typography>
         <TextField
           margin="dense"
@@ -287,6 +362,15 @@ const Contacts = () => {
   const [visibleColumns, setVisibleColumns] = useState(allColumns.map((col) => col.id));
   const [anchorEl, setAnchorEl] = useState(null);
 
+  useEffect(() => {
+    const savedColumns = JSON.parse(localStorage.getItem('visibleColumns')) || allColumns.map((col) => col.id);
+    setVisibleColumns(savedColumns);
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('visibleColumns', JSON.stringify(visibleColumns));
+  }, [visibleColumns]);
+
   const handleOpen = (contact = null) => {
     setSelectedContact(contact);
     setOpen(true);
@@ -304,10 +388,6 @@ const Contacts = () => {
       contact.id = contacts.length + 1;
       setContacts([...contacts, contact]);
     }
-  };
-
-  const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);
   };
 
   const handleColumnToggle = (column) => {
@@ -346,7 +426,7 @@ const Contacts = () => {
             transition: 'width 0.3s ease',
           }}
         >
-          <Sidebar isMenuOpen={isMenuOpen} toggleMenu={toggleMenu} />
+          <Sidebar isMenuOpen={isMenuOpen} toggleMenu={() => setIsMenuOpen(!isMenuOpen)} />
         </Box>
         <Box
           component="main"
@@ -356,10 +436,11 @@ const Contacts = () => {
             p: 3,
             transition: 'margin-left 0.3s ease',
             marginLeft: isMenuOpen ? '240px' : '70px',
-            maxWidth: 'calc(100% - 240px)', // Ajuste para que se vea todo
+            maxWidth: 'calc(100% - 240px)',
+            minHeight: 'calc(100vh - 64px)' // Ensure main content fills the vertical space
           }}
         >
-          <Container maxWidth="lg">
+          <Container maxWidth="xl"> {/* Adjusted to `xl` for large screens */}
             <Typography variant="h3" gutterBottom sx={{ color: '#1A1A40', fontWeight: '600' }}>
               Contactos
             </Typography>
@@ -401,13 +482,13 @@ const Contacts = () => {
               </Button>
               <IconButton
                 sx={{
-                  bgcolor: '#FFA500', // Cambiado a un color naranja para resaltar
+                  bgcolor: '#FFA500',
                   color: '#ffffff',
                   borderRadius: 2,
                   boxShadow: '0 3px 6px rgba(0, 0, 0, 0.1)',
                   transition: 'background-color 0.3s ease',
                   '&:hover': {
-                    bgcolor: '#FF8C00', // Color de hover para un efecto visual atractivo
+                    bgcolor: '#FF8C00',
                   },
                   minWidth: '48px',
                   minHeight: '48px'
@@ -438,7 +519,7 @@ const Contacts = () => {
               </Menu>
             </Box>
             <TableContainer component={Paper} sx={{ borderRadius: 2, boxShadow: '0 3px 10px rgba(0, 0, 0, 0.1)' }}>
-              <Table>
+              <Table sx={{ minWidth: '100%' }}> {/* Ensure table takes full width */}
                 <TableHead sx={{ bgcolor: '#2666CF', '& th': { color: '#ffffff', fontWeight: '600' } }}>
                   <TableRow>
                     {allColumns.map((column) =>
