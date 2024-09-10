@@ -5,6 +5,7 @@ import { LanguageProvider } from '../context/LanguageContext';
 import '../styles/globals.css';
 import { AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/router';
+import { AuthProvider } from "context/AuthContext";
 
 const theme = createTheme({
   palette: {
@@ -18,16 +19,18 @@ function MyApp({ Component, pageProps }) {
   const router = useRouter();
 
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <LanguageProvider>
-        {/* Wrap the Component with AnimatePresence for animation transitions */}
-        <AnimatePresence mode='wait'>
-          <Component {...pageProps} key={router.route} />
-        </AnimatePresence>
-      </LanguageProvider>
-    </ThemeProvider>
+    <AuthProvider>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <LanguageProvider>
+          {/* Wrap the Component with AnimatePresence for animation transitions */}
+          <AnimatePresence mode='wait'>
+            <Component {...pageProps} key={router.route} />
+          </AnimatePresence>
+        </LanguageProvider>
+      </ThemeProvider>
+    </AuthProvider>
   );
-}
+  }
 
 export default MyApp;

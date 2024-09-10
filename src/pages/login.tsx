@@ -88,6 +88,8 @@ const Login = () => {
 
   useEffect(() => {
     if (loginData && !loginError) {
+      //guardar el inicio de sesión
+      localStorage.setItem("user", JSON.stringify(loginData));
       setSnackbarSeverity("success");
       setSnackbarMessage("¡Inicio de sesión exitoso! Redirigiendo...");
       setOpenSnackbar(true);
@@ -107,6 +109,13 @@ const Login = () => {
     setHasNumber(/[0-9]/.test(password));
     setHasSpecialChar(/[\W_]/.test(password));
   }, [registerForm.password]);
+
+  useEffect(() => {
+    if (!isRegistering) {
+      setAnchorEl(null);
+    }
+  }, [isRegistering]);
+  
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -307,7 +316,7 @@ const Login = () => {
             />
             
             <Popper
-              open={Boolean(anchorEl)}
+              open={Boolean(anchorEl) && isRegistering} // Añadimos isRegistering a la condición
               anchorEl={anchorEl}
               placement="right-start"
               modifiers={[
@@ -321,55 +330,59 @@ const Login = () => {
                 zIndex: 1000
               }}
             >
-              <Grow in={Boolean(anchorEl)} timeout={300}>
-                <Box
-                  sx={{
-                    width: '280px',
-                    padding: '16px',
-                    backgroundColor: 'white',
-                    border: '1px solid #d1d1d1',
-                    borderRadius: '8px',
-                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-                    transition: 'transform 0.3s ease',
-                    '&:hover': {
-                      transform: 'scale(1.05)',
-                    },
-                  }}
-                >
-                  <LinearProgress
-                    variant="determinate"
-                    value={
-                      (Number(hasMinLength) +
-                      Number(hasUpperCase) +
-                      Number(hasLowerCase) +
-                      Number(hasNumber) +
-                      Number(hasSpecialChar)) / 5 * 100
-                    }
+              <Grow in={Boolean(anchorEl) && isRegistering} timeout={300}>
+                {/* Asegúrate de que el Grow tenga un solo elemento hijo */}
+                <div> {/* Cambié Box a un div o un solo contenedor */}
+                  <Box
                     sx={{
-                      mb: 2,
-                      backgroundColor: allRequirementsMet ? 'success.main' : 'error.main',
+                      width: '280px',
+                      padding: '16px',
+                      backgroundColor: 'white',
+                      border: '1px solid #d1d1d1',
+                      borderRadius: '8px',
+                      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                      transition: 'transform 0.3s ease',
+                      '&:hover': {
+                        transform: 'scale(1.05)',
+                      },
                     }}
-                  />
-                  <div className="space-y-2">
-                    <Typography variant="body2" className={`flex items-center text-sm ${hasMinLength ? 'text-green-600' : 'text-red-600'}`}>
-                      {hasMinLength ? <CheckCircleOutlineIcon fontSize="small" className="mr-2" /> : <RadioButtonUncheckedIcon fontSize="small" className="mr-2" />} Mínimo 8 caracteres
-                    </Typography>
-                    <Typography variant="body2" className={`flex items-center text-sm ${hasUpperCase ? 'text-green-600' : 'text-red-600'}`}>
-                      {hasUpperCase ? <CheckCircleOutlineIcon fontSize="small" className="mr-2" /> : <RadioButtonUncheckedIcon fontSize="small" className="mr-2" />} Al menos una letra mayúscula
-                    </Typography>
-                    <Typography variant="body2" className={`flex items-center text-sm ${hasLowerCase ? 'text-green-600' : 'text-red-600'}`}>
-                      {hasLowerCase ? <CheckCircleOutlineIcon fontSize="small" className="mr-2" /> : <RadioButtonUncheckedIcon fontSize="small" className="mr-2" />} Al menos una letra minúscula
-                    </Typography>
-                    <Typography variant="body2" className={`flex items-center text-sm ${hasNumber ? 'text-green-600' : 'text-red-600'}`}>
-                      {hasNumber ? <CheckCircleOutlineIcon fontSize="small" className="mr-2" /> : <RadioButtonUncheckedIcon fontSize="small" className="mr-2" />} Al menos un número
-                    </Typography>
-                    <Typography variant="body2" className={`flex items-center text-sm ${hasSpecialChar ? 'text-green-600' : 'text-red-600'}`}>
-                      {hasSpecialChar ? <CheckCircleOutlineIcon fontSize="small" className="mr-2" /> : <RadioButtonUncheckedIcon fontSize="small" className="mr-2" />} Al menos un carácter especial
-                    </Typography>
-                  </div>
-                </Box>
+                  >
+                    <LinearProgress
+                      variant="determinate"
+                      value={
+                        (Number(hasMinLength) +
+                        Number(hasUpperCase) +
+                        Number(hasLowerCase) +
+                        Number(hasNumber) +
+                        Number(hasSpecialChar)) / 5 * 100
+                      }
+                      sx={{
+                        mb: 2,
+                        backgroundColor: allRequirementsMet ? 'success.main' : 'error.main',
+                      }}
+                    />
+                    <div className="space-y-2">
+                      <Typography variant="body2" className={`flex items-center text-sm ${hasMinLength ? 'text-green-600' : 'text-red-600'}`}>
+                        {hasMinLength ? <CheckCircleOutlineIcon fontSize="small" className="mr-2" /> : <RadioButtonUncheckedIcon fontSize="small" className="mr-2" />} Mínimo 8 caracteres
+                      </Typography>
+                      <Typography variant="body2" className={`flex items-center text-sm ${hasUpperCase ? 'text-green-600' : 'text-red-600'}`}>
+                        {hasUpperCase ? <CheckCircleOutlineIcon fontSize="small" className="mr-2" /> : <RadioButtonUncheckedIcon fontSize="small" className="mr-2" />} Al menos una letra mayúscula
+                      </Typography>
+                      <Typography variant="body2" className={`flex items-center text-sm ${hasLowerCase ? 'text-green-600' : 'text-red-600'}`}>
+                        {hasLowerCase ? <CheckCircleOutlineIcon fontSize="small" className="mr-2" /> : <RadioButtonUncheckedIcon fontSize="small" className="mr-2" />} Al menos una letra minúscula
+                      </Typography>
+                      <Typography variant="body2" className={`flex items-center text-sm ${hasNumber ? 'text-green-600' : 'text-red-600'}`}>
+                        {hasNumber ? <CheckCircleOutlineIcon fontSize="small" className="mr-2" /> : <RadioButtonUncheckedIcon fontSize="small" className="mr-2" />} Al menos un número
+                      </Typography>
+                      <Typography variant="body2" className={`flex items-center text-sm ${hasSpecialChar ? 'text-green-600' : 'text-red-600'}`}>
+                        {hasSpecialChar ? <CheckCircleOutlineIcon fontSize="small" className="mr-2" /> : <RadioButtonUncheckedIcon fontSize="small" className="mr-2" />} Al menos un carácter especial
+                      </Typography>
+                    </div>
+                  </Box>
+                </div>
               </Grow>
             </Popper>
+
 
             {isRegistering && (
               <>
