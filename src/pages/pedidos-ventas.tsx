@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Box,
   Container,
@@ -24,7 +24,14 @@ import {
   InputAdornment,
   Divider,
   MenuItem,
-  Fade, // Importación del componente Fade
+  Fade,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Autocomplete,
+  SelectChangeEvent,
+  Chip
 } from '@mui/material';
 import SaveIcon from '@mui/icons-material/Save';
 import AddIcon from '@mui/icons-material/Add';
@@ -35,6 +42,42 @@ import SearchIcon from '@mui/icons-material/Search';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import Header from 'componentes/Header';
 import Sidebar from 'componentes/Sidebar';
+import { useRouter } from 'next/router';
+
+// Simulación de datos de productos en inventario
+const productosInventario = [
+  { concepto: 'Arandela', descripcion: 'Arandela metálica', precio: 0.13, impuestos: [{ nombre: 'IVA 21%', valor: 0.21 }] },
+  { concepto: 'Tornillo', descripcion: 'Tornillo acero', precio: 0.25, impuestos: [{ nombre: 'IVA 21%', valor: 0.21 }] },
+];
+
+// Datos de impuestos disponibles
+const impuestosDisponibles = [
+  { nombre: 'IVA 21%', valor: 0.21 },
+  { nombre: 'Rec. eq. 5.2%', valor: 0.052 },
+];
+
+// Definir el tipo para Producto
+interface Producto {
+  concepto: string;
+  descripcion: string;
+  cantidad: number;
+  unidades: string;
+  precio: number;
+  impuestos: { nombre: string; valor: number }[]; // Arreglo de impuestos
+  total: number;
+}
+
+
+
+// Función para calcular el total de impuestos
+const calcularImpuestos = (precio: number, cantidad: number, impuestos: { nombre: string; valor: number }[]) => {
+  return impuestos.reduce((acc, impuesto) => acc + (precio * cantidad * impuesto.valor), 0);
+};
+
+// Función para calcular el coste total
+const calcularTotal = (subtotal: number, impuestos: number) => {
+  return subtotal + impuestos;
+};
 
 // Columnas de la tabla de pedidos
 const allColumns = [
@@ -65,24 +108,113 @@ const OrderPage = ({ order, handleBack, handleSave }) => {
     fechaDocumento: '',
     fechaVencimiento: '',
     metodoPago: '',
-    cuentaContable: ''
+    cuentaContable: '' // Agregado el campo para la cuenta contable
   });
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
+  // Estado para manejar la tabla de productos
+  const [productos, setProductos] = useState<Producto[]>([
+    {
+      concepto: 'Arandela',
+      descripcion: 'Arandela metálica',
+      cantidad: 400,
+      unidades: 'unidades',
+      precio: 1.13,
+      impuestos: [{ nombre: 'IVA 21%', valor: 0.21 }], // Impuestos como un arreglo
+      total: 61.92
+    }
+  ]);
+  
+
+  // Estado para totales
+  const [subtotal, setSubtotal] = useState(452);
+  const [totalImpuestos, setTotalImpuestos] = useState(94.92);
+  const [total, setTotal] = useState(546.92);
+
+  // Estado para el diálogo de creación de producto
+  const [openDialog, setOpenDialog] = useState(false);
+
+  // Manejador para agregar una nueva fila a la tabla
+  const handleAddRow = () => {
+    setProductos([...productos, { concepto: '', descripcion: '', cantidad: 0, unidades: '', precio: 0, impuestos: [], total: 0 }]);
+  };
+
+  // Función para eliminar una fila de productos
+  const handleDeleteRow = (index: number) => {
+    const updatedProductos = productos.filter((_, i) => i !== index); // Elimina el producto por índice
+    setProductos(updatedProductos); // Actualiza el estado
+    recalcularTotales(updatedProductos); // Recalcula los totales después de eliminar una fila
+  };
+
+  // Función para actualizar los valores de las celdas de la tabla
+  const handleInputChange = (
+    index: number,
+    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | SelectChangeEvent<string>
+  ) => {
+    const updatedProductos: Producto[] = [...productos];
+  
+    // Obtenemos el valor y el nombre del campo
+    const { name, value } = event.target as HTMLInputElement | HTMLSelectElement;
+  
+    // Verifica y actualiza los campos numéricos
+    if (name === 'concepto' || name === 'descripcion' || name === 'unidades') {
+      updatedProductos[index][name as 'concepto' | 'descripcion' | 'unidades'] = value;
+    } else if (name === 'impuestos') {
+      // Asegúrate de que el valor sea un arreglo de impuestos correcto
+      updatedProductos[index].impuestos = value as unknown as { nombre: string; valor: number }[];
+    } else {
+      console.warn(`El campo "${name}" no es una propiedad válida del objeto Producto.`);
+    }
+    
+  
+    // Actualizamos el estado con los nuevos valores
+    setProductos(updatedProductos);
+    recalcularTotales(updatedProductos);
+  };
+  
+  
+
+  // Función para manejar el autocompletado del producto
+  const handleProductoSeleccionado = (index: number, newValue: string | null) => {
+    if (!newValue) return; 
+    const productoSeleccionado = productosInventario.find(p => p.concepto === newValue);
+    if (productoSeleccionado) {
+      const updatedProductos = [...productos];
+      updatedProductos[index] = {
+        ...updatedProductos[index],
+        concepto: productoSeleccionado.concepto,
+        descripcion: productoSeleccionado.descripcion,
+        precio: productoSeleccionado.precio,
+        impuestos: productoSeleccionado.impuestos,
+        total: productoSeleccionado.precio * updatedProductos[index].cantidad
+      };
+      setProductos(updatedProductos);
+      recalcularTotales(updatedProductos);
+    }
+  };
+
+  // Función para recalcular subtotal, impuestos y total
+  const recalcularTotales = (productosActualizados: Producto[]) => {
+    const nuevoSubtotal = productosActualizados.reduce((acc, producto) => acc + (producto.precio * producto.cantidad), 0);
+    const nuevoTotalImpuestos = productosActualizados.reduce((acc, producto) => acc + calcularImpuestos(producto.precio, producto.cantidad, producto.impuestos), 0);
+    const nuevoTotal = calcularTotal(nuevoSubtotal, nuevoTotalImpuestos);
+
+    setSubtotal(nuevoSubtotal);
+    setTotalImpuestos(nuevoTotalImpuestos);
+    setTotal(nuevoTotal);
+  };
+
+  // Función para abrir el diálogo de creación de producto
+  const handleCrearProducto = () => {
+    setOpenDialog(true);
   };
 
   const handleSubmit = () => {
-    handleSave(formData);
+    handleSave({ ...formData, productos });
     handleBack();
   };
 
   return (
-    <Container maxWidth="lg" sx={{ mt: 4 }}>
+    <Container maxWidth="xl" sx={{ mt: 4 }}>
       {/* Botón para volver atrás */}
       <Box display="flex" alignItems="center" mb={3}>
         <IconButton onClick={handleBack} color="primary" sx={{ mr: 2 }}>
@@ -102,7 +234,7 @@ const OrderPage = ({ order, handleBack, handleSave }) => {
               <Select
                 name="contacto"
                 value={formData.contacto}
-                onChange={handleChange}
+                onChange={(event) => handleInputChange(0, event)}
                 label="Contacto"
                 sx={{ borderRadius: 2 }}
               >
@@ -118,7 +250,7 @@ const OrderPage = ({ order, handleBack, handleSave }) => {
               variant="outlined"
               fullWidth
               value={formData.numeroDocumento}
-              onChange={handleChange}
+              onChange={(event) => handleInputChange(0, event)}
               sx={{ borderRadius: 2 }}
             />
           </Grid>
@@ -131,7 +263,7 @@ const OrderPage = ({ order, handleBack, handleSave }) => {
               fullWidth
               InputLabelProps={{ shrink: true }}
               value={formData.fechaDocumento}
-              onChange={handleChange}
+              onChange={(event) => handleInputChange(0, event)}
               sx={{ borderRadius: 2 }}
             />
           </Grid>
@@ -144,13 +276,13 @@ const OrderPage = ({ order, handleBack, handleSave }) => {
               fullWidth
               InputLabelProps={{ shrink: true }}
               value={formData.fechaVencimiento}
-              onChange={handleChange}
+              onChange={(event) => handleInputChange(0, event)}
               sx={{ borderRadius: 2 }}
             />
           </Grid>
         </Grid>
 
-        {/* Tabla de conceptos */}
+        {/* Tabla de productos */}
         <Box sx={{ mt: 4 }}>
           <TableContainer component={Paper} elevation={1} sx={{ borderRadius: 2 }}>
             <Table>
@@ -163,100 +295,210 @@ const OrderPage = ({ order, handleBack, handleSave }) => {
                   <TableCell sx={{ fontWeight: 'bold' }}>Precio</TableCell>
                   <TableCell sx={{ fontWeight: 'bold' }}>Impuestos</TableCell>
                   <TableCell sx={{ fontWeight: 'bold' }}>Total</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold' }}>Acciones</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {/* Aquí puedes mapear los conceptos si los tienes */}
-                <TableRow>
-                  <TableCell>Arandela</TableCell>
-                  <TableCell>Desc</TableCell>
-                  <TableCell>400</TableCell>
-                  <TableCell>-</TableCell>
-                  <TableCell>0,13</TableCell>
-                  <TableCell>X IVA 21%</TableCell>
-                  <TableCell>62,92€</TableCell>
-                </TableRow>
+                {productos.map((producto, index) => (
+                  <TableRow key={index}>
+                    <TableCell>
+                    <Autocomplete
+                      freeSolo
+                      options={productosInventario.map(p => p.concepto)}
+                      value={producto.concepto}
+                      onChange={(event, newValue) => handleProductoSeleccionado(index, newValue as string)}
+                      renderInput={(params) => (
+                        <TextField
+                          {...params}
+                          label="Concepto"
+                          variant="outlined"
+                          fullWidth // Asegura que el TextField ocupe todo el ancho disponible
+                          InputProps={{
+                            ...params.InputProps,
+                            style: { minWidth: 200 }, // Aumenta el ancho mínimo del campo
+                          }}
+                        />
+                      )}
+                    />
+
+                    </TableCell>
+                    <TableCell>
+                      <TextField
+                        name="descripcion"
+                        value={producto.descripcion}
+                        onChange={(event) => handleInputChange(index, event)}
+                        variant="outlined"
+                        fullWidth
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <TextField
+                        name="cantidad"
+                        type="number"
+                        value={producto.cantidad}
+                        onChange={(event) => handleInputChange(index, event)}
+                        variant="outlined"
+                        fullWidth
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Select
+                        name="unidades"
+                        value={producto.unidades}
+                        onChange={(event) => handleInputChange(index, event)}
+                        fullWidth
+                      >
+                        <MenuItem value="unidades">Unidades</MenuItem>
+                        <MenuItem value="kg">Kg</MenuItem>
+                        <MenuItem value="litros">Litros</MenuItem>
+                      </Select>
+                    </TableCell>
+                    <TableCell>
+                      <TextField
+                        name="precio"
+                        type="number"
+                        value={producto.precio}
+                        onChange={(event) => handleInputChange(index, event)}
+                        variant="outlined"
+                        fullWidth
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Autocomplete
+                        multiple
+                        options={impuestosDisponibles}
+                        getOptionLabel={(option) => option.nombre}
+                        value={producto.impuestos}
+                        onChange={(event, newValue) => {
+                          const updatedProductos = [...productos];
+                          updatedProductos[index].impuestos = newValue as { nombre: string; valor: number }[];
+                          setProductos(updatedProductos);
+                          recalcularTotales(updatedProductos);
+                        }}
+                        renderTags={(value, getTagProps) =>
+                          value.map((option, index) => (
+                            <Chip label={option.nombre} {...getTagProps({ index })} />
+                          ))
+                        }
+                        renderInput={(params) => <TextField {...params} variant="outlined" label="Impuestos" />}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <TextField
+                        name="total"
+                        type="number"
+                        value={producto.total.toFixed(2)}
+                        onChange={(event) => handleInputChange(index, event)}
+                        variant="outlined"
+                        fullWidth
+                        disabled
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <IconButton
+                        color="secondary"
+                        onClick={() => handleDeleteRow(index)} // Llama a la función para eliminar la fila
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                ))}
               </TableBody>
             </Table>
           </TableContainer>
         </Box>
 
-        {/* Opciones adicionales */}
-        <Box sx={{ mt: 3 }}>
-          <FormControlLabel
-            control={<Checkbox />}
-            label="Añadir texto en el documento"
-            sx={{ mr: 3 }}
-          />
-          <FormControlLabel
-            control={<Checkbox />}
-            label="Añadir mensaje al final"
-          />
+        {/* Botón para añadir filas */}
+        <Box sx={{ mt: 2 }}>
+          <Button
+            variant="outlined"
+            color="primary"
+            startIcon={<AddIcon />}
+            onClick={handleAddRow}
+            sx={{ borderRadius: 2 }}
+          >
+            Añadir Producto
+          </Button>
         </Box>
+        <Divider sx={{ my: 4 }} />
+
+        {/* Sección de Método de Pago, Cuenta Contable y Totales */}
+          <Grid container spacing={4} sx={{ mt: 4 }}>
+            {/* Columna izquierda: Forma de pago y cuenta contable */}
+            <Grid item xs={12} md={6}> {/* Ajustamos para que ocupen la mitad */}
+              {/* Título para Método de Pago */}
+              <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1 }}>Método de pago</Typography>
+              <FormControl fullWidth variant="outlined" sx={{ mb: 3 }}> {/* Ajuste de margen */}
+                <InputLabel>Selecciona una forma de pago</InputLabel>
+                <Select
+                  name="metodoPago"
+                  value={formData.metodoPago}
+                  onChange={(event) => handleInputChange(0, event)}
+                  label="Selecciona una forma de pago"
+                  sx={{ borderRadius: 2 }}
+                >
+                  <MenuItem value="forma1">Forma de pago 1</MenuItem>
+                  <MenuItem value="forma2">Forma de pago 2</MenuItem>
+                </Select>
+              </FormControl>
+
+              {/* Título para Categorización */}
+              <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1 }}>Categorización</Typography>
+              <TextField
+                label="Cuenta contable"
+                name="cuentaContable"
+                variant="outlined"
+                fullWidth
+                value={formData.cuentaContable}
+                onChange={(event) => handleInputChange(0, event)}
+                sx={{ borderRadius: 2 }}
+              />
+            </Grid>
+
+            {/* Columna derecha: Totales */}
+            <Grid item xs={12} md={6} display="flex" justifyContent="flex-end"> {/* Alinea a la derecha */}
+              <Box sx={{ width: '300px' }}> {/* Controla el ancho de la caja de totales */}
+                <Typography variant="body1" sx={{ fontWeight: 'bold' }}>Subtotal</Typography>
+                <Typography variant="body1">{subtotal.toFixed(2)}€</Typography>
+
+                <Typography variant="body1" sx={{ fontWeight: 'bold', mt: 2 }}>Impuestos</Typography>
+                <Typography variant="body1">{totalImpuestos.toFixed(2)}€</Typography>
+
+                <Divider sx={{ my: 2 }} />
+
+                <Typography variant="h6" sx={{ fontWeight: 'bold' }}>Total</Typography>
+                <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'primary.main' }}>{total.toFixed(2)}€</Typography>
+              </Box>
+            </Grid>
+          </Grid>
+
+
+
 
         <Divider sx={{ my: 4 }} />
 
-        {/* Sección de Método de Pago */}
-        <Typography variant="h6" gutterBottom sx={{ fontWeight: 'medium' }}>
-          Método de pago
-        </Typography>
-        <Grid container spacing={4} sx={{ mb: 4 }}>
-          <Grid item xs={12} md={6}>
-            <FormControl fullWidth variant="outlined">
-              <InputLabel>Selecciona una forma de pago</InputLabel>
-              <Select
-                name="metodoPago"
-                value={formData.metodoPago}
-                onChange={handleChange}
-                label="Selecciona una forma de pago"
-                sx={{ borderRadius: 2 }}
-              >
-                <MenuItem value="forma1">Forma de pago 1</MenuItem>
-                <MenuItem value="forma2">Forma de pago 2</MenuItem>
-              </Select>
-            </FormControl>
-          </Grid>
-        </Grid>
-
-        {/* Sección de Categorización */}
-        <Typography variant="h6" gutterBottom sx={{ fontWeight: 'medium' }}>
-          Categorización
-        </Typography>
-        <Grid container spacing={4}>
-          <Grid item xs={12} md={6}>
-            <TextField
-              label="Cuenta contable"
-              name="cuentaContable"
-              variant="outlined"
-              fullWidth
-              value={formData.cuentaContable}
-              onChange={handleChange}
-              sx={{ borderRadius: 2 }}
-            />
-          </Grid>
-        </Grid>
+        {/* Botón de Guardar */}
+        <Box display="flex" justifyContent="flex-end" sx={{ mt: 2 }}>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleSubmit}
+            startIcon={<SaveIcon />}
+            sx={{
+              bgcolor: 'primary.main',
+              color: 'white',
+              fontWeight: 'bold',
+              '&:hover': {
+                bgcolor: 'primary.dark',
+              },
+              borderRadius: 2,
+            }}
+          >
+            Guardar
+          </Button>
+        </Box>
       </Paper>
-
-      {/* Botón de Guardar */}
-      <Box display="flex" justifyContent="flex-end" sx={{ mt: 2 }}>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={handleSubmit}
-          startIcon={<SaveIcon />}
-          sx={{
-            bgcolor: 'primary.main',
-            color: 'white',
-            fontWeight: 'bold',
-            '&:hover': {
-              bgcolor: 'primary.dark',
-            },
-            borderRadius: 2,
-          }}
-        >
-          Guardar
-        </Button>
-      </Box>
     </Container>
   );
 };
@@ -268,6 +510,15 @@ const Pedidos = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(true);
   const [visibleColumns, setVisibleColumns] = useState(allColumns.map((col) => col.id));
   const [anchorEl, setAnchorEl] = useState(null);
+
+  const router = useRouter();
+  const { new: isNew } = router.query;
+
+  useEffect(() => {
+    if (isNew) {
+      handleOpen(); // Llama a la función que abre el formulario de nuevo pedido
+    }
+  }, [isNew]);
 
   const handleOpen = (order = null) => {
     setSelectedOrder(order);
@@ -452,3 +703,4 @@ const Pedidos = () => {
 };
 
 export default Pedidos;
+

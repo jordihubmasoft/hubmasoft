@@ -56,14 +56,14 @@ const Sidebar = ({ isMenuOpen, toggleMenu }) => {
           {isMenuOpen ? <ChevronLeftIcon sx={{ color: '#1A73E8' }} /> : <MenuIcon sx={{ color: '#1A73E8' }} />}
         </Button>
       </Tooltip>
-      
+
       <List
         sx={{
           flexGrow: 1,
           overflowY: 'auto',
           scrollBehavior: 'smooth',
           paddingRight: '8px',
-          paddingBottom: '50px', // Añade espacio al final para asegurar que el último elemento sea visible
+          paddingBottom: '50px',
           '&::-webkit-scrollbar': {
             width: '8px',
           },
@@ -103,7 +103,6 @@ const Sidebar = ({ isMenuOpen, toggleMenu }) => {
           </ListItem>
         </Tooltip>
 
-        {/* Other items remain unchanged */}
         {/* Contactos */}
         <Tooltip title="Contactos" placement="right">
           <ListItem
@@ -126,27 +125,24 @@ const Sidebar = ({ isMenuOpen, toggleMenu }) => {
             {isMenuOpen && (
               <>
                 <ListItemText primary={t('sidebar.contacts')} sx={{ color: '#343A40', fontWeight: 'bold' }} />
-                {/* Botón con el símbolo de "+" con esquinas redondeadas */}
                 <IconButton
                   size="small"
                   sx={{
                     bgcolor: 'transparent',
                     color: '#6C757D',
-                    borderRadius: '8px', // Esquinas redondeadas
+                    borderRadius: '8px',
                     border: '1px solid transparent',
                     transition: 'all 0.3s ease',
                     '&:hover': {
-                      bgcolor: '#1A73E8', // Fondo azul al hacer hover
-                      color: '#FFFFFF',   // Color del icono blanco al hacer hover
-                      transform: 'scale(1.1)', // Aumenta ligeramente el tamaño
-                      boxShadow: '0px 8px 16px rgba(26, 115, 232, 0.2)', // Sombra sutil
-                      border: '1px solid #1A73E8', // Borde del mismo color al hacer hover
-                    },
-                    '&:active': {
-                      transform: 'scale(1)', // Reducción del efecto de escala al hacer clic
-                      boxShadow: '0px 4px 12px rgba(26, 115, 232, 0.1)', // Menor sombra al hacer clic
+                      bgcolor: '#1A73E8',
+                      color: '#FFFFFF',
+                      transform: 'scale(1.1)',
+                      boxShadow: '0px 8px 16px rgba(26, 115, 232, 0.2)',
+                      border: '1px solid #1A73E8',
                     },
                   }}
+                  // Redirige con un query parameter
+                  onClick={() => router.push('/contacts?new=true')}
                 >
                   <AddIcon />
                 </IconButton>
@@ -192,27 +188,23 @@ const Sidebar = ({ isMenuOpen, toggleMenu }) => {
                 key={path}
               >
                 <ListItemText primary={t(`sidebar.${['quotes', 'orders', 'deliveryNotes', 'proformas', 'invoices', 'recurringInvoices'][index]}`)} sx={{ color: '#6C757D' }} />
-                {/* Botón con el símbolo de "+" con esquinas redondeadas */}
                 <IconButton
                   size="small"
                   sx={{
                     bgcolor: 'transparent',
                     color: '#6C757D',
-                    borderRadius: '8px', // Cambiado a esquinas redondeadas
+                    borderRadius: '8px',
                     border: '1px solid transparent',
                     transition: 'all 0.3s ease',
                     '&:hover': {
-                      bgcolor: '#1A73E8', // Fondo azul al hacer hover
-                      color: '#FFFFFF',   // Color del icono blanco al hacer hover
-                      transform: 'scale(1.1)', // Aumenta ligeramente el tamaño
-                      boxShadow: '0px 8px 16px rgba(26, 115, 232, 0.2)', // Sombra sutil
-                      border: '1px solid #1A73E8', // Borde del mismo color al hacer hover
-                    },
-                    '&:active': {
-                      transform: 'scale(1)', // Reducción del efecto de escala al hacer clic
-                      boxShadow: '0px 4px 12px rgba(26, 115, 232, 0.1)', // Menor sombra al hacer clic
+                      bgcolor: '#1A73E8',
+                      color: '#FFFFFF',
+                      transform: 'scale(1.1)',
+                      boxShadow: '0px 8px 16px rgba(26, 115, 232, 0.2)',
+                      border: '1px solid #1A73E8',
                     },
                   }}
+                  onClick={() => router.push(`${path}?new=true`)}
                 >
                   <AddIcon />
                 </IconButton>
@@ -258,27 +250,23 @@ const Sidebar = ({ isMenuOpen, toggleMenu }) => {
                 key={path}
               >
                 <ListItemText primary={t(`sidebar.${['quotes', 'orders', 'deliveryNotes', 'proformas', 'invoices', 'recurringInvoices'][index]}`)} sx={{ color: '#6C757D' }} />
-                {/* Botón con el símbolo de "+" con esquinas redondeadas */}
                 <IconButton
                   size="small"
                   sx={{
                     bgcolor: 'transparent',
                     color: '#6C757D',
-                    borderRadius: '8px', // Esquinas redondeadas
+                    borderRadius: '8px',
                     border: '1px solid transparent',
                     transition: 'all 0.3s ease',
                     '&:hover': {
-                      bgcolor: '#1A73E8', // Fondo azul al hacer hover
-                      color: '#FFFFFF',   // Color del icono blanco al hacer hover
-                      transform: 'scale(1.1)', // Aumenta ligeramente el tamaño
-                      boxShadow: '0px 8px 16px rgba(26, 115, 232, 0.2)', // Sombra sutil
-                      border: '1px solid #1A73E8', // Borde del mismo color al hacer hover
-                    },
-                    '&:active': {
-                      transform: 'scale(1)', // Reducción del efecto de escala al hacer clic
-                      boxShadow: '0px 4px 12px rgba(26, 115, 232, 0.1)', // Menor sombra al hacer clic
+                      bgcolor: '#1A73E8',
+                      color: '#FFFFFF',
+                      transform: 'scale(1.1)',
+                      boxShadow: '0px 8px 16px rgba(26, 115, 232, 0.2)',
+                      border: '1px solid #1A73E8',
                     },
                   }}
+                  onClick={() => router.push(`${path}?new=true`)}
                 >
                   <AddIcon />
                 </IconButton>
@@ -309,27 +297,23 @@ const Sidebar = ({ isMenuOpen, toggleMenu }) => {
             {isMenuOpen && (
               <>
                 <ListItemText primary={t('sidebar.Gastos')} sx={{ color: '#343A40', fontWeight: 'bold' }} />
-                {/* Botón con el símbolo de "+" con esquinas redondeadas */}
                 <IconButton
                   size="small"
                   sx={{
                     bgcolor: 'transparent',
                     color: '#6C757D',
-                    borderRadius: '8px', // Esquinas redondeadas
+                    borderRadius: '8px',
                     border: '1px solid transparent',
                     transition: 'all 0.3s ease',
                     '&:hover': {
-                      bgcolor: '#1A73E8', // Fondo azul al hacer hover
-                      color: '#FFFFFF',   // Color del icono blanco al hacer hover
-                      transform: 'scale(1.1)', // Aumenta ligeramente el tamaño
-                      boxShadow: '0px 8px 16px rgba(26, 115, 232, 0.2)', // Sombra sutil
-                      border: '1px solid #1A73E8', // Borde del mismo color al hacer hover
-                    },
-                    '&:active': {
-                      transform: 'scale(1)', // Reducción del efecto de escala al hacer clic
-                      boxShadow: '0px 4px 12px rgba(26, 115, 232, 0.1)', // Menor sombra al hacer clic
+                      bgcolor: '#1A73E8',
+                      color: '#FFFFFF',
+                      transform: 'scale(1.1)',
+                      boxShadow: '0px 8px 16px rgba(26, 115, 232, 0.2)',
+                      border: '1px solid #1A73E8',
                     },
                   }}
+                  onClick={() => router.push('/gastos?new=true')}
                 >
                   <AddIcon />
                 </IconButton>
@@ -373,7 +357,6 @@ const Sidebar = ({ isMenuOpen, toggleMenu }) => {
               onClick={() => handleItemClick('/panel-control-inventario')}
             >
               <ListItemText primary={t('sidebar.controlPanel')} sx={{ color: '#6C757D' }} />
-              {/* No button for the first submenu */}
             </ListItem>
             {/* Submenus with "+" button */}
             {['/instalaciones-inventario', '/productos-inventario', '/categories', '/sales-orders', '/sales-delivery-notes', '/purchase-delivery-notes'].map((path, index) => (
@@ -384,27 +367,23 @@ const Sidebar = ({ isMenuOpen, toggleMenu }) => {
                 key={path}
               >
                 <ListItemText primary={t(`sidebar.${['warehouses', 'products', 'categories', 'salesOrders', 'salesDeliveryNotes', 'purchaseDeliveryNotes'][index]}`)} sx={{ color: '#6C757D' }} />
-                {/* Botón con el símbolo de "+" con esquinas redondeadas */}
                 <IconButton
                   size="small"
                   sx={{
                     bgcolor: 'transparent',
                     color: '#6C757D',
-                    borderRadius: '8px', // Esquinas redondeadas
+                    borderRadius: '8px',
                     border: '1px solid transparent',
                     transition: 'all 0.3s ease',
                     '&:hover': {
-                      bgcolor: '#1A73E8', // Fondo azul al hacer hover
-                      color: '#FFFFFF',   // Color del icono blanco al hacer hover
-                      transform: 'scale(1.1)', // Aumenta ligeramente el tamaño
-                      boxShadow: '0px 8px 16px rgba(26, 115, 232, 0.2)', // Sombra sutil
-                      border: '1px solid #1A73E8', // Borde del mismo color al hacer hover
-                    },
-                    '&:active': {
-                      transform: 'scale(1)', // Reducción del efecto de escala al hacer clic
-                      boxShadow: '0px 4px 12px rgba(26, 115, 232, 0.1)', // Menor sombra al hacer clic
+                      bgcolor: '#1A73E8',
+                      color: '#FFFFFF',
+                      transform: 'scale(1.1)',
+                      boxShadow: '0px 8px 16px rgba(26, 115, 232, 0.2)',
+                      border: '1px solid #1A73E8',
                     },
                   }}
+                  onClick={() => router.push(`${path}?new=true`)}
                 >
                   <AddIcon />
                 </IconButton>
@@ -488,27 +467,23 @@ const Sidebar = ({ isMenuOpen, toggleMenu }) => {
             {isMenuOpen && (
               <>
                 <ListItemText primary={t('sidebar.employees')} sx={{ color: '#343A40', fontWeight: 'bold' }} />
-                {/* Botón con el símbolo de "+" con esquinas redondeadas */}
                 <IconButton
                   size="small"
                   sx={{
                     bgcolor: 'transparent',
                     color: '#6C757D',
-                    borderRadius: '8px', // Esquinas redondeadas
+                    borderRadius: '8px',
                     border: '1px solid transparent',
                     transition: 'all 0.3s ease',
                     '&:hover': {
-                      bgcolor: '#1A73E8', // Fondo azul al hacer hover
-                      color: '#FFFFFF',   // Color del icono blanco al hacer hover
-                      transform: 'scale(1.1)', // Aumenta ligeramente el tamaño
-                      boxShadow: '0px 8px 16px rgba(26, 115, 232, 0.2)', // Sombra sutil
-                      border: '1px solid #1A73E8', // Borde del mismo color al hacer hover
-                    },
-                    '&:active': {
-                      transform: 'scale(1)', // Reducción del efecto de escala al hacer clic
-                      boxShadow: '0px 4px 12px rgba(26, 115, 232, 0.1)', // Menor sombra al hacer clic
+                      bgcolor: '#1A73E8',
+                      color: '#FFFFFF',
+                      transform: 'scale(1.1)',
+                      boxShadow: '0px 8px 16px rgba(26, 115, 232, 0.2)',
+                      border: '1px solid #1A73E8',
                     },
                   }}
+                  onClick={() => router.push('/empleados?new=true')}
                 >
                   <AddIcon />
                 </IconButton>
@@ -539,27 +514,23 @@ const Sidebar = ({ isMenuOpen, toggleMenu }) => {
             {isMenuOpen && (
               <>
                 <ListItemText primary={t('sidebar.projects')} sx={{ color: '#343A40', fontWeight: 'bold' }} />
-                {/* Botón con el símbolo de "+" con esquinas redondeadas */}
                 <IconButton
                   size="small"
                   sx={{
                     bgcolor: 'transparent',
                     color: '#6C757D',
-                    borderRadius: '8px', // Esquinas redondeadas
+                    borderRadius: '8px',
                     border: '1px solid transparent',
                     transition: 'all 0.3s ease',
                     '&:hover': {
-                      bgcolor: '#1A73E8', // Fondo azul al hacer hover
-                      color: '#FFFFFF',   // Color del icono blanco al hacer hover
-                      transform: 'scale(1.1)', // Aumenta ligeramente el tamaño
-                      boxShadow: '0px 8px 16px rgba(26, 115, 232, 0.2)', // Sombra sutil
-                      border: '1px solid #1A73E8', // Borde del mismo color al hacer hover
-                    },
-                    '&:active': {
-                      transform: 'scale(1)', // Reducción del efecto de escala al hacer clic
-                      boxShadow: '0px 4px 12px rgba(26, 115, 232, 0.1)', // Menor sombra al hacer clic
+                      bgcolor: '#1A73E8',
+                      color: '#FFFFFF',
+                      transform: 'scale(1.1)',
+                      boxShadow: '0px 8px 16px rgba(26, 115, 232, 0.2)',
+                      border: '1px solid #1A73E8',
                     },
                   }}
+                  onClick={() => router.push('/proyectos?new=true')}
                 >
                   <AddIcon />
                 </IconButton>
@@ -587,7 +558,31 @@ const Sidebar = ({ isMenuOpen, toggleMenu }) => {
             <ListItemIcon>
               <ShoppingCartIcon sx={{ color: '#6C757D', transition: 'color 0.2s ease', '&:hover': { color: '#1A73E8' } }} />
             </ListItemIcon>
-            {isMenuOpen && <ListItemText primary={t('sidebar.TPV')} sx={{ color: '#343A40', fontWeight: 'bold' }} />}
+            {isMenuOpen && (
+              <>
+                <ListItemText primary={t('sidebar.TPV')} sx={{ color: '#343A40', fontWeight: 'bold' }} />
+                <IconButton
+                  size="small"
+                  sx={{
+                    bgcolor: 'transparent',
+                    color: '#6C757D',
+                    borderRadius: '8px',
+                    border: '1px solid transparent',
+                    transition: 'all 0.3s ease',
+                    '&:hover': {
+                      bgcolor: '#1A73E8',
+                      color: '#FFFFFF',
+                      transform: 'scale(1.1)',
+                      boxShadow: '0px 8px 16px rgba(26, 115, 232, 0.2)',
+                      border: '1px solid #1A73E8',
+                    },
+                  }}
+                  onClick={() => router.push('/TPV?new=true')}
+                >
+                  <AddIcon />
+                </IconButton>
+              </>
+            )}
           </ListItem>
         </Tooltip>
       </List>
