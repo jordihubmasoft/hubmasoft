@@ -1,15 +1,25 @@
 import { useState, useEffect } from 'react';
 import {
   Box, Container, Typography, Button, TextField, IconButton, Paper, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, InputAdornment,
-  MenuItem, FormControl, Select, InputLabel, TableCell, TableRow, TableBody, Table, TableContainer, TableHead, Checkbox, FormControlLabel, Menu, MenuItem as DropdownMenuItem, Grid, FormHelperText
+  MenuItem, FormControl, Select, InputLabel, TableCell, TableRow, TableBody, Table, TableContainer, TableHead, Checkbox, FormControlLabel, Menu, MenuItem as DropdownMenuItem, Grid, FormHelperText,
+  List,
+  ListItem,
+  ListItemText
 } from '@mui/material';
 import Header from '../componentes/Header';
 import Sidebar from '../componentes/Sidebar';
 import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/Add';
+import { Drawer } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
+import EmailIcon from '@mui/icons-material/Email';
+import PhoneIcon from '@mui/icons-material/Phone';
+import LanguageIcon from '@mui/icons-material/Language';
+import MapIcon from '@mui/icons-material/Map';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ImportExportIcon from '@mui/icons-material/ImportExport';
+import { useRouter } from 'next/router';
 import PortalIcon from '@mui/icons-material/Language';
 import ViewColumnIcon from '@mui/icons-material/ViewColumn';
 
@@ -80,7 +90,76 @@ const initialFormData = {
   informacionAdicional: ''
 };
 
-const contactsData = [];
+const contactsData = [
+  {
+    id: 1,
+    nombre: 'Juan Pérez',
+    nombreComercial: 'JP Business',
+    nif: '12345678Z',
+    direccion: 'Calle Falsa 123',
+    poblacion: 'Madrid',
+    codigoPostal: '28001',
+    provincia: 'Madrid',
+    pais: 'España',
+    email: 'juan@example.com',
+    telefono: '912345678',
+    movil: '600123456',
+    sitioWeb: 'https://www.jp-business.com',
+    identificacionVAT: 'ES12345678Z',
+    tags: 'Cliente VIP',
+    tipoContacto: 'Cliente',
+    idioma: 'Español',
+    moneda: 'EUR',
+    formaPago: 'Transferencia',
+    diasVencimiento: '30',
+    diaVencimiento: '15',
+    tarifa: 'Normal',
+    descuento: '10',
+    cuentaCompras: '4001',
+    cuentaPagos: '5001',
+    swift: 'BBVAESMMXXX',
+    iban: 'ES7620770024003102575766',
+    refMandato: '12345',
+    referenciaInterna: 'REF001',
+    comercialAsignado: 'Luis Gómez',
+    tipoIVA: ['IVA 1'],
+    informacionAdicional: 'Cliente con historial impecable.'
+  },
+  {
+    id: 2,
+    nombre: 'María González',
+    nombreComercial: 'Distribuciones MG',
+    nif: '87654321Y',
+    direccion: 'Avenida Principal 45',
+    poblacion: 'Barcelona',
+    codigoPostal: '08001',
+    provincia: 'Barcelona',
+    pais: 'España',
+    email: 'maria@example.com',
+    telefono: '931234567',
+    movil: '650123789',
+    sitioWeb: 'https://www.mg-distribuciones.com',
+    identificacionVAT: 'ES87654321Y',
+    tags: 'Proveedor Regular',
+    tipoContacto: 'Proveedor',
+    idioma: 'Español',
+    moneda: 'EUR',
+    formaPago: 'Domiciliación Bancaria',
+    diasVencimiento: '60',
+    diaVencimiento: '20',
+    tarifa: 'Especial',
+    descuento: '5',
+    cuentaCompras: '4100',
+    cuentaPagos: '5100',
+    swift: 'CAIXESBBXXX',
+    iban: 'ES9020800066101234567891',
+    refMandato: '98765',
+    referenciaInterna: 'REF002',
+    comercialAsignado: 'Carlos Martínez',
+    tipoIVA: ['IVA 2'],
+    informacionAdicional: 'Proveedor puntual y confiable.'
+  }
+];
 
 const ContactForm = ({ open, handleClose, contact, handleSave }) => {
   const [formData, setFormData] = useState(contact || initialFormData);
@@ -153,7 +232,6 @@ const ContactForm = ({ open, handleClose, contact, handleSave }) => {
               <InputLabel>Provincia</InputLabel>
               <Select name="provincia" value={formData.provincia} onChange={handleChange}>
                 <MenuItem value="Predeterminada">Predeterminada</MenuItem>
-                {/* Other options */}
               </Select>
             </FormControl>
           </Grid>
@@ -162,7 +240,6 @@ const ContactForm = ({ open, handleClose, contact, handleSave }) => {
               <InputLabel>País</InputLabel>
               <Select name="pais" value={formData.pais} onChange={handleChange}>
                 <MenuItem value="Predeterminada">Predeterminada</MenuItem>
-                {/* Other options */}
               </Select>
             </FormControl>
           </Grid>
@@ -221,7 +298,6 @@ const ContactForm = ({ open, handleClose, contact, handleSave }) => {
                 <InputLabel>Provincia</InputLabel>
                 <Select name="provincia" value={address.provincia} onChange={(e) => handleShippingChange(index, e)}>
                   <MenuItem value="Predeterminada">Predeterminada</MenuItem>
-                  {/* Other options */}
                 </Select>
               </FormControl>
             </Grid>
@@ -230,7 +306,6 @@ const ContactForm = ({ open, handleClose, contact, handleSave }) => {
                 <InputLabel>País</InputLabel>
                 <Select name="pais" value={address.pais} onChange={(e) => handleShippingChange(index, e)}>
                   <MenuItem value="Predeterminada">Predeterminada</MenuItem>
-                  {/* Other options */}
                 </Select>
               </FormControl>
             </Grid>
@@ -251,7 +326,6 @@ const ContactForm = ({ open, handleClose, contact, handleSave }) => {
             <FormControl fullWidth>
               <InputLabel>Comercial Asignado</InputLabel>
               <Select name="comercialAsignado" value={formData.comercialAsignado} onChange={handleChange}>
-                {/* Options to assign commercial */}
               </Select>
             </FormControl>
           </Grid>
@@ -277,7 +351,6 @@ const ContactForm = ({ open, handleClose, contact, handleSave }) => {
               <InputLabel>Idioma</InputLabel>
               <Select name="idioma" value={formData.idioma} onChange={handleChange}>
                 <MenuItem value="Predeterminada">Predeterminada</MenuItem>
-                {/* Other options */}
               </Select>
             </FormControl>
           </Grid>
@@ -286,7 +359,6 @@ const ContactForm = ({ open, handleClose, contact, handleSave }) => {
               <InputLabel>Moneda</InputLabel>
               <Select name="moneda" value={formData.moneda} onChange={handleChange}>
                 <MenuItem value="Predeterminada">Predeterminada</MenuItem>
-                {/* Other options */}
               </Select>
             </FormControl>
           </Grid>
@@ -301,7 +373,6 @@ const ContactForm = ({ open, handleClose, contact, handleSave }) => {
               <InputLabel>Forma de Pago</InputLabel>
               <Select name="formaPago" value={formData.formaPago} onChange={handleChange}>
                 <MenuItem value="Predeterminada">Predeterminada</MenuItem>
-                {/* Other options */}
               </Select>
             </FormControl>
           </Grid>
@@ -354,6 +425,14 @@ const ContactForm = ({ open, handleClose, contact, handleSave }) => {
   );
 };
 
+const allPeople = [
+  { id: 1, name: 'Juan Pérez' },
+  { id: 2, name: 'María González' },
+  { id: 3, name: 'Carlos López' },
+  { id: 4, name: 'Ana Fernández' },
+  { id: 5, name: 'Luis Gómez' },
+  { id: 6, name: 'Carmen Sánchez' }
+];
 const Contacts = () => {
   const [open, setOpen] = useState(false);
   const [selectedContact, setSelectedContact] = useState(null);
@@ -361,6 +440,28 @@ const Contacts = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(true);
   const [visibleColumns, setVisibleColumns] = useState(allColumns.map((col) => col.id));
   const [anchorEl, setAnchorEl] = useState(null);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filteredPeople, setFilteredPeople] = useState(allPeople);
+
+  // Función para filtrar las personas al buscar
+  const handleSearch = (event) => {
+    const searchTerm = event.target.value.toLowerCase();
+    setSearchTerm(searchTerm);
+    setFilteredPeople(allPeople.filter(person => person.name.toLowerCase().includes(searchTerm)));
+  };
+
+  // Función para abrir el diálogo
+  const handleOpenDialog = () => {
+    setIsDialogOpen(true);
+  };
+
+  // Función para cerrar el diálogo
+  const handleCloseDialog = () => {
+    setIsDialogOpen(false);
+  };
+
 
   useEffect(() => {
     const savedColumns = JSON.parse(localStorage.getItem('visibleColumns')) || allColumns.map((col) => col.id);
@@ -380,6 +481,11 @@ const Contacts = () => {
     setOpen(false);
     setSelectedContact(null);
   };
+  const handleOpenDrawer = (contact) => {
+    setSelectedContact(contact);
+    setIsDrawerOpen(true);
+  };
+  
 
   const handleSave = (contact) => {
     if (selectedContact) {
@@ -404,6 +510,15 @@ const Contacts = () => {
 
   const handleMenuClose = () => {
     setAnchorEl(null);
+  };
+
+  const getClients = () => contacts.filter((contact) => contact.tipoContacto === 'Cliente');
+  const getProviders = () => contacts.filter((contact) => contact.tipoContacto === 'Proveedor');
+
+  const router = useRouter();
+
+  const handlePortalClick = () => {
+    router.push('/portal-clientes');
   };
 
   return (
@@ -437,18 +552,18 @@ const Contacts = () => {
             transition: 'margin-left 0.3s ease',
             marginLeft: isMenuOpen ? '240px' : '70px',
             maxWidth: 'calc(100% - 240px)',
-            minHeight: 'calc(100vh - 64px)' // Ensure main content fills the vertical space
+            minHeight: 'calc(100vh - 64px)',
           }}
         >
-          <Container maxWidth="xl"> {/* Adjusted to `xl` for large screens */}
+          <Container maxWidth="xl">
             <Typography variant="h3" gutterBottom sx={{ color: '#1A1A40', fontWeight: '600' }}>
               Contactos
             </Typography>
             <Box sx={{ display: 'flex', mb: 3, flexWrap: 'wrap', gap: 1 }}>
-              <TextField 
-                variant="outlined" 
-                placeholder="Buscar..." 
-                fullWidth 
+              <TextField
+                variant="outlined"
+                placeholder="Buscar..."
+                fullWidth
                 sx={{ flexGrow: 1 }}
                 InputProps={{
                   startAdornment: (
@@ -456,30 +571,40 @@ const Contacts = () => {
                       <SearchIcon />
                     </InputAdornment>
                   ),
-                }} 
+                }}
               />
-              <Button 
-                variant="contained" 
-                sx={{ bgcolor: 'linear-gradient(90deg, #2666CF, #6A82FB)', color: '#ffffff', fontWeight: '500', textTransform: 'none', borderRadius: 2, boxShadow: '0 3px 6px rgba(0,0,0,0.1)', minWidth: '120px' }} 
-                startIcon={<AddIcon />} 
+              <Button
+                variant="contained"
+                sx={{
+                  bgcolor: 'linear-gradient(90deg, #2666CF, #6A82FB)',
+                  color: '#ffffff',
+                  fontWeight: '500',
+                  textTransform: 'none',
+                  borderRadius: 2,
+                  boxShadow: '0 3px 6px rgba(0,0,0,0.1)',
+                  minWidth: '120px',
+                }}
+                startIcon={<AddIcon />}
                 onClick={() => handleOpen()}
               >
                 Agregar
               </Button>
-              <Button 
-                variant="outlined" 
-                sx={{ color: '#2666CF', borderColor: '#2666CF', fontWeight: '500', minWidth: '120px' }} 
+              <Button
+                variant="outlined"
+                sx={{ color: '#2666CF', borderColor: '#2666CF', fontWeight: '500', minWidth: '120px' }}
                 startIcon={<ImportExportIcon />}
               >
                 Importar/Exportar
               </Button>
-              <Button 
-                variant="outlined" 
-                sx={{ color: '#2666CF', borderColor: '#2666CF', fontWeight: '500', minWidth: '120px' }} 
+              <Button
+                variant="outlined"
+                sx={{ color: '#2666CF', borderColor: '#2666CF', fontWeight: '500', minWidth: '120px' }}
                 startIcon={<PortalIcon />}
+                onClick={handlePortalClick}
               >
                 Portal
               </Button>
+  
               <IconButton
                 sx={{
                   bgcolor: '#FFA500',
@@ -518,8 +643,11 @@ const Contacts = () => {
                 ))}
               </Menu>
             </Box>
+  
+            {/* Tabla de Clientes */}
+            <Typography variant="h4" sx={{ mb: 3, color: '#2666CF', fontWeight: '600' }}>Clientes</Typography>
             <TableContainer component={Paper} sx={{ borderRadius: 2, boxShadow: '0 3px 10px rgba(0, 0, 0, 0.1)' }}>
-              <Table sx={{ minWidth: '100%' }}> {/* Ensure table takes full width */}
+              <Table sx={{ minWidth: '100%' }}>
                 <TableHead sx={{ bgcolor: '#2666CF', '& th': { color: '#ffffff', fontWeight: '600' } }}>
                   <TableRow>
                     {allColumns.map((column) =>
@@ -529,16 +657,20 @@ const Contacts = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {contacts.map((contact) => (
-                    <TableRow key={contact.id} sx={{ '&:hover': { bgcolor: '#F1F1F1' } }}>
+                  {getClients().map((contact) => (
+                    <TableRow
+                      key={contact.id}
+                      sx={{ '&:hover': { bgcolor: '#F1F1F1', cursor: 'pointer' } }}
+                      onClick={() => handleOpenDrawer(contact)}
+                    >
                       {visibleColumns.map((column) => (
                         <TableCell key={column}>{contact[column]}</TableCell>
                       ))}
                       <TableCell>
-                        <IconButton onClick={() => handleOpen(contact)} sx={{ color: '#1A1A40' }}>
+                        <IconButton onClick={(e) => { e.stopPropagation(); handleOpen(contact); }} sx={{ color: '#1A1A40' }}>
                           <EditIcon />
                         </IconButton>
-                        <IconButton onClick={() => setContacts(contacts.filter((c) => c.id !== contact.id))} sx={{ color: '#B00020' }}>
+                        <IconButton onClick={(e) => { e.stopPropagation(); setContacts(contacts.filter((c) => c.id !== contact.id)); }} sx={{ color: '#B00020' }}>
                           <DeleteIcon />
                         </IconButton>
                       </TableCell>
@@ -547,12 +679,186 @@ const Contacts = () => {
                 </TableBody>
               </Table>
             </TableContainer>
+  
+            {/* Tabla de Proveedores */}
+            <Typography variant="h4" sx={{ mt: 5, mb: 3, color: '#2666CF', fontWeight: '600' }}>Proveedores</Typography>
+            <TableContainer component={Paper} sx={{ borderRadius: 2, boxShadow: '0 3px 10px rgba(0, 0, 0, 0.1)' }}>
+              <Table sx={{ minWidth: '100%' }}>
+                <TableHead sx={{ bgcolor: '#2666CF', '& th': { color: '#ffffff', fontWeight: '600' } }}>
+                  <TableRow>
+                    {allColumns.map((column) =>
+                      visibleColumns.includes(column.id) ? <TableCell key={column.id}>{column.label}</TableCell> : null
+                    )}
+                    <TableCell>Acciones</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {getProviders().map((contact) => (
+                    <TableRow
+                      key={contact.id}
+                      sx={{ '&:hover': { bgcolor: '#F1F1F1', cursor: 'pointer' } }}
+                      onClick={() => handleOpenDrawer(contact)}
+                    >
+                      {visibleColumns.map((column) => (
+                        <TableCell key={column}>{contact[column]}</TableCell>
+                      ))}
+                      <TableCell>
+                        <IconButton onClick={(e) => { e.stopPropagation(); handleOpen(contact); }} sx={{ color: '#1A1A40' }}>
+                          <EditIcon />
+                        </IconButton>
+                        <IconButton onClick={(e) => { e.stopPropagation(); setContacts(contacts.filter((c) => c.id !== contact.id)); }} sx={{ color: '#B00020' }}>
+                          <DeleteIcon />
+                        </IconButton>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+  
+            {/* Drawer lateral */}
+            <Drawer
+              anchor="right"
+              open={isDrawerOpen}
+              onClose={() => setIsDrawerOpen(false)}
+              sx={{ zIndex: 1300 }}
+            >
+              <Box sx={{ width: 500, p: 2 }}>
+                {/* Nombre y tipo de contacto */}
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                  <Box sx={{ bgcolor: '#F44336', borderRadius: '50%', width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', mr: 2 }}>
+                    {selectedContact?.nombre?.[0]}{selectedContact?.nombre?.split(' ')[1]?.[0]} {/* Iniciales del nombre del contacto */}
+                  </Box>
+                  <Box>
+                    <Typography variant="h6" sx={{ margin: 0, fontWeight: 'bold' }}>
+                      {selectedContact?.nombre}
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: '#8A8A8A' }}>
+                      {selectedContact?.tipoContacto}
+                    </Typography>
+                  </Box>
+                </Box>
+
+                {/* Opciones de contacto */}
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
+                  <IconButton>
+                    <EmailIcon />
+                  </IconButton>
+                  <IconButton>
+                    <PhoneIcon />
+                  </IconButton>
+                  <IconButton>
+                    <LanguageIcon />
+                  </IconButton>
+                  <IconButton>
+                    <MapIcon />
+                  </IconButton>
+                  <IconButton>
+                    <MoreVertIcon />
+                  </IconButton>
+                </Box>
+
+                {/* Sección para crear nuevos elementos */}
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
+                  <Button variant="outlined" sx={{ textTransform: 'none' }}>Nota</Button>
+                  <Button variant="outlined" sx={{ textTransform: 'none' }}>Presupuesto</Button>
+                  <Button variant="outlined" sx={{ textTransform: 'none' }}>Factura</Button>
+                  <Button variant="outlined" sx={{ textTransform: 'none' }} onClick={handlePortalClick}>
+                    Portal Cliente
+                  </Button>
+                </Box>
+
+                {/* Sección de relaciones */}
+                <Typography variant="body1" sx={{ fontWeight: 'bold', mb: 2 }}>Relaciones</Typography>
+                <Button
+                  variant="outlined"
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'flex-start',
+                    textTransform: 'none',
+                    width: '100%',
+                    mb: 3
+                  }}
+                  startIcon={<AddIcon />}
+                  onClick={handleOpenDialog}  // Abrir el diálogo al hacer clic
+                >
+                  Relacionar persona
+                </Button>
+
+                {/* Ventas */}
+                <Box sx={{ mb: 2 }}>
+                  <Typography variant="body1" sx={{ fontWeight: 'bold', mb: 1 }}>Ventas</Typography>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                    <Box>
+                      <Typography variant="body2" sx={{ color: '#8A8A8A' }}>0 Facturas</Typography>
+                    </Box>
+                    <Box>
+                      <Typography variant="body2" sx={{ color: '#8A8A8A' }}>0.00€</Typography>
+                    </Box>
+                    <Box>
+                      <Typography variant="body2" sx={{ color: '#8A8A8A' }}>0 días</Typography>
+                    </Box>
+                    <Box>
+                      <Typography variant="body2" sx={{ color: '#8A8A8A' }}>Pend. cobro: 0.00€</Typography>
+                    </Box>
+                  </Box>
+                </Box>
+
+                {/* Compras */}
+                <Box sx={{ mb: 2 }}>
+                  <Typography variant="body1" sx={{ fontWeight: 'bold', mb: 1 }}>Compras</Typography>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                    <Box>
+                      <Typography variant="body2" sx={{ color: '#8A8A8A' }}>0 Facturas</Typography>
+                    </Box>
+                    <Box>
+                      <Typography variant="body2" sx={{ color: '#8A8A8A' }}>0.00€</Typography>
+                    </Box>
+                    <Box>
+                      <Typography variant="body2" sx={{ color: '#8A8A8A' }}>0 días</Typography>
+                    </Box>
+                    <Box>
+                      <Typography variant="body2" sx={{ color: '#8A8A8A' }}>Pend. pago: 0.00€</Typography>
+                    </Box>
+                  </Box>
+                </Box>
+              </Box>
+            </Drawer>
+
+
+
+            {/* Dialogo de Relacionar Persona */}
+            <Dialog open={isDialogOpen} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
+              <DialogTitle>Relacionar persona</DialogTitle>
+              <DialogContent>
+                <TextField
+                  label="Buscar persona"
+                  fullWidth
+                  variant="outlined"
+                  value={searchTerm}
+                  onChange={handleSearch}
+                  sx={{ mb: 2 }}
+                />
+                <List>
+                  {filteredPeople.map(person => (
+                    <ListItem button key={person.id}>
+                      <ListItemText primary={person.name} />
+                    </ListItem>
+                  ))}
+                </List>
+              </DialogContent>
+            </Dialog>
+
+            {/* Agrega el ContactForm aquí */}
+            <ContactForm open={open} handleClose={handleClose} contact={selectedContact} handleSave={handleSave} />
+
+  
           </Container>
         </Box>
       </Box>
-      <ContactForm open={open} handleClose={handleClose} contact={selectedContact} handleSave={handleSave} />
     </Box>
   );
-};
+}
 
 export default Contacts;
