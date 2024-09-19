@@ -108,33 +108,6 @@ const ClientSidebar = ({ isMenuOpen, toggleMenu, setCurrentPage }) => {
             {isMenuOpen && <ListItemText primary="Panel de Control" sx={{ color: '#6C757D' }} />} {/* Mostrar texto si está expandido */}
             </ListItem>
 
-            {/* Contactos */}
-            <ListItem
-            button
-            onClick={() => router.push('/contacts')}
-            sx={{
-                padding: '10px 16px',
-                '&:hover': {
-                backgroundColor: '#e0e0e0',
-                },
-            }}
-            >
-            <ListItemIcon>
-                <BusinessCenterIcon sx={{ color: '#6C757D' }} />
-            </ListItemIcon>
-            {isMenuOpen && <ListItemText primary="Contactos" sx={{ color: '#6C757D' }} />}
-            {!isMenuOpen && (
-                <IconButton
-                size="small"
-                sx={{
-                    color: '#6C757D',
-                }}
-                onClick={() => router.push('/contacts?new=true')}
-                >
-                <AddCircleIcon />
-                </IconButton>
-            )}
-            </ListItem>
 
             {/* Catálogo */}
             <ListItem

@@ -165,6 +165,16 @@ const ContactForm = ({ open, handleClose, contact, handleSave }) => {
   const [formData, setFormData] = useState(contact || initialFormData);
   const [shippingAddresses, setShippingAddresses] = useState([{ direccion: '', poblacion: '', codigoPostal: '', provincia: '', pais: '' }]);
 
+
+  const [errors, setErrors] = useState({
+    nombre: false,
+    nif: false,
+    direccion: false,
+    pais: false,
+    codigoPostal: false,
+    provincia: false,
+  });
+  
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({
@@ -184,12 +194,21 @@ const ContactForm = ({ open, handleClose, contact, handleSave }) => {
   };
 
   const validateForm = () => {
-    if (!formData.nombre || !formData.nif || !formData.direccion || !formData.pais || !formData.provincia) {
-      alert("Por favor, rellena todos los campos obligatorios.");
-      return false;
-    }
-    return true;
+    const newErrors = {
+      nombre: !formData.nombre,
+      nif: !formData.nif,
+      direccion: !formData.direccion,
+      codigoPostal: !formData.codigoPostal,
+      pais: !formData.pais,
+      provincia: !formData.provincia,
+    };
+  
+    setErrors(newErrors);
+  
+    // Si algún campo tiene un error, devolvemos false
+    return !Object.values(newErrors).some((error) => error);
   };
+  
 
   const handleSubmit = () => {
     if (validateForm()) {
@@ -200,78 +219,196 @@ const ContactForm = ({ open, handleClose, contact, handleSave }) => {
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
-      <DialogTitle sx={{ fontWeight: '700', fontFamily: 'Roboto, sans-serif' }}>{contact ? 'Editar Contacto' : 'Agregar Contacto'}</DialogTitle>
+      <DialogTitle sx={{ fontWeight: '700', fontFamily: 'Roboto, sans-serif' }}>
+        {contact ? 'Editar Contacto' : 'Agregar Contacto'}
+      </DialogTitle>
+      
       <DialogContent>
         <DialogContentText sx={{ fontWeight: '400', fontFamily: 'Roboto, sans-serif' }}>
           {contact ? 'Edita la información del contacto' : 'Introduce la información del nuevo contacto'}
         </DialogContentText>
-
+  
         {/* Información: Datos Fiscales */}
         <Typography variant="h6" sx={{ mt: 3 }}>Información: Datos Fiscales</Typography>
         <Grid container spacing={2}>
           <Grid item xs={12} sm={6}>
-            <TextField margin="dense" label="Nombre" name="nombre" fullWidth variant="outlined" value={formData.nombre} onChange={handleChange} required />
+            <TextField
+              margin="dense"
+              label="Nombre"
+              name="nombre"
+              fullWidth
+              variant="outlined"
+              value={formData.nombre}
+              onChange={handleChange}
+              required
+              error={errors.nombre}
+              helperText={errors.nombre ? "Este campo es obligatorio" : ""}
+            />
           </Grid>
           <Grid item xs={12} sm={6}>
-            <TextField margin="dense" label="Nombre Comercial" name="nombreComercial" fullWidth variant="outlined" value={formData.nombreComercial} onChange={handleChange} />
+            <TextField
+              margin="dense"
+              label="Nombre Comercial"
+              name="nombreComercial"
+              fullWidth
+              variant="outlined"
+              value={formData.nombreComercial}
+              onChange={handleChange}
+            />
           </Grid>
           <Grid item xs={12} sm={6}>
-            <TextField margin="dense" label="NIF" name="nif" fullWidth variant="outlined" value={formData.nif} onChange={handleChange} required />
+            <TextField
+              margin="dense"
+              label="NIF"
+              name="nif"
+              fullWidth
+              variant="outlined"
+              value={formData.nif}
+              onChange={handleChange}
+              required
+              error={errors.nif}
+              helperText={errors.nif ? "Este campo es obligatorio" : ""}
+            />
           </Grid>
           <Grid item xs={12} sm={6}>
-            <TextField margin="dense" label="Dirección" name="direccion" fullWidth variant="outlined" value={formData.direccion} onChange={handleChange} required />
+            <TextField
+              margin="dense"
+              label="Dirección"
+              name="direccion"
+              fullWidth
+              variant="outlined"
+              value={formData.direccion}
+              onChange={handleChange}
+              required
+              error={errors.direccion}
+              helperText={errors.direccion ? "Este campo es obligatorio" : ""}
+            />
           </Grid>
           <Grid item xs={12} sm={6}>
-            <TextField margin="dense" label="Código Postal" name="codigoPostal" fullWidth variant="outlined" value={formData.codigoPostal} onChange={handleChange} />
+            <TextField
+              margin="dense"
+              label="Código Postal"
+              name="codigoPostal"
+              fullWidth
+              variant="outlined"
+              value={formData.codigoPostal}
+              onChange={handleChange}
+            />
           </Grid>
           <Grid item xs={12} sm={6}>
-            <TextField margin="dense" label="Población" name="poblacion" fullWidth variant="outlined" value={formData.poblacion} onChange={handleChange} />
+            <TextField
+              margin="dense"
+              label="Población"
+              name="poblacion"
+              fullWidth
+              variant="outlined"
+              value={formData.poblacion}
+              onChange={handleChange}
+            />
           </Grid>
           <Grid item xs={12} sm={6}>
-            <FormControl fullWidth>
+            <FormControl fullWidth error={errors.provincia}>
               <InputLabel>Provincia</InputLabel>
-              <Select name="provincia" value={formData.provincia} onChange={handleChange}>
+              <Select
+                name="provincia"
+                value={formData.provincia}
+                onChange={handleChange}
+                required
+              >
                 <MenuItem value="Predeterminada">Predeterminada</MenuItem>
               </Select>
+              {errors.provincia && <FormHelperText>Este campo es obligatorio</FormHelperText>}
             </FormControl>
           </Grid>
           <Grid item xs={12} sm={6}>
-            <FormControl fullWidth>
+            <FormControl fullWidth error={errors.pais}>
               <InputLabel>País</InputLabel>
-              <Select name="pais" value={formData.pais} onChange={handleChange}>
+              <Select
+                name="pais"
+                value={formData.pais}
+                onChange={handleChange}
+                required
+              >
                 <MenuItem value="Predeterminada">Predeterminada</MenuItem>
               </Select>
+              {errors.pais && <FormHelperText>Este campo es obligatorio</FormHelperText>}
             </FormControl>
           </Grid>
         </Grid>
-
+  
         {/* Información de Contacto (Empresa) */}
         <Typography variant="h6" sx={{ mt: 3 }}>Información de Contacto (Empresa)</Typography>
         <Grid container spacing={2}>
           <Grid item xs={12} sm={6}>
-            <TextField margin="dense" label="Email" name="email" fullWidth variant="outlined" value={formData.email} onChange={handleChange} />
+            <TextField
+              margin="dense"
+              label="Email"
+              name="email"
+              fullWidth
+              variant="outlined"
+              value={formData.email}
+              onChange={handleChange}
+            />
           </Grid>
           <Grid item xs={12} sm={6}>
-            <TextField margin="dense" label="Teléfono" name="telefono" fullWidth variant="outlined" value={formData.telefono} onChange={handleChange} />
+            <TextField
+              margin="dense"
+              label="Teléfono"
+              name="telefono"
+              fullWidth
+              variant="outlined"
+              value={formData.telefono}
+              onChange={handleChange}
+            />
           </Grid>
           <Grid item xs={12} sm={6}>
-            <TextField margin="dense" label="Móvil" name="movil" fullWidth variant="outlined" value={formData.movil} onChange={handleChange} />
+            <TextField
+              margin="dense"
+              label="Móvil"
+              name="movil"
+              fullWidth
+              variant="outlined"
+              value={formData.movil}
+              onChange={handleChange}
+            />
           </Grid>
           <Grid item xs={12} sm={6}>
-            <TextField margin="dense" label="Sitio Web" name="sitioWeb" fullWidth variant="outlined" value={formData.sitioWeb} onChange={handleChange} />
+            <TextField
+              margin="dense"
+              label="Sitio Web"
+              name="sitioWeb"
+              fullWidth
+              variant="outlined"
+              value={formData.sitioWeb}
+              onChange={handleChange}
+            />
           </Grid>
         </Grid>
-
+  
         {/* Temas de IVA */}
         <Typography variant="h6" sx={{ mt: 3 }}>Temas de IVA</Typography>
         <Grid container spacing={2}>
           <Grid item xs={12} sm={6}>
-            <TextField margin="dense" label="Identificación VAT" name="identificacionVAT" fullWidth variant="outlined" value={formData.identificacionVAT} onChange={handleChange} />
+            <TextField
+              margin="dense"
+              label="Identificación VAT"
+              name="identificacionVAT"
+              fullWidth
+              variant="outlined"
+              value={formData.identificacionVAT}
+              onChange={handleChange}
+            />
           </Grid>
           <Grid item xs={12} sm={6}>
             <FormControl fullWidth margin="dense">
               <InputLabel>Tipo de IVA</InputLabel>
-              <Select name="tipoIVA" value={formData.tipoIVA} onChange={handleChange} multiple required>
+              <Select
+                name="tipoIVA"
+                value={formData.tipoIVA}
+                onChange={handleChange}
+                multiple
+                required
+              >
                 <MenuItem value="IVA 1">IVA 1</MenuItem>
                 <MenuItem value="IVA 2">IVA 2</MenuItem>
               </Select>
@@ -279,24 +416,46 @@ const ContactForm = ({ open, handleClose, contact, handleSave }) => {
             </FormControl>
           </Grid>
         </Grid>
-
+  
         {/* Dirección de Envío */}
         <Typography variant="h6" sx={{ mt: 3 }}>Dirección de Envío</Typography>
         {shippingAddresses.map((address, index) => (
           <Grid container spacing={2} key={index}>
             <Grid item xs={12} sm={6}>
-              <TextField label="Dirección" name="direccion" value={address.direccion} onChange={(e) => handleShippingChange(index, e)} fullWidth />
+              <TextField
+                label="Dirección"
+                name="direccion"
+                value={address.direccion}
+                onChange={(e) => handleShippingChange(index, e)}
+                fullWidth
+              />
             </Grid>
             <Grid item xs={12} sm={6}>
-              <TextField label="Población" name="poblacion" value={address.poblacion} onChange={(e) => handleShippingChange(index, e)} fullWidth />
+              <TextField
+                label="Población"
+                name="poblacion"
+                value={address.poblacion}
+                onChange={(e) => handleShippingChange(index, e)}
+                fullWidth
+              />
             </Grid>
             <Grid item xs={12} sm={6}>
-              <TextField label="Código Postal" name="codigoPostal" value={address.codigoPostal} onChange={(e) => handleShippingChange(index, e)} fullWidth />
+              <TextField
+                label="Código Postal"
+                name="codigoPostal"
+                value={address.codigoPostal}
+                onChange={(e) => handleShippingChange(index, e)}
+                fullWidth
+              />
             </Grid>
             <Grid item xs={12} sm={6}>
               <FormControl fullWidth>
                 <InputLabel>Provincia</InputLabel>
-                <Select name="provincia" value={address.provincia} onChange={(e) => handleShippingChange(index, e)}>
+                <Select
+                  name="provincia"
+                  value={address.provincia}
+                  onChange={(e) => handleShippingChange(index, e)}
+                >
                   <MenuItem value="Predeterminada">Predeterminada</MenuItem>
                 </Select>
               </FormControl>
@@ -304,35 +463,66 @@ const ContactForm = ({ open, handleClose, contact, handleSave }) => {
             <Grid item xs={12} sm={6}>
               <FormControl fullWidth>
                 <InputLabel>País</InputLabel>
-                <Select name="pais" value={address.pais} onChange={(e) => handleShippingChange(index, e)}>
+                <Select
+                  name="pais"
+                  value={address.pais}
+                  onChange={(e) => handleShippingChange(index, e)}
+                >
                   <MenuItem value="Predeterminada">Predeterminada</MenuItem>
                 </Select>
               </FormControl>
             </Grid>
           </Grid>
         ))}
-        <Button onClick={addShippingAddress} variant="contained" startIcon={<AddIcon />}>Agregar Dirección</Button>
-
+        <Button onClick={addShippingAddress} variant="contained" startIcon={<AddIcon />}>
+          Agregar Dirección
+        </Button>
+  
         {/* Cosas Internas */}
         <Typography variant="h6" sx={{ mt: 3 }}>Cosas Internas</Typography>
         <Grid container spacing={2}>
           <Grid item xs={12} sm={6}>
-            <TextField margin="dense" label="Tags" name="tags" fullWidth variant="outlined" value={formData.tags} onChange={handleChange} />
+            <TextField
+              margin="dense"
+              label="Tags"
+              name="tags"
+              fullWidth
+              variant="outlined"
+              value={formData.tags}
+              onChange={handleChange}
+            />
           </Grid>
           <Grid item xs={12} sm={6}>
-            <TextField margin="dense" label="Referencia Interna" name="referenciaInterna" fullWidth variant="outlined" value={formData.referenciaInterna} onChange={handleChange} />
+            <TextField
+              margin="dense"
+              label="Referencia Interna"
+              name="referenciaInterna"
+              fullWidth
+              variant="outlined"
+              value={formData.referenciaInterna}
+              onChange={handleChange}
+            />
           </Grid>
           <Grid item xs={12} sm={6}>
             <FormControl fullWidth>
               <InputLabel>Comercial Asignado</InputLabel>
-              <Select name="comercialAsignado" value={formData.comercialAsignado} onChange={handleChange}>
+              <Select
+                name="comercialAsignado"
+                value={formData.comercialAsignado}
+                onChange={handleChange}
+              >
+                {/* Aquí podrías incluir los valores de comerciales */}
               </Select>
             </FormControl>
           </Grid>
           <Grid item xs={12} sm={6}>
             <FormControl fullWidth>
               <InputLabel>Tipo de Contacto</InputLabel>
-              <Select name="tipoContacto" value={formData.tipoContacto} onChange={handleChange}>
+              <Select
+                name="tipoContacto"
+                value={formData.tipoContacto}
+                onChange={handleChange}
+              >
                 <MenuItem value="Cliente">Cliente</MenuItem>
                 <MenuItem value="Proveedor">Proveedor</MenuItem>
                 <MenuItem value="Lead">Lead</MenuItem>
@@ -342,14 +532,18 @@ const ContactForm = ({ open, handleClose, contact, handleSave }) => {
             </FormControl>
           </Grid>
         </Grid>
-
+  
         {/* Preferencias */}
         <Typography variant="h6" sx={{ mt: 3 }}>Preferencias</Typography>
         <Grid container spacing={2}>
           <Grid item xs={12} sm={6}>
             <FormControl fullWidth>
               <InputLabel>Idioma</InputLabel>
-              <Select name="idioma" value={formData.idioma} onChange={handleChange}>
+              <Select
+                name="idioma"
+                value={formData.idioma}
+                onChange={handleChange}
+              >
                 <MenuItem value="Predeterminada">Predeterminada</MenuItem>
               </Select>
             </FormControl>
@@ -357,48 +551,128 @@ const ContactForm = ({ open, handleClose, contact, handleSave }) => {
           <Grid item xs={12} sm={6}>
             <FormControl fullWidth>
               <InputLabel>Moneda</InputLabel>
-              <Select name="moneda" value={formData.moneda} onChange={handleChange}>
+              <Select
+                name="moneda"
+                value={formData.moneda}
+                onChange={handleChange}
+              >
                 <MenuItem value="Predeterminada">Predeterminada</MenuItem>
               </Select>
             </FormControl>
           </Grid>
           <Grid item xs={12} sm={6}>
-            <TextField margin="dense" label="Días de Vencimiento" name="diasVencimiento" fullWidth variant="outlined" value={formData.diasVencimiento} onChange={handleChange} />
+            <TextField
+              margin="dense"
+              label="Días de Vencimiento"
+              name="diasVencimiento"
+              fullWidth
+              variant="outlined"
+              value={formData.diasVencimiento}
+              onChange={handleChange}
+            />
           </Grid>
           <Grid item xs={12} sm={6}>
-            <TextField margin="dense" label="Día de Vencimiento" name="diaVencimiento" fullWidth variant="outlined" value={formData.diaVencimiento} onChange={handleChange} />
+            <TextField
+              margin="dense"
+              label="Día de Vencimiento"
+              name="diaVencimiento"
+              fullWidth
+              variant="outlined"
+              value={formData.diaVencimiento}
+              onChange={handleChange}
+            />
           </Grid>
           <Grid item xs={12} sm={6}>
             <FormControl fullWidth>
               <InputLabel>Forma de Pago</InputLabel>
-              <Select name="formaPago" value={formData.formaPago} onChange={handleChange}>
+              <Select
+                name="formaPago"
+                value={formData.formaPago}
+                onChange={handleChange}
+              >
                 <MenuItem value="Predeterminada">Predeterminada</MenuItem>
               </Select>
             </FormControl>
           </Grid>
           <Grid item xs={12} sm={6}>
-            <TextField margin="dense" label="Tarifa" name="tarifa" fullWidth variant="outlined" value={formData.tarifa} onChange={handleChange} />
+            <TextField
+              margin="dense"
+              label="Tarifa"
+              name="tarifa"
+              fullWidth
+              variant="outlined"
+              value={formData.tarifa}
+              onChange={handleChange}
+            />
           </Grid>
           <Grid item xs={12} sm={6}>
-            <TextField margin="dense" label="Descuento" name="descuento" fullWidth variant="outlined" value={formData.descuento} onChange={handleChange} />
+            <TextField
+              margin="dense"
+              label="Descuento"
+              name="descuento"
+              fullWidth
+              variant="outlined"
+              value={formData.descuento}
+              onChange={handleChange}
+            />
           </Grid>
           <Grid item xs={12} sm={6}>
-            <TextField margin="dense" label="Cuenta Compras" name="cuentaCompras" fullWidth variant="outlined" value={formData.cuentaCompras} onChange={handleChange} />
+            <TextField
+              margin="dense"
+              label="Cuenta Compras"
+              name="cuentaCompras"
+              fullWidth
+              variant="outlined"
+              value={formData.cuentaCompras}
+              onChange={handleChange}
+            />
           </Grid>
           <Grid item xs={12} sm={6}>
-            <TextField margin="dense" label="Cuenta Pagos" name="cuentaPagos" fullWidth variant="outlined" value={formData.cuentaPagos} onChange={handleChange} />
+            <TextField
+              margin="dense"
+              label="Cuenta Pagos"
+              name="cuentaPagos"
+              fullWidth
+              variant="outlined"
+              value={formData.cuentaPagos}
+              onChange={handleChange}
+            />
           </Grid>
           <Grid item xs={12} sm={6}>
-            <TextField margin="dense" label="Swift" name="swift" fullWidth variant="outlined" value={formData.swift} onChange={handleChange} />
+            <TextField
+              margin="dense"
+              label="Swift"
+              name="swift"
+              fullWidth
+              variant="outlined"
+              value={formData.swift}
+              onChange={handleChange}
+            />
           </Grid>
           <Grid item xs={12} sm={6}>
-            <TextField margin="dense" label="IBAN" name="iban" fullWidth variant="outlined" value={formData.iban} onChange={handleChange} />
+            <TextField
+              margin="dense"
+              label="IBAN"
+              name="iban"
+              fullWidth
+              variant="outlined"
+              value={formData.iban}
+              onChange={handleChange}
+            />
           </Grid>
           <Grid item xs={12} sm={6}>
-            <TextField margin="dense" label="Ref. Mandato (SEPA)" name="refMandato" fullWidth variant="outlined" value={formData.refMandato} onChange={handleChange} />
+            <TextField
+              margin="dense"
+              label="Ref. Mandato (SEPA)"
+              name="refMandato"
+              fullWidth
+              variant="outlined"
+              value={formData.refMandato}
+              onChange={handleChange}
+            />
           </Grid>
         </Grid>
-
+  
         {/* Información Adicional */}
         <Typography variant="h6" sx={{ mt: 3 }}>Información Adicional</Typography>
         <TextField
@@ -413,17 +687,37 @@ const ContactForm = ({ open, handleClose, contact, handleSave }) => {
           onChange={handleChange}
         />
       </DialogContent>
+  
       <DialogActions>
-        <Button onClick={handleClose} sx={{ color: '#2666CF', fontWeight: '500', textTransform: 'none', bgcolor: '#ffffff', border: '1px solid #2666CF', borderRadius: 2 }}>
+        <Button
+          onClick={handleClose}
+          sx={{
+            color: '#2666CF',
+            fontWeight: '500',
+            textTransform: 'none',
+            bgcolor: '#ffffff',
+            border: '1px solid #2666CF',
+            borderRadius: 2,
+          }}
+        >
           Cancelar
         </Button>
-        <Button onClick={handleSubmit} sx={{ color: '#ffffff', fontWeight: '500', textTransform: 'none', bgcolor: '#2666CF', borderRadius: 2 }}>
+        <Button
+          onClick={handleSubmit}
+          sx={{
+            color: '#ffffff',
+            fontWeight: '500',
+            textTransform: 'none',
+            bgcolor: '#2666CF',
+            borderRadius: 2,
+          }}
+        >
           Guardar
         </Button>
       </DialogActions>
     </Dialog>
   );
-};
+}  
 
 const allPeople = [
   { id: 1, name: 'Juan Pérez' },
@@ -438,6 +732,9 @@ const Contacts = () => {
   const [selectedContact, setSelectedContact] = useState(null);
   const [contacts, setContacts] = useState(contactsData);
   const [isMenuOpen, setIsMenuOpen] = useState(true);
+  const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
+  const [password, setPassword] = useState(''); 
+  const [isPasswordEnabled, setIsPasswordEnabled] = useState(false);
   const [visibleColumns, setVisibleColumns] = useState(allColumns.map((col) => col.id));
   const [anchorEl, setAnchorEl] = useState(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -518,8 +815,16 @@ const Contacts = () => {
   const router = useRouter();
 
   const handlePortalClick = () => {
-    router.push('/portal-clientes');
+    if (isPasswordEnabled) {
+      // Si la contraseña está activada, redirigir al inicio de sesión
+      window.open('/portal-login'); // Redirige a una página de inicio de sesión
+    } else {
+      // Si la contraseña no está activada, redirigir directamente al portal del cliente
+      window.open('/portal-clientes', '_blank');
+    }
   };
+  
+  
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', bgcolor: '#F3F4F6' }}>
@@ -716,7 +1021,6 @@ const Contacts = () => {
               </Table>
             </TableContainer>
   
-            {/* Drawer lateral */}
             <Drawer
               anchor="right"
               open={isDrawerOpen}
@@ -726,8 +1030,21 @@ const Contacts = () => {
               <Box sx={{ width: 500, p: 2 }}>
                 {/* Nombre y tipo de contacto */}
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                  <Box sx={{ bgcolor: '#F44336', borderRadius: '50%', width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', mr: 2 }}>
-                    {selectedContact?.nombre?.[0]}{selectedContact?.nombre?.split(' ')[1]?.[0]} {/* Iniciales del nombre del contacto */}
+                  <Box
+                    sx={{
+                      bgcolor: '#F44336',
+                      borderRadius: '50%',
+                      width: 40,
+                      height: 40,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#fff',
+                      mr: 2,
+                    }}
+                  >
+                    {selectedContact?.nombre?.[0]}
+                    {selectedContact?.nombre?.split(' ')[1]?.[0]} {/* Iniciales del contacto */}
                   </Box>
                   <Box>
                     <Typography variant="h6" sx={{ margin: 0, fontWeight: 'bold' }}>
@@ -760,16 +1077,29 @@ const Contacts = () => {
 
                 {/* Sección para crear nuevos elementos */}
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-                  <Button variant="outlined" sx={{ textTransform: 'none' }}>Nota</Button>
-                  <Button variant="outlined" sx={{ textTransform: 'none' }}>Presupuesto</Button>
-                  <Button variant="outlined" sx={{ textTransform: 'none' }}>Factura</Button>
+                  <Button variant="outlined" sx={{ textTransform: 'none' }}>
+                    Nota
+                  </Button>
+                  <Button variant="outlined" sx={{ textTransform: 'none' }}>
+                    Presupuesto
+                  </Button>
+                  <Button variant="outlined" sx={{ textTransform: 'none' }}>
+                    Factura
+                  </Button>
                   <Button variant="outlined" sx={{ textTransform: 'none' }} onClick={handlePortalClick}>
                     Portal Cliente
                   </Button>
                 </Box>
 
+                {/* Botón Añadir contraseña */}
+                <Button variant="outlined" sx={{ textTransform: 'none', mb: 3 }} onClick={() => setIsPasswordDialogOpen(true)}>
+                  Añadir Contraseña
+                </Button>
+
                 {/* Sección de relaciones */}
-                <Typography variant="body1" sx={{ fontWeight: 'bold', mb: 2 }}>Relaciones</Typography>
+                <Typography variant="body1" sx={{ fontWeight: 'bold', mb: 2 }}>
+                  Relaciones
+                </Typography>
                 <Button
                   variant="outlined"
                   sx={{
@@ -778,53 +1108,110 @@ const Contacts = () => {
                     justifyContent: 'flex-start',
                     textTransform: 'none',
                     width: '100%',
-                    mb: 3
+                    mb: 3,
                   }}
                   startIcon={<AddIcon />}
-                  onClick={handleOpenDialog}  // Abrir el diálogo al hacer clic
+                  onClick={handleOpenDialog} // Abrir el diálogo al hacer clic
                 >
                   Relacionar persona
                 </Button>
 
                 {/* Ventas */}
                 <Box sx={{ mb: 2 }}>
-                  <Typography variant="body1" sx={{ fontWeight: 'bold', mb: 1 }}>Ventas</Typography>
+                  <Typography variant="body1" sx={{ fontWeight: 'bold', mb: 1 }}>
+                    Ventas
+                  </Typography>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                     <Box>
-                      <Typography variant="body2" sx={{ color: '#8A8A8A' }}>0 Facturas</Typography>
+                      <Typography variant="body2" sx={{ color: '#8A8A8A' }}>
+                        0 Facturas
+                      </Typography>
                     </Box>
                     <Box>
-                      <Typography variant="body2" sx={{ color: '#8A8A8A' }}>0.00€</Typography>
+                      <Typography variant="body2" sx={{ color: '#8A8A8A' }}>
+                        0.00€
+                      </Typography>
                     </Box>
                     <Box>
-                      <Typography variant="body2" sx={{ color: '#8A8A8A' }}>0 días</Typography>
+                      <Typography variant="body2" sx={{ color: '#8A8A8A' }}>
+                        0 días
+                      </Typography>
                     </Box>
                     <Box>
-                      <Typography variant="body2" sx={{ color: '#8A8A8A' }}>Pend. cobro: 0.00€</Typography>
+                      <Typography variant="body2" sx={{ color: '#8A8A8A' }}>
+                        Pend. cobro: 0.00€
+                      </Typography>
                     </Box>
                   </Box>
                 </Box>
 
                 {/* Compras */}
                 <Box sx={{ mb: 2 }}>
-                  <Typography variant="body1" sx={{ fontWeight: 'bold', mb: 1 }}>Compras</Typography>
+                  <Typography variant="body1" sx={{ fontWeight: 'bold', mb: 1 }}>
+                    Compras
+                  </Typography>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                     <Box>
-                      <Typography variant="body2" sx={{ color: '#8A8A8A' }}>0 Facturas</Typography>
+                      <Typography variant="body2" sx={{ color: '#8A8A8A' }}>
+                        0 Facturas
+                      </Typography>
                     </Box>
                     <Box>
-                      <Typography variant="body2" sx={{ color: '#8A8A8A' }}>0.00€</Typography>
+                      <Typography variant="body2" sx={{ color: '#8A8A8A' }}>
+                        0.00€
+                      </Typography>
                     </Box>
                     <Box>
-                      <Typography variant="body2" sx={{ color: '#8A8A8A' }}>0 días</Typography>
+                      <Typography variant="body2" sx={{ color: '#8A8A8A' }}>
+                        0 días
+                      </Typography>
                     </Box>
                     <Box>
-                      <Typography variant="body2" sx={{ color: '#8A8A8A' }}>Pend. pago: 0.00€</Typography>
+                      <Typography variant="body2" sx={{ color: '#8A8A8A' }}>
+                        Pend. pago: 0.00€
+                      </Typography>
                     </Box>
                   </Box>
                 </Box>
               </Box>
+
+              {/* Dialogo para Añadir Contraseña */}
+              <Dialog open={isPasswordDialogOpen} onClose={() => setIsPasswordDialogOpen(false)}>
+                <DialogTitle>Añadir Contraseña</DialogTitle>
+                <DialogContent>
+                  <FormControlLabel
+                    control={<Checkbox checked={isPasswordEnabled} onChange={(e) => setIsPasswordEnabled(e.target.checked)} />}
+                    label="Activar contraseña para este cliente"
+                  />
+                  {isPasswordEnabled && (
+                    <TextField
+                      label="Contraseña"
+                      type="password"
+                      fullWidth
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      margin="normal"
+                      variant="outlined"
+                    />
+                  )}
+                </DialogContent>
+                <DialogActions>
+                  <Button onClick={() => setIsPasswordDialogOpen(false)} color="primary">
+                    Cancelar
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      // Aquí puedes manejar la lógica de guardar la contraseña
+                      setIsPasswordDialogOpen(false);
+                    }}
+                    color="primary"
+                  >
+                    Guardar
+                  </Button>
+                </DialogActions>
+              </Dialog>
             </Drawer>
+
 
 
 

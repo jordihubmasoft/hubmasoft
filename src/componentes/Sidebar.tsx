@@ -180,7 +180,7 @@ const Sidebar = ({ isMenuOpen, toggleMenu }) => {
         </Tooltip>
         <Collapse in={openSales && isMenuOpen} timeout="auto" unmountOnExit>
           <List component="div" disablePadding>
-            {['/sales-quotes', '/pedidos-ventas', '/albaranes-ventas', '/sales-proformas', '/facturas-ventas', '/facturas-recurrentes-ventas'].map((path, index) => (
+            {['/presupuestos-ventas', '/pedidos-ventas', '/albaranes-ventas', '/proformas-ventas', '/facturas-ventas', '/facturas-recurrentes-ventas'].map((path, index) => (
               <ListItem
                 button
                 sx={{ pl: 4, '&:hover': { bgcolor: '#E3F2FD', transform: 'scale(1.05)', transition: 'transform 0.2s ease' } }}
@@ -359,7 +359,7 @@ const Sidebar = ({ isMenuOpen, toggleMenu }) => {
               <ListItemText primary={t('sidebar.controlPanel')} sx={{ color: '#6C757D' }} />
             </ListItem>
             {/* Submenus with "+" button */}
-            {['/instalaciones-inventario', '/productos-inventario', '/categories', '/sales-orders', '/sales-delivery-notes', '/purchase-delivery-notes'].map((path, index) => (
+            {['/instalaciones-inventario', '/productos-inventario', '/categorias-inventario', '/pedidosDeVenta-inventario', '/sales-delivery-notes', '/purchase-delivery-notes'].map((path, index) => (
               <ListItem
                 button
                 sx={{ pl: 4, '&:hover': { bgcolor: '#E3F2FD', transform: 'scale(1.05)', transition: 'transform 0.2s ease' } }}
