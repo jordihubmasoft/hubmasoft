@@ -38,6 +38,7 @@ const Circle = dynamic(() => import('react-konva').then(mod => mod.Circle), { ss
 const Text = dynamic(() => import('react-konva').then(mod => mod.Text), { ssr: false });
 
 
+
 const RestauracionTPV = () => {
     const [selectedTab, setSelectedTab] = useState(0);
     const [empleados, setEmpleados] = useState([{ nombre: 'Félix', role: 'Cuenta principal' }]);
@@ -650,7 +651,22 @@ if (mesaSeleccionada) {
     );
   }
   
-  
+  const [stageWidth, setStageWidth] = useState(0);
+
+// Hook useEffect debe estar siempre fuera de condicionales
+useEffect(() => {
+  // Verifica si estamos en el cliente
+  if (typeof window !== 'undefined') {
+    setStageWidth(window.innerWidth - 300);
+  }
+}, []);
+
+// Si una mesa es seleccionada, mostrar la vista del TPV
+const mesaVista = mesaSeleccionada ? (
+  <Box sx={{ display: 'flex', height: '100vh', width: '100vw', backgroundColor: '#F0F4F8', p: 2 }}>
+    {/* TODO: Aquí puedes mover tu contenido del carrito */}
+  </Box>
+) : null;
   
   
 
@@ -688,7 +704,7 @@ if (mesaSeleccionada) {
                 boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
             }}
             >
-            <Stage width={window.innerWidth - 300} height={600} style={{ border: '1px solid black' }}>
+              <Stage width={stageWidth} height={600} style={{ border: '1px solid black' }}>
                 <Layer>
                 {/* Dibujar cocina */}
                 <Rect
