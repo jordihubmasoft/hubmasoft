@@ -44,10 +44,10 @@ import Header from 'componentes/Header';
 import Sidebar from 'componentes/Sidebar';
 import { useRouter } from 'next/router';
 
-// Simulación de datos de productos en inventario
-const productosInventario = [
-  { concepto: 'Arandela', descripcion: 'Arandela metálica', precio: 0.13, impuestos: [{ nombre: 'IVA 21%', valor: 0.21 }] },
-  { concepto: 'Tornillo', descripcion: 'Tornillo acero', precio: 0.25, impuestos: [{ nombre: 'IVA 21%', valor: 0.21 }] },
+// Simulación de datos de productos para presupuestos
+const productosPresupuesto = [
+  { concepto: 'Placa', descripcion: 'Placa de acero inoxidable', precio: 12.50, impuestos: [{ nombre: 'IVA 21%', valor: 0.21 }] },
+  { concepto: 'Tuerca', descripcion: 'Tuerca roscada', precio: 0.45, impuestos: [{ nombre: 'IVA 21%', valor: 0.21 }] },
 ];
 
 // Datos de impuestos disponibles
@@ -56,79 +56,70 @@ const impuestosDisponibles = [
   { nombre: 'Rec. eq. 5.2%', valor: 0.052 },
 ];
 
-// Definir el tipo para Producto
+// Definir el tipo para Producto en Presupuesto
 interface Producto {
   concepto: string;
   descripcion: string;
   cantidad: number;
   unidades: string;
   precio: number;
-  impuestos: { nombre: string; valor: number }[]; // Arreglo de impuestos
+  impuestos: { nombre: string; valor: number }[];
   total: number;
 }
 
-
-
-// Función para calcular el total de impuestos
+// Función para calcular los impuestos en el presupuesto
 const calcularImpuestos = (precio: number, cantidad: number, impuestos: { nombre: string; valor: number }[]) => {
   return impuestos.reduce((acc, impuesto) => acc + (precio * cantidad * impuesto.valor), 0);
 };
 
-// Función para calcular el coste total
+// Función para calcular el total del presupuesto
 const calcularTotal = (subtotal: number, impuestos: number) => {
   return subtotal + impuestos;
 };
 
-// Columnas de la tabla de pedidos
+// Columnas de la tabla de presupuestos
 const allColumns = [
   { id: 'numero', label: 'Número' },
   { id: 'fecha', label: 'Fecha' },
-  { id: 'recogida', label: 'Recogida' },
-  { id: 'contacto', label: 'Contacto' },
+  { id: 'cliente', label: 'Cliente' },
   { id: 'descripcion', label: 'Descripción' },
-  { id: 'formaPago', label: 'Forma de Pago' },
-  { id: 'proyecto', label: 'Proyecto' },
+  { id: 'validez', label: 'Validez' },
   { id: 'unidades', label: 'Unidades' },
   { id: 'iva', label: 'IVA' },
   { id: 'recargo', label: 'Recargo de Equivalencia' },
   { id: 'subtotal', label: 'Subtotal' },
   { id: 'total', label: 'Total' },
   { id: 'estado', label: 'Estado' },
-  { id: 'facturado', label: 'Facturado' },
-  { id: 'totalFacturado', label: 'Total Facturado' },
 ];
 
-// Datos de ejemplo para la tabla de pedidos
-const ordersData = [];
+// Datos de ejemplo para la tabla de presupuestos
+const budgetsData = [];
 
-const OrderPage = ({ order, handleBack, handleSave }) => {
-  const [formData, setFormData] = useState(order || {
-    contacto: '',
+const BudgetPage = ({ budget, handleBack, handleSave }) => {
+  const [formData, setFormData] = useState(budget || {
+    cliente: '',
     numeroDocumento: '',
     fechaDocumento: '',
-    fechaVencimiento: '',
-    metodoPago: '',
-    cuentaContable: '' // Agregado el campo para la cuenta contable
+    fechaValidez: '',
   });
 
   // Estado para manejar la tabla de productos
   const [productos, setProductos] = useState<Producto[]>([
     {
-      concepto: 'Arandela',
-      descripcion: 'Arandela metálica',
-      cantidad: 400,
+      concepto: 'Placa',
+      descripcion: 'Placa de acero inoxidable',
+      cantidad: 10,
       unidades: 'unidades',
-      precio: 1.13,
-      impuestos: [{ nombre: 'IVA 21%', valor: 0.21 }], // Impuestos como un arreglo
-      total: 61.92
-    }
+      precio: 12.50,
+      impuestos: [{ nombre: 'IVA 21%', valor: 0.21 }],
+      total: 151.25,
+    },
   ]);
-  
 
   // Estado para totales
-  const [subtotal, setSubtotal] = useState(452);
-  const [totalImpuestos, setTotalImpuestos] = useState(94.92);
-  const [total, setTotal] = useState(546.92);
+  const [subtotal, setSubtotal] = useState(125.00);
+  const [totalImpuestos, setTotalImpuestos] = useState(26.25);
+  const [total, setTotal] = useState(151.25);
 
   // Estado para el diálogo de creación de producto
   const [openDialog, setOpenDialog] = useState(false);
@@ -140,9 +131,9 @@ const OrderPage = ({ order, handleBack, handleSave }) => {
 
   // Función para eliminar una fila de productos
   const handleDeleteRow = (index: number) => {
-    const updatedProductos = productos.filter((_, i) => i !== index); // Elimina el producto por índice
-    setProductos(updatedProductos); // Actualiza el estado
-    recalcularTotales(updatedProductos); // Recalcula los totales después de eliminar una fila
+    const updatedProductos = productos.filter((_, i) => i !== index);
+    setProductos(updatedProductos);
+    recalcularTotales(updatedProductos);
   };
 
   // Función para actualizar los valores de las celdas de la tabla
@@ -151,32 +142,25 @@ const OrderPage = ({ order, handleBack, handleSave }) => {
     event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | SelectChangeEvent<string>
   ) => {
     const updatedProductos: Producto[] = [...productos];
-  
-    // Obtenemos el valor y el nombre del campo
+
     const { name, value } = event.target as HTMLInputElement | HTMLSelectElement;
-  
-    // Verifica y actualiza los campos numéricos
+
     if (name === 'concepto' || name === 'descripcion' || name === 'unidades') {
       updatedProductos[index][name as 'concepto' | 'descripcion' | 'unidades'] = value;
     } else if (name === 'impuestos') {
-      // Asegúrate de que el valor sea un arreglo de impuestos correcto
       updatedProductos[index].impuestos = value as unknown as { nombre: string; valor: number }[];
     } else {
       console.warn(`El campo "${name}" no es una propiedad válida del objeto Producto.`);
     }
-    
-  
-    // Actualizamos el estado con los nuevos valores
+
     setProductos(updatedProductos);
     recalcularTotales(updatedProductos);
   };
-  
-  
 
   // Función para manejar el autocompletado del producto
   const handleProductoSeleccionado = (index: number, newValue: string | null) => {
-    if (!newValue) return; 
-    const productoSeleccionado = productosInventario.find(p => p.concepto === newValue);
+    if (!newValue) return;
+    const productoSeleccionado = productosPresupuesto.find(p => p.concepto === newValue);
     if (productoSeleccionado) {
       const updatedProductos = [...productos];
       updatedProductos[index] = {
@@ -185,7 +169,7 @@ const OrderPage = ({ order, handleBack, handleSave }) => {
         descripcion: productoSeleccionado.descripcion,
         precio: productoSeleccionado.precio,
         impuestos: productoSeleccionado.impuestos,
-        total: productoSeleccionado.precio * updatedProductos[index].cantidad
+        total: productoSeleccionado.precio * updatedProductos[index].cantidad,
       };
       setProductos(updatedProductos);
       recalcularTotales(updatedProductos);
@@ -203,11 +187,6 @@ const OrderPage = ({ order, handleBack, handleSave }) => {
     setTotal(nuevoTotal);
   };
 
-  // Función para abrir el diálogo de creación de producto
-  const handleCrearProducto = () => {
-    setOpenDialog(true);
-  };
-
   const handleSubmit = () => {
     handleSave({ ...formData, productos });
     handleBack();
@@ -221,31 +200,27 @@ const OrderPage = ({ order, handleBack, handleSave }) => {
           <ArrowBackIcon />
         </IconButton>
         <Typography variant="h5" component="div" sx={{ flexGrow: 1, fontWeight: 'bold' }}>
-          {order ? 'Editar Pedido' : 'Nuevo Pedido de Venta'}
+          {budget ? 'Editar Presupuesto' : 'Nuevo Presupuesto'}
         </Typography>
       </Box>
 
       <Paper elevation={3} sx={{ p: 4, mb: 4, borderRadius: 2 }}>
-        {/* Sección de datos del pedido */}
+        {/* Sección de datos del presupuesto */}
         <Grid container spacing={4}>
           <Grid item xs={12} md={3}>
-            <FormControl fullWidth variant="outlined">
-              <InputLabel>Contacto</InputLabel>
-              <Select
-                name="contacto"
-                value={formData.contacto}
-                onChange={(event) => handleInputChange(0, event)}
-                label="Contacto"
-                sx={{ borderRadius: 2 }}
-              >
-                <MenuItem value="Contacto1">Contacto 1</MenuItem>
-                <MenuItem value="Contacto2">Contacto 2</MenuItem>
-              </Select>
-            </FormControl>
+            <TextField
+              label="Cliente"
+              name="cliente"
+              variant="outlined"
+              fullWidth
+              value={formData.cliente}
+              onChange={(event) => handleInputChange(0, event)}
+              sx={{ borderRadius: 2 }}
+            />
           </Grid>
           <Grid item xs={12} md={3}>
             <TextField
-              label="Número de documento"
+              label="Número de presupuesto"
               name="numeroDocumento"
               variant="outlined"
               fullWidth
@@ -256,7 +231,7 @@ const OrderPage = ({ order, handleBack, handleSave }) => {
           </Grid>
           <Grid item xs={12} md={3}>
             <TextField
-              label="Fecha documento"
+              label="Fecha del presupuesto"
               name="fechaDocumento"
               type="date"
               variant="outlined"
@@ -269,13 +244,13 @@ const OrderPage = ({ order, handleBack, handleSave }) => {
           </Grid>
           <Grid item xs={12} md={3}>
             <TextField
-              label="Fecha vencimiento"
-              name="fechaVencimiento"
+              label="Fecha de validez"
+              name="fechaValidez"
               type="date"
               variant="outlined"
               fullWidth
               InputLabelProps={{ shrink: true }}
-              value={formData.fechaVencimiento}
+              value={formData.fechaValidez}
               onChange={(event) => handleInputChange(0, event)}
               sx={{ borderRadius: 2 }}
             />
@@ -302,25 +277,24 @@ const OrderPage = ({ order, handleBack, handleSave }) => {
                 {productos.map((producto, index) => (
                   <TableRow key={index}>
                     <TableCell>
-                    <Autocomplete
-                      freeSolo
-                      options={productosInventario.map(p => p.concepto)}
-                      value={producto.concepto}
-                      onChange={(event, newValue) => handleProductoSeleccionado(index, newValue as string)}
-                      renderInput={(params) => (
-                        <TextField
-                          {...params}
-                          label="Concepto"
-                          variant="outlined"
-                          fullWidth // Asegura que el TextField ocupe todo el ancho disponible
-                          InputProps={{
-                            ...params.InputProps,
-                            style: { minWidth: 200 }, // Aumenta el ancho mínimo del campo
-                          }}
-                        />
-                      )}
-                    />
-
+                      <Autocomplete
+                        freeSolo
+                        options={productosPresupuesto.map((p) => p.concepto)}
+                        value={producto.concepto}
+                        onChange={(event, newValue) => handleProductoSeleccionado(index, newValue as string)}
+                        renderInput={(params) => (
+                          <TextField
+                            {...params}
+                            label="Concepto"
+                            variant="outlined"
+                            fullWidth
+                            InputProps={{
+                              ...params.InputProps,
+                              style: { minWidth: 200 },
+                            }}
+                          />
+                        )}
+                      />
                     </TableCell>
                     <TableCell>
                       <TextField
@@ -395,10 +369,7 @@ const OrderPage = ({ order, handleBack, handleSave }) => {
                       />
                     </TableCell>
                     <TableCell>
-                      <IconButton
-                        color="secondary"
-                        onClick={() => handleDeleteRow(index)} // Llama a la función para eliminar la fila
-                      >
+                      <IconButton color="secondary" onClick={() => handleDeleteRow(index)}>
                         <DeleteIcon />
                       </IconButton>
                     </TableCell>
@@ -423,58 +394,24 @@ const OrderPage = ({ order, handleBack, handleSave }) => {
         </Box>
         <Divider sx={{ my: 4 }} />
 
-        {/* Sección de Método de Pago, Cuenta Contable y Totales */}
-          <Grid container spacing={4} sx={{ mt: 4 }}>
-            {/* Columna izquierda: Forma de pago y cuenta contable */}
-            <Grid item xs={12} md={6}> {/* Ajustamos para que ocupen la mitad */}
-              {/* Título para Método de Pago */}
-              <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1 }}>Método de pago</Typography>
-              <FormControl fullWidth variant="outlined" sx={{ mb: 3 }}> {/* Ajuste de margen */}
-                <InputLabel>Selecciona una forma de pago</InputLabel>
-                <Select
-                  name="metodoPago"
-                  value={formData.metodoPago}
-                  onChange={(event) => handleInputChange(0, event)}
-                  label="Selecciona una forma de pago"
-                  sx={{ borderRadius: 2 }}
-                >
-                  <MenuItem value="forma1">Forma de pago 1</MenuItem>
-                  <MenuItem value="forma2">Forma de pago 2</MenuItem>
-                </Select>
-              </FormControl>
+        {/* Sección de Totales */}
+        <Grid container spacing={4} sx={{ mt: 4 }}>
+          {/* Totales */}
+          <Grid item xs={12} display="flex" justifyContent="flex-end">
+            <Box sx={{ width: '300px' }}>
+              <Typography variant="body1" sx={{ fontWeight: 'bold' }}>Subtotal</Typography>
+              <Typography variant="body1">{subtotal.toFixed(2)}€</Typography>
 
-              {/* Título para Categorización */}
-              <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1 }}>Categorización</Typography>
-              <TextField
-                label="Cuenta contable"
-                name="cuentaContable"
-                variant="outlined"
-                fullWidth
-                value={formData.cuentaContable}
-                onChange={(event) => handleInputChange(0, event)}
-                sx={{ borderRadius: 2 }}
-              />
-            </Grid>
+              <Typography variant="body1" sx={{ fontWeight: 'bold', mt: 2 }}>Impuestos</Typography>
+              <Typography variant="body1">{totalImpuestos.toFixed(2)}€</Typography>
 
-            {/* Columna derecha: Totales */}
-            <Grid item xs={12} md={6} display="flex" justifyContent="flex-end"> {/* Alinea a la derecha */}
-              <Box sx={{ width: '300px' }}> {/* Controla el ancho de la caja de totales */}
-                <Typography variant="body1" sx={{ fontWeight: 'bold' }}>Subtotal</Typography>
-                <Typography variant="body1">{subtotal.toFixed(2)}€</Typography>
+              <Divider sx={{ my: 2 }} />
 
-                <Typography variant="body1" sx={{ fontWeight: 'bold', mt: 2 }}>Impuestos</Typography>
-                <Typography variant="body1">{totalImpuestos.toFixed(2)}€</Typography>
-
-                <Divider sx={{ my: 2 }} />
-
-                <Typography variant="h6" sx={{ fontWeight: 'bold' }}>Total</Typography>
-                <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'primary.main' }}>{total.toFixed(2)}€</Typography>
-              </Box>
-            </Grid>
+              <Typography variant="h6" sx={{ fontWeight: 'bold' }}>Total</Typography>
+              <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'primary.main' }}>{total.toFixed(2)}€</Typography>
+            </Box>
           </Grid>
-
-
-
+        </Grid>
 
         <Divider sx={{ my: 4 }} />
 
@@ -503,10 +440,10 @@ const OrderPage = ({ order, handleBack, handleSave }) => {
   );
 };
 
-const Pedidos = () => {
+const Presupuestos = () => {
   const [isEditing, setIsEditing] = useState(false);
-  const [selectedOrder, setSelectedOrder] = useState(null);
-  const [orders, setOrders] = useState(ordersData);
+  const [selectedBudget, setSelectedBudget] = useState(null);
+  const [budgets, setBudgets] = useState(budgetsData);
   const [isMenuOpen, setIsMenuOpen] = useState(true);
   const [visibleColumns, setVisibleColumns] = useState(allColumns.map((col) => col.id));
   const [anchorEl, setAnchorEl] = useState(null);
@@ -516,26 +453,26 @@ const Pedidos = () => {
 
   useEffect(() => {
     if (isNew) {
-      handleOpen(); // Llama a la función que abre el formulario de nuevo pedido
+      handleOpen(); // Llama a la función que abre el formulario de nuevo presupuesto
     }
   }, [isNew]);
 
-  const handleOpen = (order = null) => {
-    setSelectedOrder(order);
+  const handleOpen = (budget = null) => {
+    setSelectedBudget(budget);
     setIsEditing(true);
   };
 
   const handleBack = () => {
     setIsEditing(false);
-    setSelectedOrder(null);
+    setSelectedBudget(null);
   };
 
-  const handleSave = (order) => {
-    if (selectedOrder) {
-      setOrders(orders.map((o) => (o.id === order.id ? order : o)));
+  const handleSave = (budget) => {
+    if (selectedBudget) {
+      setBudgets(budgets.map((b) => (b.id === budget.id ? budget : b)));
     } else {
-      order.id = orders.length + 1;
-      setOrders([...orders, order]);
+      budget.id = budgets.length + 1;
+      setBudgets([...budgets, budget]);
     }
   };
 
@@ -596,7 +533,7 @@ const Pedidos = () => {
             >
               <Container maxWidth="lg">
                 <Typography variant="h3" gutterBottom sx={{ color: '#1A1A40', fontWeight: '600' }}>
-                  Pedidos
+                  Presupuestos
                 </Typography>
                 <Box sx={{ display: 'flex', mb: 3, flexWrap: 'wrap', gap: 1 }}>
                   <TextField 
@@ -618,7 +555,7 @@ const Pedidos = () => {
                     startIcon={<AddIcon />} 
                     onClick={() => handleOpen()}
                   >
-                    Añadir Pedido
+                    Añadir Presupuesto
                   </Button>
                   <IconButton
                     sx={{
@@ -669,16 +606,16 @@ const Pedidos = () => {
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {orders.map((order) => (
-                        <TableRow key={order.id} sx={{ '&:hover': { bgcolor: '#F1F1F1' } }}>
+                      {budgets.map((budget) => (
+                        <TableRow key={budget.id} sx={{ '&:hover': { bgcolor: '#F1F1F1' } }}>
                           {visibleColumns.map((column) => (
-                            <TableCell key={column}>{order[column]}</TableCell>
+                            <TableCell key={column}>{budget[column]}</TableCell>
                           ))}
                           <TableCell>
-                            <IconButton onClick={() => handleOpen(order)} sx={{ color: '#1A1A40' }}>
+                            <IconButton onClick={() => handleOpen(budget)} sx={{ color: '#1A1A40' }}>
                               <EditIcon />
                             </IconButton>
-                            <IconButton onClick={() => setOrders(orders.filter((o) => o.id !== order.id))} sx={{ color: '#B00020' }}>
+                            <IconButton onClick={() => setBudgets(budgets.filter((b) => b.id !== budget.id))} sx={{ color: '#B00020' }}>
                               <DeleteIcon />
                             </IconButton>
                           </TableCell>
@@ -695,12 +632,11 @@ const Pedidos = () => {
 
       <Fade in={isEditing} timeout={300}>
         <Box display={isEditing ? 'block' : 'none'}>
-          <OrderPage order={selectedOrder} handleBack={handleBack} handleSave={handleSave} />
+          <BudgetPage budget={selectedBudget} handleBack={handleBack} handleSave={handleSave} />
         </Box>
       </Fade>
     </Box>
   );
 };
 
-export default Pedidos;
-
+export default Presupuestos;
