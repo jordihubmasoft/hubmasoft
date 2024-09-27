@@ -1229,7 +1229,7 @@ const Contacts = () => {
                 />
                 <List>
                   {filteredPeople.map(person => (
-                    <ListItem button key={person.id}>
+                    <ListItem key={person.id}>
                       <ListItemText primary={person.name} />
                     </ListItem>
                   ))}

@@ -71,7 +71,6 @@ const ClientSidebar = ({ isMenuOpen, toggleMenu, setCurrentPage }) => {
         <List sx={{ color: '#6C757D', flexGrow: 1 }}>
             {/* Flecha para abrir/cerrar el sidebar */}
             <ListItem
-            button
             onClick={toggleMenu}
             sx={{
                 justifyContent: 'center', // Centrar horizontalmente
@@ -93,7 +92,6 @@ const ClientSidebar = ({ isMenuOpen, toggleMenu, setCurrentPage }) => {
 
             {/* Panel de Control */}
             <ListItem
-            button
             onClick={() => setCurrentPage('dashboard')}
             sx={{
                 padding: '10px 16px',
@@ -111,7 +109,6 @@ const ClientSidebar = ({ isMenuOpen, toggleMenu, setCurrentPage }) => {
 
             {/* Catálogo */}
             <ListItem
-            button
             onClick={() => setCurrentPage('catalogo')}
             sx={{
                 padding: '10px 16px',
@@ -128,7 +125,6 @@ const ClientSidebar = ({ isMenuOpen, toggleMenu, setCurrentPage }) => {
 
             {/* Ventas */}
             <ListItem
-            button
             onClick={() => setCurrentPage('ventas')}
             sx={{
                 padding: '10px 16px',
@@ -145,7 +141,6 @@ const ClientSidebar = ({ isMenuOpen, toggleMenu, setCurrentPage }) => {
 
             {/* Compras */}
             <ListItem
-            button
             onClick={() => setCurrentPage('compras')}
             sx={{
                 padding: '10px 16px',
@@ -162,7 +157,6 @@ const ClientSidebar = ({ isMenuOpen, toggleMenu, setCurrentPage }) => {
 
             {/* Suscribirse */}
             <ListItem
-            button
             onClick={() => setCurrentPage('suscribirse')}
             sx={{
                 padding: '10px 16px',
@@ -179,7 +173,6 @@ const ClientSidebar = ({ isMenuOpen, toggleMenu, setCurrentPage }) => {
 
             {/* Cerrar Sesión */}
             <ListItem
-            button
             onClick={() => setCurrentPage('logout')}
             sx={{
                 padding: '10px 16px',
