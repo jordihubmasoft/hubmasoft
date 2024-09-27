@@ -83,7 +83,6 @@ const Sidebar = ({ isMenuOpen, toggleMenu }) => {
         {/* Panel de Control */}
         <Tooltip title="Panel de Control" placement="right">
           <ListItem
-            button
             onClick={() => handleItemClick('/dashboard')}
             sx={{
               borderRadius: '10px',
@@ -106,7 +105,6 @@ const Sidebar = ({ isMenuOpen, toggleMenu }) => {
         {/* Contactos */}
         <Tooltip title="Contactos" placement="right">
           <ListItem
-            button
             onClick={() => handleItemClick('/contacts')}
             sx={{
               borderRadius: '10px',
@@ -154,7 +152,6 @@ const Sidebar = ({ isMenuOpen, toggleMenu }) => {
         {/* Ventas */}
         <Tooltip title="Ventas" placement="right">
           <ListItem
-            button
             onClick={() => handleToggle(setOpenSales, openSales)}
             sx={{
               borderRadius: '10px',
@@ -182,7 +179,6 @@ const Sidebar = ({ isMenuOpen, toggleMenu }) => {
           <List component="div" disablePadding>
             {['/presupuestos-ventas', '/pedidos-ventas', '/albaranes-ventas', '/proformas-ventas', '/facturas-ventas', '/facturas-recurrentes-ventas'].map((path, index) => (
               <ListItem
-                button
                 sx={{ pl: 4, '&:hover': { bgcolor: '#E3F2FD', transform: 'scale(1.05)', transition: 'transform 0.2s ease' } }}
                 onClick={() => handleItemClick(path)}
                 key={path}
@@ -216,7 +212,6 @@ const Sidebar = ({ isMenuOpen, toggleMenu }) => {
         {/* Compras */}
         <Tooltip title="Compras" placement="right">
           <ListItem
-            button
             onClick={() => handleToggle(setOpenPurchases, openPurchases)}
             sx={{
               borderRadius: '10px',
@@ -242,9 +237,8 @@ const Sidebar = ({ isMenuOpen, toggleMenu }) => {
         </Tooltip>
         <Collapse in={openPurchases && isMenuOpen} timeout="auto" unmountOnExit>
           <List component="div" disablePadding>
-            {['/purchase-quotes', '/purchase-orders', '/purchase-delivery-notes', '/purchase-proformas', '/purchase-invoices', '/purchase-recurring-invoices'].map((path, index) => (
+            {['/presupuestos-compras', '/pedidos-compras', '/albaranes-compras', '/proformas-compras', '/facturas-compras', '/facturas-recurrentes-compras'].map((path, index) => (
               <ListItem
-                button
                 sx={{ pl: 4, '&:hover': { bgcolor: '#E3F2FD', transform: 'scale(1.05)', transition: 'transform 0.2s ease' } }}
                 onClick={() => handleItemClick(path)}
                 key={path}
@@ -275,57 +269,10 @@ const Sidebar = ({ isMenuOpen, toggleMenu }) => {
           </List>
         </Collapse>
 
-        {/* Gastos */}
-        <Tooltip title="Gastos" placement="right">
-          <ListItem
-            button
-            onClick={() => handleItemClick('/gastos')}
-            sx={{
-              borderRadius: '10px',
-              marginBottom: '10px',
-              transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-              '&:hover': {
-                bgcolor: '#E3F2FD',
-                transform: 'scale(1.05)',
-                boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)',
-              },
-            }}
-          >
-            <ListItemIcon>
-              <BusinessCenterIcon sx={{ color: '#6C757D', transition: 'color 0.2s ease', '&:hover': { color: '#1A73E8' } }} />
-            </ListItemIcon>
-            {isMenuOpen && (
-              <>
-                <ListItemText primary={t('sidebar.Gastos')} sx={{ color: '#343A40', fontWeight: 'bold' }} />
-                <IconButton
-                  size="small"
-                  sx={{
-                    bgcolor: 'transparent',
-                    color: '#6C757D',
-                    borderRadius: '8px',
-                    border: '1px solid transparent',
-                    transition: 'all 0.3s ease',
-                    '&:hover': {
-                      bgcolor: '#1A73E8',
-                      color: '#FFFFFF',
-                      transform: 'scale(1.1)',
-                      boxShadow: '0px 8px 16px rgba(26, 115, 232, 0.2)',
-                      border: '1px solid #1A73E8',
-                    },
-                  }}
-                  onClick={() => router.push('/gastos?new=true')}
-                >
-                  <AddIcon />
-                </IconButton>
-              </>
-            )}
-          </ListItem>
-        </Tooltip>
 
         {/* Inventario */}
         <Tooltip title="Inventario" placement="right">
           <ListItem
-            button
             onClick={() => handleToggle(setOpenInventory, openInventory)}
             sx={{
               borderRadius: '10px',
@@ -352,16 +299,14 @@ const Sidebar = ({ isMenuOpen, toggleMenu }) => {
         <Collapse in={openInventory && isMenuOpen} timeout="auto" unmountOnExit>
           <List component="div" disablePadding>
             <ListItem
-              button
               sx={{ pl: 4, '&:hover': { bgcolor: '#E3F2FD', transform: 'scale(1.05)', transition: 'transform 0.2s ease' } }}
               onClick={() => handleItemClick('/panel-control-inventario')}
             >
               <ListItemText primary={t('sidebar.controlPanel')} sx={{ color: '#6C757D' }} />
             </ListItem>
             {/* Submenus with "+" button */}
-            {['/instalaciones-inventario', '/productos-inventario', '/categorias-inventario', '/pedidosDeVenta-inventario', '/sales-delivery-notes', '/purchase-delivery-notes'].map((path, index) => (
+            {['/instalaciones-inventario', '/productos-inventario', '/categorias-inventario', '/pedidosDeVenta-inventario', '/albaranes-ventas', '/albaranes-compras'].map((path, index) => (
               <ListItem
-                button
                 sx={{ pl: 4, '&:hover': { bgcolor: '#E3F2FD', transform: 'scale(1.05)', transition: 'transform 0.2s ease' } }}
                 onClick={() => handleItemClick(path)}
                 key={path}
@@ -395,7 +340,6 @@ const Sidebar = ({ isMenuOpen, toggleMenu }) => {
         {/* Contabilidad */}
         <Tooltip title="Contabilidad" placement="right">
           <ListItem
-            button
             onClick={() => handleToggle(setOpenAccounting, openAccounting)}
             sx={{
               borderRadius: '10px',
@@ -413,7 +357,7 @@ const Sidebar = ({ isMenuOpen, toggleMenu }) => {
             </ListItemIcon>
             {isMenuOpen && (
               <>
-                <ListItemText primary={t('sidebar.accounting')} onClick={() => !openAccounting && handleItemClick('/contabilidad')} sx={{ color: '#343A40', fontWeight: 'bold' }} />
+                <ListItemText primary={t('sidebar.accounting')} onClick={() => !openAccounting} sx={{ color: '#343A40', fontWeight: 'bold' }} />
                 {openAccounting ? <ExpandLess sx={{ color: '#1A73E8' }} /> : <ExpandMore sx={{ color: '#1A73E8' }} />}
               </>
             )}
@@ -422,23 +366,20 @@ const Sidebar = ({ isMenuOpen, toggleMenu }) => {
         <Collapse in={openAccounting && isMenuOpen} timeout="auto" unmountOnExit>
           <List component="div" disablePadding>
             <ListItem
-              button
               sx={{ pl: 4, '&:hover': { bgcolor: '#E3F2FD', transform: 'scale(1.05)', transition: 'transform 0.2s ease' } }}
-              onClick={() => handleItemClick('/cashflow')}
+              onClick={() => handleItemClick('/Flujo-Caja')}
             >
               <ListItemText primary={t('sidebar.cashflow')} sx={{ color: '#6C757D' }} />
             </ListItem>
             <ListItem
-              button
               sx={{ pl: 4, '&:hover': { bgcolor: '#E3F2FD', transform: 'scale(1.05)', transition: 'transform 0.2s ease' } }}
-              onClick={() => handleItemClick('/payments-receipts')}
+              onClick={() => handleItemClick('/pagos-cobros')}
             >
               <ListItemText primary={t('sidebar.paymentsReceipts')} sx={{ color: '#6C757D' }} />
             </ListItem>
             <ListItem
-              button
               sx={{ pl: 4, '&:hover': { bgcolor: '#E3F2FD', transform: 'scale(1.05)', transition: 'transform 0.2s ease' } }}
-              onClick={() => handleItemClick('/taxes')}
+              onClick={() => handleItemClick('/impuestos')}
             >
               <ListItemText primary={t('sidebar.taxes')} sx={{ color: '#6C757D' }} />
             </ListItem>
@@ -448,7 +389,6 @@ const Sidebar = ({ isMenuOpen, toggleMenu }) => {
         {/* Empleados */}
         <Tooltip title="Empleados" placement="right">
           <ListItem
-            button
             onClick={() => handleItemClick('/empleados')}
             sx={{
               borderRadius: '10px',
@@ -495,7 +435,6 @@ const Sidebar = ({ isMenuOpen, toggleMenu }) => {
         {/* Proyectos */}
         <Tooltip title="Proyectos" placement="right">
           <ListItem
-            button
             onClick={() => handleItemClick('/proyectos')}
             sx={{
               borderRadius: '10px',
@@ -542,7 +481,6 @@ const Sidebar = ({ isMenuOpen, toggleMenu }) => {
         {/* TPV */}
         <Tooltip title="TPV" placement="right">
           <ListItem
-            button
             onClick={() => handleItemClick('/TPV')}
             sx={{
               borderRadius: '10px',
