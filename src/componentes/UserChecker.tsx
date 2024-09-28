@@ -1,6 +1,6 @@
 import { ReactNode, useEffect } from "react";
 import { useLogin } from "@hooks/useAuthentication";
-import { useRouter } from "next/router"; // If using Next.js, otherwise you can use 'window.location.href'
+import { useRouter } from "next/router";
 
 interface UserCheckerProps {
   children: ReactNode;
@@ -20,5 +20,5 @@ export const UserChecker = ({ children }: UserCheckerProps) => {
     return null;
   }
 
-  return <>{children}</>; // Render children (dashboard content) when user is authenticated
+  return <>{children}</>;
 };
