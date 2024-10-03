@@ -58,15 +58,20 @@ const Login = () => {
   const { login, data: loginData, error: loginError, loading: loginLoading } = useLogin();
   const { register, data: registerData, error: registerError, loading: registerLoading } = useRegister();
   const router = useRouter();
+
+  // Estado del formulario
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false); 
+  const [showPassword, setShowPassword] = useState(false);
+  
+  // Estado de errores
   const [emailError, setEmailError] = useState(false);  
-  const [passwordError, setPasswordError] = useState(false);  // Manejo de error de la contraseña
-  const [errorMessage, setErrorMessage] = useState("");  // Mensajes de error
+  const [passwordError, setPasswordError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [isRegistering, setIsRegistering] = useState(false);
 
-  const [isRegistering, setIsRegistering] = useState(false);  // Estado para alternar entre registro e inicio de sesión
-  const [registerForm, setRegisterForm] = useState({  // Estado para manejar el formulario de registro
+  // Estado del formulario de registro
+  const [registerForm, setRegisterForm] = useState({
     nombre: "",
     apellidos: "",
     email: "",
@@ -75,12 +80,15 @@ const Login = () => {
     phone: "",
   });
 
-  // Estados para manejar el feedback visual (snackbar)
+  // Estado de validez del correo
+  const [isEmailValid, setIsEmailValid] = useState(false);
+
+  // Estado de feedback visual (snackbar)
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] = useState<AlertColor>('success');
 
-  // Estados para manejar la validación de contraseñas (para registro)
+  // Validaciones de la contraseña
   const [hasMinLength, setHasMinLength] = useState(false);
   const [hasUpperCase, setHasUpperCase] = useState(false);
   const [hasLowerCase, setHasLowerCase] = useState(false);
@@ -89,6 +97,12 @@ const Login = () => {
   const [anchorEl, setAnchorEl] = useState(null);
 
   const allRequirementsMet = hasMinLength && hasUpperCase && hasLowerCase && hasNumber && hasSpecialChar;
+
+  // Validación del correo electrónico
+  const validateEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
 
   // Efecto para manejar el inicio de sesión exitoso
   useEffect(() => {
@@ -105,7 +119,7 @@ const Login = () => {
     }
   }, [loginData, loginError, router]);
 
-  // Efecto para validar las contraseñas ingresadas en el formulario de registro
+  // Efecto para validar las contraseñas ingresadas
   useEffect(() => {
     const password = registerForm.password;
     setHasMinLength(password.length >= 8);  // Verifica longitud mínima de 8 caracteres
@@ -122,10 +136,10 @@ const Login = () => {
     }
   }, [isRegistering]);
 
-  // Función que maneja el submit del formulario (tanto para login como registro)
+  // Función para manejar el submit del formulario
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setEmailError(false);  // Resetea el estado de errores
+    setEmailError(false);
     setPasswordError(false);
     setErrorMessage("");
 
@@ -139,17 +153,17 @@ const Login = () => {
   // Función para manejar el login
   const handleLoginSubmit = async () => {
     const user = {
-      email: email,  // Incluye el email y la contraseña en el payload del login
+      email: email,
       password: password
     };
 
-    console.log("Payload:", user);  // Verifica que el payload incluya el email
-    await login(user);  // Envía la solicitud de login
+    console.log("Payload:", user);  
+    await login(user);
   };
 
   // Función para manejar el registro
   const handleRegisterSubmit = async () => {
-    if (registerForm.password !== registerForm.confirmPassword) {  // Validación de contraseñas
+    if (registerForm.password !== registerForm.confirmPassword) {  
       setErrorMessage("Las contraseñas no coinciden");
       setSnackbarSeverity("error");
       setSnackbarMessage("Las contraseñas no coinciden");
@@ -157,7 +171,7 @@ const Login = () => {
       return;
     }
 
-    if (!allRequirementsMet) {  // Validación de fuerza de contraseña
+    if (!allRequirementsMet) {  
       setErrorMessage("La contraseña no es lo suficientemente fuerte");
       setSnackbarSeverity("error");
       setSnackbarMessage("La contraseña no es lo suficientemente fuerte");
@@ -186,9 +200,15 @@ const Login = () => {
     }
   };
 
-  // Función para manejar los cambios en los inputs del formulario de registro
+  // Manejar cambios en los inputs del formulario
   const handleRegisterChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
+
+    if (name === "email") {
+      setIsEmailValid(validateEmail(value));  // Validar el email
+      setEmailError(!validateEmail(value));  // Mostrar el error si no es válido
+    }
+
     setRegisterForm((prevData) => ({
       ...prevData,
       [name]: value,
@@ -275,14 +295,17 @@ const Login = () => {
               autoComplete="email"
               autoFocus={!isRegistering}
               value={isRegistering ? registerForm.email : email}
-              onChange={(e) => {
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                 isRegistering
                   ? setRegisterForm({ ...registerForm, email: e.target.value })
                   : setEmail(e.target.value);
+                // Validación de email
+                setEmailError(!validateEmail(e.target.value));
               }}
               error={emailError}
               helperText={emailError && "Correo electrónico incorrecto"}
             />
+
             <TextField
               margin="normal"
               required
@@ -412,18 +435,12 @@ const Login = () => {
                 />
               </>
             )}
-            {!isRegistering && (
-              <FormControlLabel
-                control={<Checkbox value="remember" color="primary" />}
-                label="Recordarme"
-              />
-            )}
             <Button
               type="submit"
               fullWidth
               variant="contained"
               sx={{ mt: 3, mb: 2 }}
-              disabled={registerLoading || (isRegistering && !allRequirementsMet)}
+              disabled={registerLoading || (isRegistering && (!allRequirementsMet || !isEmailValid))} // Botón deshabilitado si email es inválido o contraseñas no cumplen requisitos
             >
               {isRegistering ? (registerLoading ? <CircularProgress size={24} /> : "Regístrate") : (loginLoading ? <CircularProgress size={24} /> : "Iniciar Sesión")}
             </Button>

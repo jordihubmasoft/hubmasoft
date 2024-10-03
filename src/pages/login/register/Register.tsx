@@ -42,6 +42,26 @@ const Register: React.FC = () => {
   const [openSnackbar, setOpenSnackbar] = useState<boolean>(false);
   const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
 
+  // Añadimos los errores de email
+  const [emailError, setEmailError] = useState(false);
+
+  // Función para validar que el email tiene un formato válido
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const domainBlacklist = ["example.com", "test.com"]; // Dominios no permitidos
+    const emailDomain = email.split("@")[1];
+
+    if (!emailRegex.test(email)) {
+      return false; // Si no cumple el formato básico
+    }
+
+    if (domainBlacklist.includes(emailDomain)) {
+      return false; // Si el dominio está en la lista negra
+    }
+
+    return true; // Devuelve verdadero si cumple todas las condiciones
+  };
+
   // Efecto para manejar el éxito o error en el registro
   useEffect(() => {
     if (data) {
@@ -63,18 +83,18 @@ const Register: React.FC = () => {
     event.preventDefault();
     setErrorMessage(""); // Limpiar mensajes de error previos
 
-    // Validar que las contraseñas coincidan
-    if (registerData.password !== registerData.confirmPassword) {
-      setErrorMessage("Las contraseñas no coinciden");
+    // Validar que el correo electrónico sea válido
+    if (!validateEmail(registerData.email)) {
+      setEmailError(true); // Mostrar error en el campo del correo electrónico
+      setErrorMessage("El correo electrónico no es válido o está en la lista de dominios no permitidos");
       setSnackbarSeverity('error');
       setOpenSnackbar(true);
       return;
     }
 
-    // Validar que el correo electrónico sea válido
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(registerData.email)) {
-      setErrorMessage("Correo electrónico inválido");
+    // Validar que las contraseñas coincidan
+    if (registerData.password !== registerData.confirmPassword) {
+      setErrorMessage("Las contraseñas no coinciden");
       setSnackbarSeverity('error');
       setOpenSnackbar(true);
       return;
@@ -155,6 +175,8 @@ const Register: React.FC = () => {
               autoComplete="email"
               value={registerData.email}
               onChange={handleRegisterChange}
+              error={emailError}
+              helperText={emailError && "Correo electrónico inválido"}
             />
             <TextField
               margin="normal"
