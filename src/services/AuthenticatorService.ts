@@ -14,13 +14,13 @@ export default class AuthenticatorService {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          username: user.username,
+          email: user.email, // Cambia a 'username' si el backend lo espera
           password: user.password,
         }),
       });
+
       if (response.ok) {
         const resultData = await response.json();
-
         return {
           result: {
             resultNumber: resultData.result.resultNumber,
@@ -29,12 +29,19 @@ export default class AuthenticatorService {
           data: resultData.data,
         };
       } else {
-        throw new Error("Error en la solicitud de inicio de sesión");
+        const errorResponse = await response.json();
+        throw new Error(
+          errorResponse.result?.errorMessage || "Error en la solicitud de inicio de sesión"
+        );
       }
     } catch (err) {
-      throw err;
+      console.error("Error en la solicitud:", err);
+      throw new Error(
+        "Ocurrió un problema al procesar la solicitud. Intenta nuevamente."
+      );
     }
   }
+
   static async userRegister(
     user: UserRegister
   ): Promise<CommonResponse<LoginResponse>> {
@@ -47,6 +54,7 @@ export default class AuthenticatorService {
         },
         body: JSON.stringify(user),
       });
+
       if (response.ok) {
         const resultData = await response.json();
         return {
@@ -57,10 +65,14 @@ export default class AuthenticatorService {
           data: resultData.data,
         };
       } else {
-        throw new Error("Error en la solicitud de registro");
+        const errorResponse = await response.json();
+        throw new Error(
+          errorResponse.result?.errorMessage || "Error en la solicitud de registro"
+        );
       }
     } catch (err) {
-      throw err;
+      console.error("Error en la solicitud:", err);
+      throw new Error("Ocurrió un problema al procesar el registro. Intenta nuevamente.");
     }
   }
 }

@@ -4,7 +4,8 @@ import { LoginResponse } from "../types/UserLogin";
 import { CommonResponse } from "../types/CommonResponse";
 
 type UserRegister = {
-  username: string;
+  name: string;
+  surname: string;
   email: string;
   password: string;
 };
@@ -22,20 +23,28 @@ export const useRegister = (): UseRegisterResult => {
   const [loading, setLoading] = useState<boolean>(false);
 
   const register = async (user: UserRegister): Promise<void> => {
-    setLoading(true);
-    setError(null); // Reset error state before attempting registration
+    setLoading(true);  // Inicia el estado de carga
+    setError(null);    // Resetea el error antes de intentar el registro
+    setData(null);     // Resetea cualquier dato previo
+
     try {
+      // Ejecuta la llamada al servicio de registro
       const response: CommonResponse<LoginResponse> =
         await AuthenticatorService.userRegister(user);
+
       if (response.result.resultNumber === 0) {
-        setData(response.data); // Set data on success
+        setData(response.data);  // Almacena los datos en caso de éxito
       } else {
-        setError(response.result.errorMessage || "Unknown error occurred."); // Handle error
+        setError(response.result.errorMessage || "Unknown error occurred."); // Manejo de error en la respuesta
       }
-    } catch (err) {
-      setError(err.message || "Unexpected error occurred");
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message || "Unexpected error occurred"); // Manejo de errores desconocidos
+      } else {
+        setError("An unexpected error occurred");
+      }
     } finally {
-      setLoading(false);
+      setLoading(false); // Finaliza el estado de carga
     }
   };
 

@@ -12,11 +12,12 @@ import {
   Snackbar,
   Alert,
 } from "@mui/material";
-import { useRegister } from "@hooks/userRegister";
+import { useRegister } from "@hooks/userRegister"; // Hook personalizado para el registro
 import { useRouter } from "next/router";
 
 interface RegisterData {
   nombre: string;
+  surname: string;
   email: string;
   password: string;
   confirmPassword: string;
@@ -25,6 +26,7 @@ interface RegisterData {
 
 const initialRegisterData: RegisterData = {
   nombre: "",
+  surname: "",
   email: "",
   password: "",
   confirmPassword: "",
@@ -38,36 +40,57 @@ const Register: React.FC = () => {
   const [openRegister, setOpenRegister] = useState<boolean>(true);
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [openSnackbar, setOpenSnackbar] = useState<boolean>(false);
+  const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
 
+  // Efecto para manejar el éxito o error en el registro
   useEffect(() => {
     if (data) {
-      // If there's data and no error, it means registration was successful
-      setOpenSnackbar(true); // Show the success popup
+      setSnackbarSeverity('success');
+      setOpenSnackbar(true); // Mostrar mensaje de éxito
       setTimeout(() => {
-        setOpenRegister(false); // Close the registration dialog
-        router.push("/login"); // Redirect to the login page after 2 seconds
+        setOpenRegister(false); // Cerrar el diálogo
+        router.push("/login"); // Redirigir al inicio de sesión
       }, 2000);
     } else if (error) {
-      setErrorMessage(error); // Display the error message if there's an error
+      setSnackbarSeverity('error');
+      setErrorMessage(error); // Mostrar mensaje de error
+      setOpenSnackbar(true);
     }
   }, [data, error, router]);
-  
 
-  const handleRegisterSubmit = async (
-    event: React.FormEvent<HTMLFormElement>
-  ) => {
+  // Manejar la lógica del formulario de registro
+  const handleRegisterSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setErrorMessage(""); // Limpiar mensajes de error previos
 
+    // Validar que las contraseñas coincidan
     if (registerData.password !== registerData.confirmPassword) {
       setErrorMessage("Las contraseñas no coinciden");
+      setSnackbarSeverity('error');
+      setOpenSnackbar(true);
       return;
     }
 
-    const { nombre, email, password } = registerData;
-    await register({ username: nombre, email, password }); // Ejecutar la función de registro
+    // Validar que el correo electrónico sea válido
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(registerData.email)) {
+      setErrorMessage("Correo electrónico inválido");
+      setSnackbarSeverity('error');
+      setOpenSnackbar(true);
+      return;
+    }
+
+    // Ejecutar la función de registro
+    const { nombre, surname, email, password } = registerData;
+    await register({
+      name: nombre,
+      surname: surname,
+      email: email,
+      password: password,
+    });
   };
 
+  // Manejar cambios en los campos de texto
   const handleRegisterChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
     setRegisterData((prevData) => ({
@@ -109,6 +132,17 @@ const Register: React.FC = () => {
               autoComplete="name"
               autoFocus
               value={registerData.nombre}
+              onChange={handleRegisterChange}
+            />
+            <TextField
+              margin="normal"
+              required
+              fullWidth
+              id="surname"
+              label="Apellidos"
+              name="surname"
+              autoComplete="surname"
+              value={registerData.surname}
               onChange={handleRegisterChange}
             />
             <TextField
@@ -168,19 +202,18 @@ const Register: React.FC = () => {
           </Box>
         </DialogContent>
       </Dialog>
-      
-      {/* Snackbar para el registro exitoso */}
+
+      {/* Snackbar para mostrar mensajes de éxito o error */}
       <Snackbar
         open={openSnackbar}
         autoHideDuration={2000}
         onClose={handleCloseSnackbar}
         anchorOrigin={{ vertical: "top", horizontal: "center" }}
       >
-        <Alert onClose={handleCloseSnackbar} severity="success" sx={{ width: "100%" }}>
-          ¡Registro exitoso! Redirigiendo al inicio de sesión...
+        <Alert onClose={handleCloseSnackbar} severity={snackbarSeverity} sx={{ width: "100%" }}>
+          {snackbarSeverity === 'success' ? "¡Registro exitoso! Redirigiendo al inicio de sesión..." : errorMessage}
         </Alert>
       </Snackbar>
-
     </>
   );
 };

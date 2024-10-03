@@ -31,7 +31,7 @@ import Grow from "@mui/material/Grow";
 
 const theme = createTheme({
   typography: {
-    fontFamily: ['Roboto', 'Arial', 'sans-serif'].join(','),
+    fontFamily: ['Roboto', 'Arial', 'sans-serif'].join(','), 
     fontSize: 14,
     body1: {
       fontWeight: 500,
@@ -43,13 +43,13 @@ const theme = createTheme({
   },
   palette: {
     primary: {
-      main: '#1a73e8',
+      main: '#1a73e8',  
     },
     success: {
-      main: '#34a853',
+      main: '#34a853', 
     },
     error: {
-      main: '#ea4335',
+      main: '#ea4335',  
     }
   }
 });
@@ -60,12 +60,13 @@ const Login = () => {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [emailError, setEmailError] = useState(false);
-  const [passwordError, setPasswordError] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
-  const [isRegistering, setIsRegistering] = useState(false);
-  const [registerForm, setRegisterForm] = useState({
+  const [showPassword, setShowPassword] = useState(false); 
+  const [emailError, setEmailError] = useState(false);  
+  const [passwordError, setPasswordError] = useState(false);  // Manejo de error de la contraseña
+  const [errorMessage, setErrorMessage] = useState("");  // Mensajes de error
+
+  const [isRegistering, setIsRegistering] = useState(false);  // Estado para alternar entre registro e inicio de sesión
+  const [registerForm, setRegisterForm] = useState({  // Estado para manejar el formulario de registro
     nombre: "",
     apellidos: "",
     email: "",
@@ -74,9 +75,12 @@ const Login = () => {
     phone: "",
   });
 
+  // Estados para manejar el feedback visual (snackbar)
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] = useState<AlertColor>('success');
+
+  // Estados para manejar la validación de contraseñas (para registro)
   const [hasMinLength, setHasMinLength] = useState(false);
   const [hasUpperCase, setHasUpperCase] = useState(false);
   const [hasLowerCase, setHasLowerCase] = useState(false);
@@ -86,14 +90,14 @@ const Login = () => {
 
   const allRequirementsMet = hasMinLength && hasUpperCase && hasLowerCase && hasNumber && hasSpecialChar;
 
+  // Efecto para manejar el inicio de sesión exitoso
   useEffect(() => {
     if (loginData && !loginError) {
-      //guardar el inicio de sesión
-      localStorage.setItem("user", JSON.stringify(loginData));
+      localStorage.setItem("user", JSON.stringify(loginData));  // Guarda el inicio de sesión en localStorage
       setSnackbarSeverity("success");
       setSnackbarMessage("¡Inicio de sesión exitoso! Redirigiendo...");
       setOpenSnackbar(true);
-      router.push("/dashboard");
+      router.push("/dashboard");  // Redirige al dashboard
     } else if (loginError) {
       setSnackbarSeverity("error");
       setSnackbarMessage(loginError || "Error de inicio de sesión");
@@ -101,25 +105,27 @@ const Login = () => {
     }
   }, [loginData, loginError, router]);
 
+  // Efecto para validar las contraseñas ingresadas en el formulario de registro
   useEffect(() => {
     const password = registerForm.password;
-    setHasMinLength(password.length >= 8);
-    setHasUpperCase(/[A-Z]/.test(password));
-    setHasLowerCase(/[a-z]/.test(password));
-    setHasNumber(/[0-9]/.test(password));
-    setHasSpecialChar(/[\W_]/.test(password));
+    setHasMinLength(password.length >= 8);  // Verifica longitud mínima de 8 caracteres
+    setHasUpperCase(/[A-Z]/.test(password));  // Verifica si tiene al menos una mayúscula
+    setHasLowerCase(/[a-z]/.test(password));  // Verifica si tiene al menos una minúscula
+    setHasNumber(/[0-9]/.test(password));  // Verifica si tiene al menos un número
+    setHasSpecialChar(/[\W_]/.test(password));  // Verifica si tiene caracteres especiales
   }, [registerForm.password]);
 
+  // Efecto para cerrar el tooltip cuando no se está en el registro
   useEffect(() => {
     if (!isRegistering) {
       setAnchorEl(null);
     }
   }, [isRegistering]);
-  
 
+  // Función que maneja el submit del formulario (tanto para login como registro)
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setEmailError(false);
+    setEmailError(false);  // Resetea el estado de errores
     setPasswordError(false);
     setErrorMessage("");
 
@@ -130,13 +136,20 @@ const Login = () => {
     }
   };
 
+  // Función para manejar el login
   const handleLoginSubmit = async () => {
-    const user = { username: email, password: password };
-    await login(user);
+    const user = {
+      email: email,  // Incluye el email y la contraseña en el payload del login
+      password: password
+    };
+
+    console.log("Payload:", user);  // Verifica que el payload incluya el email
+    await login(user);  // Envía la solicitud de login
   };
 
+  // Función para manejar el registro
   const handleRegisterSubmit = async () => {
-    if (registerForm.password !== registerForm.confirmPassword) {
+    if (registerForm.password !== registerForm.confirmPassword) {  // Validación de contraseñas
       setErrorMessage("Las contraseñas no coinciden");
       setSnackbarSeverity("error");
       setSnackbarMessage("Las contraseñas no coinciden");
@@ -144,7 +157,7 @@ const Login = () => {
       return;
     }
 
-    if (!allRequirementsMet) {
+    if (!allRequirementsMet) {  // Validación de fuerza de contraseña
       setErrorMessage("La contraseña no es lo suficientemente fuerte");
       setSnackbarSeverity("error");
       setSnackbarMessage("La contraseña no es lo suficientemente fuerte");
@@ -153,7 +166,8 @@ const Login = () => {
     }
 
     await register({
-      username: registerForm.nombre,
+      name: registerForm.nombre,
+      surname: registerForm.apellidos,
       email: registerForm.email,
       password: registerForm.password,
     });
@@ -172,6 +186,7 @@ const Login = () => {
     }
   };
 
+  // Función para manejar los cambios en los inputs del formulario de registro
   const handleRegisterChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
     setRegisterForm((prevData) => ({
@@ -180,6 +195,7 @@ const Login = () => {
     }));
   };
 
+  // Manejo de focus y blur para mostrar o esconder tooltip de validación
   const handlePasswordFocus = (event) => {
     setAnchorEl(event.currentTarget);
   };
@@ -266,13 +282,6 @@ const Login = () => {
               }}
               error={emailError}
               helperText={emailError && "Correo electrónico incorrecto"}
-              sx={{
-                "& .MuiOutlinedInput-root": {
-                  "&.Mui-focused fieldset": {
-                    borderColor: emailError ? "red" : "primary.main",
-                  },
-                },
-              }}
             />
             <TextField
               margin="normal"
@@ -314,9 +323,10 @@ const Login = () => {
                 ),
               }}
             />
-            
+
+            {/* Tooltip de validación de contraseñas (solo para registro) */}
             <Popper
-              open={Boolean(anchorEl) && isRegistering} // Añadimos isRegistering a la condición
+              open={Boolean(anchorEl) && isRegistering}
               anchorEl={anchorEl}
               placement="right-start"
               modifiers={[
@@ -331,8 +341,7 @@ const Login = () => {
               }}
             >
               <Grow in={Boolean(anchorEl) && isRegistering} timeout={300}>
-                {/* Asegúrate de que el Grow tenga un solo elemento hijo */}
-                <div> {/* Cambié Box a un div o un solo contenedor */}
+                <div>
                   <Box
                     sx={{
                       width: '280px',
@@ -382,7 +391,6 @@ const Login = () => {
                 </div>
               </Grow>
             </Popper>
-
 
             {isRegistering && (
               <>
