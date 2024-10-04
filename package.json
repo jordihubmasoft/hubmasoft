@@ -37,7 +37,8 @@
         "react-konva": "^18.2.10",
         "react-router-dom": "^6.26.2",
         "recharts": "^2.12.7",
-        "yup": "^1.4.0"
+        "yup": "^1.4.0",
+        "zustand": "^5.0.0-rc.2"
     },
     "devDependencies": {
         "@types/node": "^14.0.0",

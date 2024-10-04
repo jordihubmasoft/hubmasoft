@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect } from "react"; // No eliminamos useState porque aún lo usamos para manejar algunos estados
 import { useRouter } from "next/router";
 import Avatar from "@mui/material/Avatar";
 import Button from "@mui/material/Button";
@@ -28,6 +28,7 @@ import { useLogin } from "hooks/useAuthentication";
 import { useRegister } from "hooks/userRegister";
 import LinearProgress from "@mui/material/LinearProgress";
 import Grow from "@mui/material/Grow";
+import useAuthStore from "../store/useAuthStore"; // <-- Importa el store desde Zustand
 
 // Define el tema de MUI para la aplicación
 const theme = createTheme({
@@ -56,42 +57,31 @@ const theme = createTheme({
 });
 
 const Login = () => {
-  // Lógica de login y registro con hooks personalizados
   const { login, data: loginData, error: loginError, loading: loginLoading } = useLogin();
   const { register, data: registerData, error: registerError, loading: registerLoading } = useRegister();
   const router = useRouter();
 
-  // Estado del formulario de login
+  const { setAgentId, setToken, setRefreshToken, setRefreshTokenExpiryTime } = useAuthStore();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  
-  // Estado de errores
-  const [emailError, setEmailError] = useState(false);  
-  const [passwordError, setPasswordError] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
   const [isRegistering, setIsRegistering] = useState(false);
-
-  // Estado del formulario de registro
   const [registerForm, setRegisterForm] = useState({
     nombre: "",
     apellidos: "",
     email: "",
     password: "",
-    confirmPassword: "",
-    phone: "",
+    confirmPassword: ""
   });
-
-  // Estado para validar si el correo es válido
+  
+  const [showPassword, setShowPassword] = useState(false);
+  const [emailError, setEmailError] = useState(false);  
+  const [passwordError, setPasswordError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   const [isEmailValid, setIsEmailValid] = useState(false);
   const [doPasswordsMatch, setDoPasswordsMatch] = useState(false);
-
-  // Estado para manejar el feedback visual (snackbar)
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] = useState<AlertColor>('success');
-
-  // Estado para las validaciones de contraseñas
   const [hasMinLength, setHasMinLength] = useState(false);
   const [hasUpperCase, setHasUpperCase] = useState(false);
   const [hasLowerCase, setHasLowerCase] = useState(false);
@@ -99,23 +89,35 @@ const Login = () => {
   const [hasSpecialChar, setHasSpecialChar] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
 
-  // Todas las condiciones de la contraseña deben cumplirse para activar el botón de registro
   const allRequirementsMet = hasMinLength && hasUpperCase && hasLowerCase && hasNumber && hasSpecialChar;
 
-  // Validación de correo electrónico
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
   };
 
-  // Maneja la respuesta exitosa al iniciar sesión
   useEffect(() => {
     if (loginData && !loginError) {
-      localStorage.setItem("user", JSON.stringify(loginData));  // Guardar los datos del usuario en localStorage
+      const userData = {
+        state: {
+          agentId: loginData.agentId,
+          token: loginData.token,
+          refreshToken: loginData.refreshToken,
+          refreshTokenExpiryTime: loginData.refreshTokenExpiryTime,
+        },
+        version: 1
+      };
+
+      localStorage.setItem("user", JSON.stringify(userData));
+      setAgentId(loginData.agentId);
+      setToken(loginData.token);
+      setRefreshToken(loginData.refreshToken);
+      setRefreshTokenExpiryTime(loginData.refreshTokenExpiryTime);
+
       setSnackbarSeverity("success");
       setSnackbarMessage("¡Inicio de sesión exitoso! Redirigiendo...");
       setOpenSnackbar(true);
-      router.push("/dashboard");  // Redirigir al dashboard
+      router.push("/dashboard");
     } else if (loginError) {
       setSnackbarSeverity("error");
       setSnackbarMessage(loginError || "Error de inicio de sesión");
@@ -123,30 +125,26 @@ const Login = () => {
     }
   }, [loginData, loginError, router]);
 
-  // Valida las contraseñas ingresadas en el formulario de registro
   useEffect(() => {
     const password = registerForm.password;
-    setHasMinLength(password.length >= 8);  // Valida que la contraseña tenga mínimo 8 caracteres
-    setHasUpperCase(/[A-Z]/.test(password));  // Valida que tenga al menos una mayúscula
-    setHasLowerCase(/[a-z]/.test(password));  // Valida que tenga al menos una minúscula
-    setHasNumber(/[0-9]/.test(password));  // Valida que tenga al menos un número
-    setHasSpecialChar(/[\W_]/.test(password));  // Valida que tenga un carácter especial
-    setDoPasswordsMatch(registerForm.password === registerForm.confirmPassword); // Verifica si las contraseñas coinciden
+    setHasMinLength(password.length >= 8);
+    setHasUpperCase(/[A-Z]/.test(password));
+    setHasLowerCase(/[a-z]/.test(password));
+    setHasNumber(/[0-9]/.test(password));
+    setHasSpecialChar(/[\W_]/.test(password));
+    setDoPasswordsMatch(registerForm.password === registerForm.confirmPassword);
   }, [registerForm.password, registerForm.confirmPassword]);
 
-  // Cierra el tooltip de validación de contraseñas si no está en el modo de registro
   useEffect(() => {
     if (!isRegistering) {
       setAnchorEl(null);
     }
   }, [isRegistering]);
 
-  // Valida el email cuando cambia
   useEffect(() => {
-    setIsEmailValid(validateEmail(registerForm.email)); // Validar el correo en tiempo real
+    setIsEmailValid(validateEmail(registerForm.email));
   }, [registerForm.email]);
 
-  // Función para manejar el envío del formulario
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setEmailError(false);
@@ -160,16 +158,11 @@ const Login = () => {
     }
   };
 
-  // Función para manejar el inicio de sesión
   const handleLoginSubmit = async () => {
-    const user = {
-      email: email,
-      password: password
-    };
+    const user = { email, password };
     await login(user);
   };
 
-  // Función para manejar el registro
   const handleRegisterSubmit = async () => {
     if (registerForm.password !== registerForm.confirmPassword) {
       setErrorMessage("Las contraseñas no coinciden");
@@ -208,20 +201,15 @@ const Login = () => {
     }
   };
 
-  // Manejar los cambios en los campos del formulario de registro
   const handleRegisterChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
     if (name === "email") {
       setIsEmailValid(validateEmail(value));
       setEmailError(!validateEmail(value));
     }
-    setRegisterForm((prevData) => ({
-      ...prevData,
-      [name]: value,
-    }));
+    setRegisterForm({ ...registerForm, [name]: value });
   };
 
-  // Muestra o esconde el tooltip de validación de contraseñas
   const handlePasswordFocus = (event) => {
     setAnchorEl(event.currentTarget);
   };
@@ -322,9 +310,12 @@ const Login = () => {
               autoComplete={isRegistering ? "new-password" : "current-password"}
               value={isRegistering ? registerForm.password : password}
               onChange={(e) => {
-                isRegistering
-                  ? setRegisterForm({ ...registerForm, password: e.target.value })
-                  : setPassword(e.target.value);
+                const value = e.target.value;
+                if (isRegistering) {
+                  setRegisterForm({ ...registerForm, password: value });
+                } else {
+                  setPassword(value);
+                }
               }}
               error={passwordError}
               helperText={passwordError && "Contraseña incorrecta"}
@@ -447,7 +438,7 @@ const Login = () => {
               fullWidth
               variant="contained"
               sx={{ mt: 3, mb: 2 }}
-              disabled={registerLoading || (isRegistering && (!allRequirementsMet || !isEmailValid || !doPasswordsMatch))} // Botón deshabilitado si el correo o las contraseñas no son válidas
+              disabled={registerLoading || (isRegistering && (!allRequirementsMet || !isEmailValid || !doPasswordsMatch))}
             >
               {isRegistering ? (registerLoading ? <CircularProgress size={24} /> : "Regístrate") : (loginLoading ? <CircularProgress size={24} /> : "Iniciar Sesión")}
             </Button>
@@ -465,9 +456,7 @@ const Login = () => {
                   variant="body2"
                   onClick={() => setIsRegistering(!isRegistering)}
                 >
-                  {isRegistering
-                    ? "¿Ya tienes cuenta? Inicia sesión."
-                    : "¿No tienes cuenta? Regístrate."}
+                  {isRegistering ? "¿Ya tienes cuenta? Inicia sesión." : "¿No tienes cuenta? Regístrate."}
                 </Link>
               </Grid>
             </Grid>
