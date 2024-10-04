@@ -22,6 +22,7 @@ import { motion } from 'framer-motion';
 import Header from '../componentes/Header';
 import Sidebar from '../componentes/Sidebar';
 import { useAuth } from '../context/AuthContext'; // Importa el hook useAuth
+import { useRouter } from 'next/router'; // Importa el hook de routing para redirecciones
 
 function a11yProps(index: number) {
   return {
@@ -32,8 +33,16 @@ function a11yProps(index: number) {
 
 const Profile = () => {
   const { user, logout } = useAuth(); // Usa el hook useAuth para acceder al usuario y la función de cerrar sesión
+  const router = useRouter(); // Define el router para hacer redirecciones
   const [isMenuOpen, setIsMenuOpen] = React.useState(true);
   const [value, setValue] = React.useState(0);
+
+  // Redirige al login si el usuario no está autenticado
+  React.useEffect(() => {
+    if (!user) {
+      router.push('/login'); // Redirige al login si no hay usuario
+    }
+  }, [user, router]); // Se ejecuta cada vez que cambia user o router
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -42,6 +51,15 @@ const Profile = () => {
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
     setValue(newValue);
   };
+
+  // Si el usuario no está autenticado, muestra un mensaje de cargando
+  if (!user) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <Typography variant="h6">Redirigiendo al login...</Typography>
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', bgcolor: '#E5E5E5' }}>
@@ -114,21 +132,22 @@ const Profile = () => {
                         fontSize: 50,
                         mx: 'auto',
                         marginBottom: 2,
-                        // Remueve la transformación que puede causar el efecto de borrosidad
                         transition: 'all 0.3s ease',
                         '&:hover': {
-                          // Ajusta el hover para que no use transform si eso causa el blur
-                          transform: 'scale(1.05)', // Ajusta el escalado a un valor menor si es necesario
+                          transform: 'scale(1.05)',
                         },
                       }}
                     >
+                      {/* Mostrar la inicial del nombre del usuario */}
                       {user?.name?.charAt(0)}
                     </Avatar>
 
                       <Typography variant="h6" sx={{ fontWeight: '600' }}>
+                        {/* Mostrar el nombre del usuario */}
                         {user?.name || "Nombre no disponible"}
                       </Typography>
                       <Typography variant="body2" color="textSecondary" sx={{ marginBottom: 2 }}>
+                        {/* Mostrar el correo del usuario */}
                         {user?.email || "Email no disponible"}
                       </Typography>
                     </Box>
@@ -169,10 +188,8 @@ const Profile = () => {
                       padding: '30px',
                       flex: 1,
                       borderRadius: 5,
-                      // Elimina el boxShadow gris y cambia el background por un color blanco puro
                       boxShadow: '0px 10px 30px rgba(0,0,0,0.15)',
-                      background: '#FFFFFF', // Cambia el fondo a blanco puro
-                      // Remueve el backdropFilter para evitar el efecto borroso
+                      background: '#FFFFFF',
                       border: '1px solid rgba(255, 255, 255, 0.3)',
                       transition: 'all 0.3s ease',
                     }}
@@ -187,7 +204,7 @@ const Profile = () => {
                           label="Nombre"
                           variant="outlined"
                           sx={{ marginBottom: 2 }}
-                          defaultValue={user?.name || ""}
+                          defaultValue={user?.name || ""} // Usar el nombre del usuario
                         />
                       </Grid>
                       <Grid item xs={12} sm={6}>
@@ -210,7 +227,7 @@ const Profile = () => {
                       label="Correo Electrónico"
                       variant="outlined"
                       sx={{ marginBottom: 3 }}
-                      defaultValue={user?.email || ""}
+                      defaultValue={user?.email || ""} // Usar el email del usuario
                     />
                     <Button
                       variant="contained"

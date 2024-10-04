@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect } from "react"; // No eliminamos useState porque aún lo usamos para manejar algunos estados
 import { useRouter } from "next/router";
 import Avatar from "@mui/material/Avatar";
 import Button from "@mui/material/Button";
@@ -21,14 +21,16 @@ import InputAdornment from "@mui/material/InputAdornment";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import Snackbar from "@mui/material/Snackbar";
 import Alert, { AlertColor } from "@mui/material/Alert";
-import Popper from '@mui/material/Popper';
-import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
-import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
+import Popper from "@mui/material/Popper";
+import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
+import RadioButtonUncheckedIcon from "@mui/icons-material/RadioButtonUnchecked";
 import { useLogin } from "hooks/useAuthentication";
 import { useRegister } from "hooks/userRegister";
 import LinearProgress from "@mui/material/LinearProgress";
 import Grow from "@mui/material/Grow";
+import useAuthStore from "../store/useAuthStore"; // <-- Importa el store desde Zustand
 
+// Define el tema de MUI para la aplicación
 const theme = createTheme({
   typography: {
     fontFamily: ['Roboto', 'Arial', 'sans-serif'].join(','),
@@ -58,22 +60,25 @@ const Login = () => {
   const { login, data: loginData, error: loginError, loading: loginLoading } = useLogin();
   const { register, data: registerData, error: registerError, loading: registerLoading } = useRegister();
   const router = useRouter();
+
+  const { setAgentId, setToken, setRefreshToken, setRefreshTokenExpiryTime } = useAuthStore();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [emailError, setEmailError] = useState(false);
-  const [passwordError, setPasswordError] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
   const [isRegistering, setIsRegistering] = useState(false);
   const [registerForm, setRegisterForm] = useState({
     nombre: "",
     apellidos: "",
     email: "",
     password: "",
-    confirmPassword: "",
-    phone: "",
+    confirmPassword: ""
   });
-
+  
+  const [showPassword, setShowPassword] = useState(false);
+  const [emailError, setEmailError] = useState(false);  
+  const [passwordError, setPasswordError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [isEmailValid, setIsEmailValid] = useState(false);
+  const [doPasswordsMatch, setDoPasswordsMatch] = useState(false);
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] = useState<AlertColor>('success');
@@ -86,10 +91,29 @@ const Login = () => {
 
   const allRequirementsMet = hasMinLength && hasUpperCase && hasLowerCase && hasNumber && hasSpecialChar;
 
+  const validateEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
   useEffect(() => {
     if (loginData && !loginError) {
-      //guardar el inicio de sesión
-      localStorage.setItem("user", JSON.stringify(loginData));
+      const userData = {
+        state: {
+          agentId: loginData.agentId,
+          token: loginData.token,
+          refreshToken: loginData.refreshToken,
+          refreshTokenExpiryTime: loginData.refreshTokenExpiryTime,
+        },
+        version: 1
+      };
+
+      localStorage.setItem("user", JSON.stringify(userData));
+      setAgentId(loginData.agentId);
+      setToken(loginData.token);
+      setRefreshToken(loginData.refreshToken);
+      setRefreshTokenExpiryTime(loginData.refreshTokenExpiryTime);
+
       setSnackbarSeverity("success");
       setSnackbarMessage("¡Inicio de sesión exitoso! Redirigiendo...");
       setOpenSnackbar(true);
@@ -108,14 +132,18 @@ const Login = () => {
     setHasLowerCase(/[a-z]/.test(password));
     setHasNumber(/[0-9]/.test(password));
     setHasSpecialChar(/[\W_]/.test(password));
-  }, [registerForm.password]);
+    setDoPasswordsMatch(registerForm.password === registerForm.confirmPassword);
+  }, [registerForm.password, registerForm.confirmPassword]);
 
   useEffect(() => {
     if (!isRegistering) {
       setAnchorEl(null);
     }
   }, [isRegistering]);
-  
+
+  useEffect(() => {
+    setIsEmailValid(validateEmail(registerForm.email));
+  }, [registerForm.email]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -131,7 +159,7 @@ const Login = () => {
   };
 
   const handleLoginSubmit = async () => {
-    const user = { username: email, password: password };
+    const user = { email, password };
     await login(user);
   };
 
@@ -153,7 +181,8 @@ const Login = () => {
     }
 
     await register({
-      username: registerForm.nombre,
+      name: registerForm.nombre,
+      surname: registerForm.apellidos,
       email: registerForm.email,
       password: registerForm.password,
     });
@@ -174,10 +203,11 @@ const Login = () => {
 
   const handleRegisterChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
-    setRegisterForm((prevData) => ({
-      ...prevData,
-      [name]: value,
-    }));
+    if (name === "email") {
+      setIsEmailValid(validateEmail(value));
+      setEmailError(!validateEmail(value));
+    }
+    setRegisterForm({ ...registerForm, [name]: value });
   };
 
   const handlePasswordFocus = (event) => {
@@ -259,21 +289,16 @@ const Login = () => {
               autoComplete="email"
               autoFocus={!isRegistering}
               value={isRegistering ? registerForm.email : email}
-              onChange={(e) => {
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                 isRegistering
                   ? setRegisterForm({ ...registerForm, email: e.target.value })
                   : setEmail(e.target.value);
+                setEmailError(!validateEmail(e.target.value));
               }}
               error={emailError}
               helperText={emailError && "Correo electrónico incorrecto"}
-              sx={{
-                "& .MuiOutlinedInput-root": {
-                  "&.Mui-focused fieldset": {
-                    borderColor: emailError ? "red" : "primary.main",
-                  },
-                },
-              }}
             />
+
             <TextField
               margin="normal"
               required
@@ -285,9 +310,12 @@ const Login = () => {
               autoComplete={isRegistering ? "new-password" : "current-password"}
               value={isRegistering ? registerForm.password : password}
               onChange={(e) => {
-                isRegistering
-                  ? setRegisterForm({ ...registerForm, password: e.target.value })
-                  : setPassword(e.target.value);
+                const value = e.target.value;
+                if (isRegistering) {
+                  setRegisterForm({ ...registerForm, password: value });
+                } else {
+                  setPassword(value);
+                }
               }}
               error={passwordError}
               helperText={passwordError && "Contraseña incorrecta"}
@@ -314,9 +342,10 @@ const Login = () => {
                 ),
               }}
             />
-            
+
+            {/* Tooltip de validación de contraseñas */}
             <Popper
-              open={Boolean(anchorEl) && isRegistering} // Añadimos isRegistering a la condición
+              open={Boolean(anchorEl) && isRegistering}
               anchorEl={anchorEl}
               placement="right-start"
               modifiers={[
@@ -331,8 +360,7 @@ const Login = () => {
               }}
             >
               <Grow in={Boolean(anchorEl) && isRegistering} timeout={300}>
-                {/* Asegúrate de que el Grow tenga un solo elemento hijo */}
-                <div> {/* Cambié Box a un div o un solo contenedor */}
+                <div>
                   <Box
                     sx={{
                       width: '280px',
@@ -383,7 +411,6 @@ const Login = () => {
               </Grow>
             </Popper>
 
-
             {isRegistering && (
               <>
                 <TextField
@@ -397,6 +424,8 @@ const Login = () => {
                   autoComplete="new-password"
                   value={registerForm.confirmPassword}
                   onChange={handleRegisterChange}
+                  error={!doPasswordsMatch}
+                  helperText={!doPasswordsMatch && "Las contraseñas no coinciden"}
                 />
                 <FormControlLabel
                   control={<Checkbox value="news" color="primary" />}
@@ -404,18 +433,12 @@ const Login = () => {
                 />
               </>
             )}
-            {!isRegistering && (
-              <FormControlLabel
-                control={<Checkbox value="remember" color="primary" />}
-                label="Recordarme"
-              />
-            )}
             <Button
               type="submit"
               fullWidth
               variant="contained"
               sx={{ mt: 3, mb: 2 }}
-              disabled={registerLoading || (isRegistering && !allRequirementsMet)}
+              disabled={registerLoading || (isRegistering && (!allRequirementsMet || !isEmailValid || !doPasswordsMatch))}
             >
               {isRegistering ? (registerLoading ? <CircularProgress size={24} /> : "Regístrate") : (loginLoading ? <CircularProgress size={24} /> : "Iniciar Sesión")}
             </Button>
@@ -433,9 +456,7 @@ const Login = () => {
                   variant="body2"
                   onClick={() => setIsRegistering(!isRegistering)}
                 >
-                  {isRegistering
-                    ? "¿Ya tienes cuenta? Inicia sesión."
-                    : "¿No tienes cuenta? Regístrate."}
+                  {isRegistering ? "¿Ya tienes cuenta? Inicia sesión." : "¿No tienes cuenta? Regístrate."}
                 </Link>
               </Grid>
             </Grid>
