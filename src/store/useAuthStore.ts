@@ -8,16 +8,18 @@ interface AuthState {
     token: string | null;
     refreshToken: string | null;
     refreshTokenExpiryTime: string | null;
-    email: string | null; // Agrega este campo
-    password: string | null; // Agrega este campo
+    email: string | null; // Campo para email
+    password: string | null; // Campo para password
+    resetPasswordToken: string | null; // Añadir el campo resetPasswordToken
     setAgentId: (agentId: string | null) => void;
     setToken: (token: string | null) => void;
     setRefreshToken: (refreshToken: string | null) => void;
     setRefreshTokenExpiryTime: (expiryTime: string | null) => void;
-    setEmail: (email: string | null) => void; // Agrega el setter
-    setPassword: (password: string | null) => void; // Agrega el setter
+    setEmail: (email: string | null) => void; // Setter para email
+    setPassword: (password: string | null) => void; // Setter para password
+    setResetPasswordToken: (token: string | null) => void; // Setter para resetPasswordToken
     clearUser: () => void;
-  }
+}
 
 // Función para cargar los datos del usuario desde Local Storage
 const loadUserFromLocalStorage = () => {
@@ -45,13 +47,15 @@ const authStore = createStore<AuthState>((set) => ({
     refreshTokenExpiryTime: null,
     email: null, // Valor inicial para email
     password: null, // Valor inicial para password
+    resetPasswordToken: null, // Valor inicial para resetPasswordToken
     
     setAgentId: (agentId) => set({ agentId }),
     setToken: (token) => set({ token }),
     setRefreshToken: (refreshToken) => set({ refreshToken }),
     setRefreshTokenExpiryTime: (expiryTime) => set({ refreshTokenExpiryTime: expiryTime }),
-    setEmail: (email) => set({ email }), // Define el setter
-    setPassword: (password) => set({ password }), // Define el setter
+    setEmail: (email) => set({ email }), // Define el setter para email
+    setPassword: (password) => set({ password }), // Define el setter para password
+    setResetPasswordToken: (token) => set({ resetPasswordToken: token }), // Define el setter para resetPasswordToken
   
     clearUser: () => {
       localStorage.removeItem('user');
@@ -62,10 +66,10 @@ const authStore = createStore<AuthState>((set) => ({
         refreshTokenExpiryTime: null,
         email: null, // Resetea email
         password: null, // Resetea password
+        resetPasswordToken: null, // Resetea resetPasswordToken
       });
     },
   }));
-  
 
 // Hook personalizado para usar el store en React
 const useAuthStore = () => useStore(authStore);

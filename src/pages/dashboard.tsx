@@ -45,6 +45,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { ChartOptions } from 'chart.js';
 import Fade from '@mui/material/Fade';
 import Zoom from '@mui/material/Zoom';
+import AuthenticatorService from '@services/AuthenticatorService';
 import { FiShoppingCart, FiDollarSign, FiBarChart2, FiTrendingUp, FiFileText, FiCalendar, FiRefreshCcw, FiUser } from 'react-icons/fi';
 
 ChartJS.register(
@@ -156,10 +157,13 @@ const Dashboard = () => {
     setUserType(event.target.value);
   };
 
-  const handleFormSubmit = (event) => {
+  const handleFormSubmit = async (event) => {
     event.preventDefault();
     setOpen(false);
   };
+
+  
+  
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -1225,4 +1229,3 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
-             
