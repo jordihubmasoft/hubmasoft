@@ -13,6 +13,7 @@ import IconButton from "@mui/material/IconButton";
 import InputAdornment from "@mui/material/InputAdornment";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import Snackbar from "@mui/material/Snackbar";
+import AuthenticatorService from "@services/AuthenticatorService";
 import Alert, { AlertColor } from "@mui/material/Alert";
 import LinearProgress from "@mui/material/LinearProgress";
 import Popper from "@mui/material/Popper";
@@ -78,25 +79,15 @@ const PasswordReset = () => {
     event.preventDefault();
   
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API}/isValidToken?token=${pin}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      const isValid = await AuthenticatorService.validateToken(pin); // Usa el servicio
   
-      if (response.ok) {
-        const data = await response.json();
-        if (data === true) {
-          setIsPinValidated(true);  
-          setSnackbarSeverity("success");
-          setSnackbarMessage("¡PIN validado con éxito!");
-          setOpenSnackbar(true);
-        } else {
-          throw new Error('Token inválido');
-        }
+      if (isValid) {
+        setIsPinValidated(true);
+        setSnackbarSeverity("success");
+        setSnackbarMessage("¡PIN validado con éxito!");
+        setOpenSnackbar(true);
       } else {
-        throw new Error('Error en la validación del token');
+        throw new Error("Token inválido");
       }
     } catch (error) {
       setSnackbarSeverity("error");

@@ -4,6 +4,31 @@ import { UserRegister } from "../types/UserRegister";
 
 export default class AuthenticatorService {
 
+  // Método para validar el token (PIN)
+  static async validateToken(pin: string): Promise<boolean> {
+    try {
+      const url = `${process.env.NEXT_PUBLIC_API}/isValidToken?token=${pin}`;
+
+      const response = await fetch(url, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        return data === true; // Si es verdadero, significa que el token es válido
+      } else {
+        throw new Error("Error en la validación del token");
+      }
+    } catch (err) {
+      console.error("Error en la solicitud de validación del token:", err);
+      throw new Error("Error al validar el token");
+    }
+  }
+
+
   // Método para iniciar sesión
   static async userLogin(
     user: UserLogin
