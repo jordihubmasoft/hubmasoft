@@ -163,6 +163,10 @@ const Login = () => {
       setSnackbarSeverity("success");
       setSnackbarMessage("¡Correo de recuperación enviado! Revisa tu bandeja de entrada.");
       setOpenSnackbar(true);
+      // Redirect to recoverAccount after successful email sending
+      setTimeout(() => {
+        router.push("/recoverAccount");
+      }, 2000); // Adding a small delay for user to read the message
     } catch (error) {
       setSnackbarSeverity("error");
       setSnackbarMessage(resetError || "Ocurrió un error al enviar el correo.");
