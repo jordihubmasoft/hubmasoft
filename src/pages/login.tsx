@@ -24,7 +24,7 @@ import Alert, { AlertColor } from "@mui/material/Alert";
 import Popper from "@mui/material/Popper";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import RadioButtonUncheckedIcon from "@mui/icons-material/RadioButtonUnchecked";
-import { useLogin } from "hooks/useAuthentication";
+import { useLogin, useSendResetPasswordEmail } from "hooks/useAuthentication"; // Hook añadido para recuperación de contraseña
 import { useRegister } from "hooks/userRegister";
 import LinearProgress from "@mui/material/LinearProgress";
 import Grow from "@mui/material/Grow";
@@ -58,6 +58,7 @@ const theme = createTheme({
 
 const Login = () => {
   const { login, data: loginData, error: loginError, loading: loginLoading } = useLogin();
+  const { sendResetPasswordEmail, loading: resetLoading, error: resetError } = useSendResetPasswordEmail(); // Hook para enviar correo de reset
   const { register, data: registerData, error: registerError, loading: registerLoading } = useRegister();
   const router = useRouter();
 
@@ -65,6 +66,7 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isRegistering, setIsRegistering] = useState(false);
+  const [isResettingPassword, setIsResettingPassword] = useState(false); // Estado para recuperar contraseña
   const [registerForm, setRegisterForm] = useState({
     nombre: "",
     apellidos: "",
@@ -72,7 +74,7 @@ const Login = () => {
     password: "",
     confirmPassword: ""
   });
-  
+
   const [showPassword, setShowPassword] = useState(false);
   const [emailError, setEmailError] = useState(false);  
   const [passwordError, setPasswordError] = useState(false);
@@ -125,6 +127,7 @@ const Login = () => {
     }
   }, [loginData, loginError, router]);
 
+  // Efecto para validar contraseña en el registro
   useEffect(() => {
     const password = registerForm.password;
     setHasMinLength(password.length >= 8);
@@ -145,13 +148,42 @@ const Login = () => {
     setIsEmailValid(validateEmail(registerForm.email));
   }, [registerForm.email]);
 
+  // Función para enviar correo de recuperación de contraseña
+  const handlePasswordResetRequest = async () => {
+    if (!validateEmail(email)) {
+      setEmailError(true);
+      setSnackbarSeverity("error");
+      setSnackbarMessage("Por favor, introduce un correo electrónico válido.");
+      setOpenSnackbar(true);
+      return;
+    }
+
+    try {
+      await sendResetPasswordEmail(email);
+      setSnackbarSeverity("success");
+      setSnackbarMessage("¡Correo de recuperación enviado! Revisa tu bandeja de entrada.");
+      setOpenSnackbar(true);
+      // Redirect to recoverAccount after successful email sending
+      setTimeout(() => {
+        router.push("/recoverAccount");
+      }, 2000); // Adding a small delay for user to read the message
+    } catch (error) {
+      setSnackbarSeverity("error");
+      setSnackbarMessage(resetError || "Ocurrió un error al enviar el correo.");
+      setOpenSnackbar(true);
+    }
+  };
+
+  // Manejo de envío del formulario
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setEmailError(false);
     setPasswordError(false);
     setErrorMessage("");
 
-    if (isRegistering) {
+    if (isResettingPassword) {
+      await handlePasswordResetRequest();
+    } else if (isRegistering) {
       await handleRegisterSubmit();
     } else {
       await handleLoginSubmit();
@@ -210,7 +242,7 @@ const Login = () => {
     setRegisterForm({ ...registerForm, [name]: value });
   };
 
-  const handlePasswordFocus = (event) => {
+  const handlePasswordFocus = (event: React.FocusEvent<HTMLInputElement>) => {
     setAnchorEl(event.currentTarget);
   };
 
@@ -234,7 +266,7 @@ const Login = () => {
             boxShadow: "0 3px 10px rgba(0,0,0,0.1)",
             transition: "all 0.3s ease",
             width: isRegistering ? "450px" : "400px",
-            position: 'relative',
+            position: "relative",
           }}
         >
           <Box sx={{ mb: -3 }}>
@@ -244,7 +276,11 @@ const Login = () => {
             <LockOutlinedIcon />
           </Avatar>
           <Typography component="h1" variant="h5">
-            {isRegistering ? "Regístrate" : "Iniciar Sesión"}
+            {isRegistering
+              ? "Regístrate"
+              : isResettingPassword
+              ? "Recuperar Contraseña"
+              : "Iniciar Sesión"}
           </Typography>
           {errorMessage && (
             <Typography color="error" variant="body2" sx={{ mt: 2 }}>
@@ -252,214 +288,312 @@ const Login = () => {
             </Typography>
           )}
           <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
-            {isRegistering && (
+            {/* Mostrar el campo de correo si está en recuperación de contraseña */}
+            {isResettingPassword ? (
               <>
                 <TextField
                   margin="normal"
                   required
                   fullWidth
-                  id="nombre"
-                  label="Nombre"
-                  name="nombre"
-                  autoComplete="name"
+                  id="email"
+                  label="Correo Electrónico"
+                  name="email"
+                  autoComplete="email"
                   autoFocus
-                  value={registerForm.nombre}
-                  onChange={handleRegisterChange}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  error={emailError}
+                  helperText={emailError && "Correo electrónico incorrecto"}
                 />
-                <TextField
-                  margin="normal"
-                  required
+                <Button
+                  type="submit"
                   fullWidth
-                  id="apellidos"
-                  label="Apellidos"
-                  name="apellidos"
-                  autoComplete="surname"
-                  value={registerForm.apellidos}
-                  onChange={handleRegisterChange}
-                />
-              </>
-            )}
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              id="email"
-              label="Correo Electrónico"
-              name="email"
-              autoComplete="email"
-              autoFocus={!isRegistering}
-              value={isRegistering ? registerForm.email : email}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                isRegistering
-                  ? setRegisterForm({ ...registerForm, email: e.target.value })
-                  : setEmail(e.target.value);
-                setEmailError(!validateEmail(e.target.value));
-              }}
-              error={emailError}
-              helperText={emailError && "Correo electrónico incorrecto"}
-            />
-
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              name="password"
-              label="Contraseña"
-              type={showPassword ? "text" : "password"}
-              id="password"
-              autoComplete={isRegistering ? "new-password" : "current-password"}
-              value={isRegistering ? registerForm.password : password}
-              onChange={(e) => {
-                const value = e.target.value;
-                if (isRegistering) {
-                  setRegisterForm({ ...registerForm, password: value });
-                } else {
-                  setPassword(value);
-                }
-              }}
-              error={passwordError}
-              helperText={passwordError && "Contraseña incorrecta"}
-              onFocus={handlePasswordFocus}
-              onBlur={handlePasswordBlur}
-              sx={{
-                "& .MuiOutlinedInput-root": {
-                  "&.Mui-focused fieldset": {
-                    borderColor: passwordError ? "red" : "primary.main",
-                  },
-                },
-              }}
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton
-                      aria-label="toggle password visibility"
-                      onClick={() => setShowPassword(!showPassword)}
-                      edge="end"
-                    >
-                      {showPassword ? <VisibilityOff /> : <Visibility />}
-                    </IconButton>
-                  </InputAdornment>
-                ),
-              }}
-            />
-
-            {/* Tooltip de validación de contraseñas */}
-            <Popper
-              open={Boolean(anchorEl) && isRegistering}
-              anchorEl={anchorEl}
-              placement="right-start"
-              modifiers={[
-                { name: 'offset', options: { offset: [0, 100] } },
-              ]}
-              style={{
-                position: 'fixed',
-                top: '50%',
-                right: '20%',
-                transform: 'translateY(-50%)',
-                zIndex: 1000
-              }}
-            >
-              <Grow in={Boolean(anchorEl) && isRegistering} timeout={300}>
-                <div>
-                  <Box
-                    sx={{
-                      width: '280px',
-                      padding: '16px',
-                      backgroundColor: 'white',
-                      border: '1px solid #d1d1d1',
-                      borderRadius: '8px',
-                      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-                      transition: 'transform 0.3s ease',
-                      '&:hover': {
-                        transform: 'scale(1.05)',
-                      },
-                    }}
-                  >
-                    <LinearProgress
-                      variant="determinate"
-                      value={
-                        (Number(hasMinLength) +
-                        Number(hasUpperCase) +
-                        Number(hasLowerCase) +
-                        Number(hasNumber) +
-                        Number(hasSpecialChar)) / 5 * 100
-                      }
-                      sx={{
-                        mb: 2,
-                        backgroundColor: allRequirementsMet ? 'success.main' : 'error.main',
-                      }}
-                    />
-                    <div className="space-y-2">
-                      <Typography variant="body2" className={`flex items-center text-sm ${hasMinLength ? 'text-green-600' : 'text-red-600'}`}>
-                        {hasMinLength ? <CheckCircleOutlineIcon fontSize="small" className="mr-2" /> : <RadioButtonUncheckedIcon fontSize="small" className="mr-2" />} Mínimo 8 caracteres
-                      </Typography>
-                      <Typography variant="body2" className={`flex items-center text-sm ${hasUpperCase ? 'text-green-600' : 'text-red-600'}`}>
-                        {hasUpperCase ? <CheckCircleOutlineIcon fontSize="small" className="mr-2" /> : <RadioButtonUncheckedIcon fontSize="small" className="mr-2" />} Al menos una letra mayúscula
-                      </Typography>
-                      <Typography variant="body2" className={`flex items-center text-sm ${hasLowerCase ? 'text-green-600' : 'text-red-600'}`}>
-                        {hasLowerCase ? <CheckCircleOutlineIcon fontSize="small" className="mr-2" /> : <RadioButtonUncheckedIcon fontSize="small" className="mr-2" />} Al menos una letra minúscula
-                      </Typography>
-                      <Typography variant="body2" className={`flex items-center text-sm ${hasNumber ? 'text-green-600' : 'text-red-600'}`}>
-                        {hasNumber ? <CheckCircleOutlineIcon fontSize="small" className="mr-2" /> : <RadioButtonUncheckedIcon fontSize="small" className="mr-2" />} Al menos un número
-                      </Typography>
-                      <Typography variant="body2" className={`flex items-center text-sm ${hasSpecialChar ? 'text-green-600' : 'text-red-600'}`}>
-                        {hasSpecialChar ? <CheckCircleOutlineIcon fontSize="small" className="mr-2" /> : <RadioButtonUncheckedIcon fontSize="small" className="mr-2" />} Al menos un carácter especial
-                      </Typography>
-                    </div>
-                  </Box>
-                </div>
-              </Grow>
-            </Popper>
-
-            {isRegistering && (
-              <>
-                <TextField
-                  margin="normal"
-                  required
-                  fullWidth
-                  name="confirmPassword"
-                  label="Confirmar Contraseña"
-                  type={showPassword ? "text" : "password"}
-                  id="confirmPassword"
-                  autoComplete="new-password"
-                  value={registerForm.confirmPassword}
-                  onChange={handleRegisterChange}
-                  error={!doPasswordsMatch}
-                  helperText={!doPasswordsMatch && "Las contraseñas no coinciden"}
-                />
-                <FormControlLabel
-                  control={<Checkbox value="news" color="primary" />}
-                  label="Quiero recibir novedades y ofertas"
-                />
-              </>
-            )}
-            <Button
-              type="submit"
-              fullWidth
-              variant="contained"
-              sx={{ mt: 3, mb: 2 }}
-              disabled={registerLoading || (isRegistering && (!allRequirementsMet || !isEmailValid || !doPasswordsMatch))}
-            >
-              {isRegistering ? (registerLoading ? <CircularProgress size={24} /> : "Regístrate") : (loginLoading ? <CircularProgress size={24} /> : "Iniciar Sesión")}
-            </Button>
-            <Grid container>
-              <Grid item xs>
-                {!isRegistering && (
-                  <Link href="#" variant="body2">
-                    ¿Has olvidado la contraseña?
-                  </Link>
-                )}
-              </Grid>
-              <Grid item>
-                <Link
-                  href="#"
-                  variant="body2"
-                  onClick={() => setIsRegistering(!isRegistering)}
+                  variant="contained"
+                  sx={{ mt: 3, mb: 2 }}
+                  disabled={resetLoading}
                 >
-                  {isRegistering ? "¿Ya tienes cuenta? Inicia sesión." : "¿No tienes cuenta? Regístrate."}
-                </Link>
-              </Grid>
-            </Grid>
+                  {resetLoading ? <CircularProgress size={24} /> : "Enviar Correo de Recuperación"}
+                </Button>
+              </>
+            ) : (
+              <>
+                {/* Si está en registro o inicio de sesión */}
+                {isRegistering && (
+                  <>
+                    <TextField
+                      margin="normal"
+                      required
+                      fullWidth
+                      id="nombre"
+                      label="Nombre"
+                      name="nombre"
+                      autoComplete="name"
+                      autoFocus
+                      value={registerForm.nombre}
+                      onChange={handleRegisterChange}
+                    />
+                    <TextField
+                      margin="normal"
+                      required
+                      fullWidth
+                      id="apellidos"
+                      label="Apellidos"
+                      name="apellidos"
+                      autoComplete="surname"
+                      value={registerForm.apellidos}
+                      onChange={handleRegisterChange}
+                    />
+                  </>
+                )}
+                <TextField
+                  margin="normal"
+                  required
+                  fullWidth
+                  id="email"
+                  label="Correo Electrónico"
+                  name="email"
+                  autoComplete="email"
+                  autoFocus={!isRegistering}
+                  value={isRegistering ? registerForm.email : email}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                    if (isRegistering) {
+                      setRegisterForm({ ...registerForm, email: e.target.value });
+                    } else {
+                      setEmail(e.target.value);
+                    }
+                    setEmailError(!validateEmail(e.target.value));
+                  }}
+                  error={emailError}
+                  helperText={emailError && "Correo electrónico incorrecto"}
+                />
+                <TextField
+                  margin="normal"
+                  required
+                  fullWidth
+                  name="password"
+                  label="Contraseña"
+                  type={showPassword ? "text" : "password"}
+                  id="password"
+                  autoComplete={isRegistering ? "new-password" : "current-password"}
+                  value={isRegistering ? registerForm.password : password}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (isRegistering) {
+                      setRegisterForm({ ...registerForm, password: value });
+                    } else {
+                      setPassword(value);
+                    }
+                  }}
+                  error={passwordError}
+                  helperText={passwordError && "Contraseña incorrecta"}
+                  onFocus={handlePasswordFocus}
+                  onBlur={handlePasswordBlur}
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      "&.Mui-focused fieldset": {
+                        borderColor: passwordError ? "red" : "primary.main",
+                      },
+                    },
+                  }}
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          aria-label="toggle password visibility"
+                          onClick={() => setShowPassword(!showPassword)}
+                          edge="end"
+                        >
+                          {showPassword ? <VisibilityOff /> : <Visibility />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+
+                {/* Tooltip de validación de contraseñas */}
+                <Popper
+                  open={Boolean(anchorEl) && isRegistering}
+                  anchorEl={anchorEl}
+                  placement="right-start"
+                  modifiers={[
+                    { name: "offset", options: { offset: [0, 100] } },
+                  ]}
+                  style={{
+                    position: "fixed",
+                    top: "50%",
+                    right: "20%",
+                    transform: "translateY(-50%)",
+                    zIndex: 1000,
+                  }}
+                >
+                  <Grow in={Boolean(anchorEl) && isRegistering} timeout={300}>
+                    <div>
+                      <Box
+                        sx={{
+                          width: "280px",
+                          padding: "16px",
+                          backgroundColor: "white",
+                          border: "1px solid #d1d1d1",
+                          borderRadius: "8px",
+                          boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+                          transition: "transform 0.3s ease",
+                          "&:hover": {
+                            transform: "scale(1.05)",
+                          },
+                        }}
+                      >
+                        <LinearProgress
+                          variant="determinate"
+                          value={
+                            (Number(hasMinLength) +
+                              Number(hasUpperCase) +
+                              Number(hasLowerCase) +
+                              Number(hasNumber) +
+                              Number(hasSpecialChar)) /
+                            5 *
+                            100
+                          }
+                          sx={{
+                            mb: 2,
+                            backgroundColor: allRequirementsMet
+                              ? "success.main"
+                              : "error.main",
+                          }}
+                        />
+                        <div className="space-y-2">
+                          <Typography
+                            variant="body2"
+                            className={`flex items-center text-sm ${
+                              hasMinLength ? "text-green-600" : "text-red-600"
+                            }`}
+                          >
+                            {hasMinLength ? (
+                              <CheckCircleOutlineIcon fontSize="small" className="mr-2" />
+                            ) : (
+                              <RadioButtonUncheckedIcon fontSize="small" className="mr-2" />
+                            )}{" "}
+                            Mínimo 8 caracteres
+                          </Typography>
+                          <Typography
+                            variant="body2"
+                            className={`flex items-center text-sm ${
+                              hasUpperCase ? "text-green-600" : "text-red-600"
+                            }`}
+                          >
+                            {hasUpperCase ? (
+                              <CheckCircleOutlineIcon fontSize="small" className="mr-2" />
+                            ) : (
+                              <RadioButtonUncheckedIcon fontSize="small" className="mr-2" />
+                            )}{" "}
+                            Al menos una letra mayúscula
+                          </Typography>
+                          <Typography
+                            variant="body2"
+                            className={`flex items-center text-sm ${
+                              hasLowerCase ? "text-green-600" : "text-red-600"
+                            }`}
+                          >
+                            {hasLowerCase ? (
+                              <CheckCircleOutlineIcon fontSize="small" className="mr-2" />
+                            ) : (
+                              <RadioButtonUncheckedIcon fontSize="small" className="mr-2" />
+                            )}{" "}
+                            Al menos una letra minúscula
+                          </Typography>
+                          <Typography
+                            variant="body2"
+                            className={`flex items-center text-sm ${
+                              hasNumber ? "text-green-600" : "text-red-600"
+                            }`}
+                          >
+                            {hasNumber ? (
+                              <CheckCircleOutlineIcon fontSize="small" className="mr-2" />
+                            ) : (
+                              <RadioButtonUncheckedIcon fontSize="small" className="mr-2" />
+                            )}{" "}
+                            Al menos un número
+                          </Typography>
+                          <Typography
+                            variant="body2"
+                            className={`flex items-center text-sm ${
+                              hasSpecialChar ? "text-green-600" : "text-red-600"
+                            }`}
+                          >
+                            {hasSpecialChar ? (
+                              <CheckCircleOutlineIcon fontSize="small" className="mr-2" />
+                            ) : (
+                              <RadioButtonUncheckedIcon fontSize="small" className="mr-2" />
+                            )}{" "}
+                            Al menos un carácter especial
+                          </Typography>
+                        </div>
+                      </Box>
+                    </div>
+                  </Grow>
+                </Popper>
+
+                {isRegistering && (
+                  <>
+                    <TextField
+                      margin="normal"
+                      required
+                      fullWidth
+                      name="confirmPassword"
+                      label="Confirmar Contraseña"
+                      type={showPassword ? "text" : "password"}
+                      id="confirmPassword"
+                      autoComplete="new-password"
+                      value={registerForm.confirmPassword}
+                      onChange={handleRegisterChange}
+                      error={!doPasswordsMatch}
+                      helperText={!doPasswordsMatch && "Las contraseñas no coinciden"}
+                    />
+                    <FormControlLabel
+                      control={<Checkbox value="news" color="primary" />}
+                      label="Quiero recibir novedades y ofertas"
+                    />
+                  </>
+                )}
+                <Button
+                  type="submit"
+                  fullWidth
+                  variant="contained"
+                  sx={{ mt: 3, mb: 2 }}
+                  disabled={registerLoading || (isRegistering && (!allRequirementsMet || !isEmailValid || !doPasswordsMatch))}
+                >
+                  {isRegistering ? (registerLoading ? <CircularProgress size={24} /> : "Regístrate") : (loginLoading ? <CircularProgress size={24} /> : "Iniciar Sesión")}
+                </Button>
+                <Grid container>
+                  <Grid item xs>
+                    {!isRegistering && !isResettingPassword && (
+                      <Link href="#" variant="body2" onClick={() => setIsResettingPassword(true)}>
+                        ¿Has olvidado la contraseña?
+                      </Link>
+                    )}
+                  </Grid>
+                  <Grid item>
+                    {!isResettingPassword && (
+                      <Link
+                        href="#"
+                        variant="body2"
+                        onClick={() => setIsRegistering(!isRegistering)}
+                      >
+                        {isRegistering ? "¿Ya tienes cuenta? Inicia sesión." : "¿No tienes cuenta? Regístrate."}
+                      </Link>
+                    )}
+                    {isResettingPassword && (
+                      <Link
+                        href="#"
+                        variant="body2"
+                        onClick={() => setIsResettingPassword(false)}
+                      >
+                        Volver a inicio de sesión
+                      </Link>
+                    )}
+                  </Grid>
+                </Grid>
+              </>
+            )}
           </Box>
         </Box>
         <Snackbar
@@ -472,7 +606,7 @@ const Login = () => {
             {snackbarMessage}
           </Alert>
         </Snackbar>
-        <Box component="footer" sx={{ mt: 4, mb: 4, textAlign: 'center' }}>
+        <Box component="footer" sx={{ mt: 4, mb: 4, textAlign: "center" }}>
           © {new Date().getFullYear()} Hubmasoft. All rights reserved.
         </Box>
       </Container>

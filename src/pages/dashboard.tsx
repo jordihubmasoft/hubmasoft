@@ -35,6 +35,7 @@ import {
   Title,
   Tooltip,
   Legend,
+
   ChartDataset,
 } from "chart.js";
 import Header from "../componentes/Header";
@@ -172,10 +173,13 @@ const Dashboard = () => {
     setUserType(event.target.value);
   };
 
-  const handleFormSubmit = (event) => {
+  const handleFormSubmit = async (event) => {
     event.preventDefault();
     setOpen(false);
   };
+
+  
+  
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -1831,4 +1835,6 @@ const Dashboard = () => {
   );
 };
 
+
 export default Dashboard;
+

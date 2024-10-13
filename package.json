@@ -30,6 +30,7 @@
         "next": "latest",
         "notistack": "^3.0.1",
         "react": "latest",
+        "react-beautiful-dnd": "^13.1.1",
         "react-chartjs-2": "^5.2.0",
         "react-dom": "latest",
         "react-google-charts": "^4.0.1",
