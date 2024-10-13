@@ -1,22 +1,23 @@
 import { ReactNode, useEffect } from "react";
 import { useLogin } from "@hooks/useAuthentication";
 import { useRouter } from "next/router";
+import useAuthStore from "store/useAuthStore";
 
 interface UserCheckerProps {
   children: ReactNode;
 }
 
 export const UserChecker = ({ children }: UserCheckerProps) => {
-  const { data } = useLogin();
+  const { agentId } = useAuthStore();
   const router = useRouter();
 
   useEffect(() => {
-    if (!data) {
+    if (!agentId) {
       router.push("/login");
     }
-  }, [data, router]);
+  }, [agentId, router]);
 
-  if (!data) {
+  if (!agentId) {
     return null;
   }
 
