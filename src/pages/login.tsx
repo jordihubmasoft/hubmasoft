@@ -15,6 +15,7 @@ import Container from "@mui/material/Container";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import Image from "next/image";
 import Logo from "@public/img/Logo.svg";
+import ReCAPTCHA from "react-google-recaptcha";
 import CircularProgress from "@mui/material/CircularProgress";
 import IconButton from "@mui/material/IconButton";
 import InputAdornment from "@mui/material/InputAdornment";
@@ -55,6 +56,9 @@ const theme = createTheme({
     }
   }
 });
+const RECAPTCHA_SITE_KEY = "6Ld6b2MqAAAAAPFBm_ANWNqPLnDIjDSelNJJz99z";
+
+
 
 const Login = () => {
   const { login, data: loginData, error: loginError, loading: loginLoading } = useLogin();
@@ -64,6 +68,7 @@ const Login = () => {
 
   const { setAgentId, setToken, setRefreshToken, setRefreshTokenExpiryTime } = useAuthStore();
   const [email, setEmail] = useState("");
+  const [recaptchaValue, setRecaptchaValue] = useState(null);
   const [password, setPassword] = useState("");
   const [isRegistering, setIsRegistering] = useState(false);
   const [isResettingPassword, setIsResettingPassword] = useState(false); // Estado para recuperar contraseña
@@ -241,10 +246,16 @@ const Login = () => {
     }
     setRegisterForm({ ...registerForm, [name]: value });
   };
+  
 
   const handlePasswordFocus = (event: React.FocusEvent<HTMLInputElement>) => {
     setAnchorEl(event.currentTarget);
   };
+  
+  const handleRecaptchaChange = (value) => {
+    setRecaptchaValue(value);
+  };
+  
 
   const handlePasswordBlur = () => {
     setAnchorEl(null);
@@ -552,14 +563,21 @@ const Login = () => {
                       control={<Checkbox value="news" color="primary" />}
                       label="Quiero recibir novedades y ofertas"
                     />
+                    <ReCAPTCHA
+                      sitekey={RECAPTCHA_SITE_KEY}
+                      onChange={handleRecaptchaChange} // Actualiza el valor de reCAPTCHA
+                    />
                   </>
+                  
                 )}
+                
                 <Button
                   type="submit"
                   fullWidth
                   variant="contained"
                   sx={{ mt: 3, mb: 2 }}
-                  disabled={registerLoading || (isRegistering && (!allRequirementsMet || !isEmailValid || !doPasswordsMatch))}
+                  disabled={registerLoading || (isRegistering && (!allRequirementsMet || !isEmailValid || !doPasswordsMatch || !recaptchaValue))}
+
                 >
                   {isRegistering ? (registerLoading ? <CircularProgress size={24} /> : "Regístrate") : (loginLoading ? <CircularProgress size={24} /> : "Iniciar Sesión")}
                 </Button>
