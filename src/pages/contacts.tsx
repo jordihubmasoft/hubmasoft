@@ -1,5 +1,24 @@
 import { useState, useEffect } from 'react';
 import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+} from 'chart.js';
+
+// Registrar las escalas y componentes
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+);
+import {
   Box, Container, Typography, Button, TextField, IconButton, Paper, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, InputAdornment,
   MenuItem, FormControl, Select, InputLabel, TableCell, TableRow, TableBody, Table, TableContainer, TableHead, Checkbox, FormControlLabel, Menu, MenuItem as DropdownMenuItem, Grid, FormHelperText,
   List,
@@ -16,12 +35,44 @@ import EmailIcon from '@mui/icons-material/Email';
 import PhoneIcon from '@mui/icons-material/Phone';
 import LanguageIcon from '@mui/icons-material/Language';
 import MapIcon from '@mui/icons-material/Map';
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ImportExportIcon from '@mui/icons-material/ImportExport';
 import { useRouter } from 'next/router';
 import PortalIcon from '@mui/icons-material/Language';
 import ViewColumnIcon from '@mui/icons-material/ViewColumn';
+import { Bar } from 'react-chartjs-2';
+// Datos de ejemplo para los gráficos de ventas y compras
+const salesData = {
+  labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
+  datasets: [
+    {
+      label: 'Ventas (€)',
+      data: [2500, 1200, 1500, 2000, 3000, 2500, 2800, 3200, 1900, 2100, 2700, 2900],
+      backgroundColor: '#2666CF',
+    },
+  ],
+};
+
+const purchasesData = {
+  labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
+  datasets: [
+    {
+      label: 'Compras (€)',
+      data: [800, 600, 750, 900, 1000, 850, 950, 1100, 700, 650, 900, 1000],
+      backgroundColor: '#F44336',
+    },
+  ],
+};
+
+const drawerStyles = {
+  zIndex: 1300,
+  width: 500,
+  p: 2,
+  maxHeight: '100%',
+  overflowY: 'auto', // Hacer el Drawer scrolleable
+};
 
 const allColumns = [
   { id: 'nombre', label: 'Nombre' },
@@ -741,6 +792,10 @@ const Contacts = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredPeople, setFilteredPeople] = useState(allPeople);
+  const [filter, setFilter] = useState('todos'); // Estado para manejar el filtro seleccionado
+  const [isDrawerExpanded, setIsDrawerExpanded] = useState(false); // Nuevo estado para manejar la expansión del Drawer
+
+
 
   // Función para filtrar las personas al buscar
   const handleSearch = (event) => {
@@ -809,8 +864,20 @@ const Contacts = () => {
     setAnchorEl(null);
   };
 
-  const getClients = () => contacts.filter((contact) => contact.tipoContacto === 'Cliente');
-  const getProviders = () => contacts.filter((contact) => contact.tipoContacto === 'Proveedor');
+  const getFilteredContacts = () => {
+    return contacts.filter((contact) => {
+      const matchesSearchTerm = contact.nombre.toLowerCase().includes(searchTerm.toLowerCase()) || 
+        contact.tipoContacto.toLowerCase().includes(searchTerm.toLowerCase());
+  
+      if (filter === 'todos') return matchesSearchTerm;
+      if (filter === 'clientes') return matchesSearchTerm && contact.tipoContacto === 'Cliente';
+      if (filter === 'proveedores') return matchesSearchTerm && contact.tipoContacto === 'Proveedor';
+  
+      return false;
+    });
+  };
+  
+  
 
   const router = useRouter();
 
@@ -948,9 +1015,31 @@ const Contacts = () => {
                 ))}
               </Menu>
             </Box>
+            <Box sx={{ display: 'flex', justifyContent: 'flex-start', mb: 3 }}>
+              <Button
+                variant={filter === 'todos' ? 'contained' : 'outlined'}
+                onClick={() => setFilter('todos')}
+                sx={{ mr: 1 }}
+              >
+                TODOS
+              </Button>
+              <Button
+                variant={filter === 'clientes' ? 'contained' : 'outlined'}
+                onClick={() => setFilter('clientes')}
+                sx={{ mr: 1 }}
+              >
+                CLIENTES
+              </Button>
+              <Button
+                variant={filter === 'proveedores' ? 'contained' : 'outlined'}
+                onClick={() => setFilter('proveedores')}
+              >
+                PROVEEDORES
+              </Button>
+            </Box>
   
-            {/* Tabla de Clientes */}
-            <Typography variant="h4" sx={{ mb: 3, color: '#2666CF', fontWeight: '600' }}>Clientes</Typography>
+            {/* Tabla combinada de Contactos */}
+            <Typography variant="h4" sx={{ mb: 3, color: '#2666CF', fontWeight: '600' }}>Contactos</Typography>
             <TableContainer component={Paper} sx={{ borderRadius: 2, boxShadow: '0 3px 10px rgba(0, 0, 0, 0.1)' }}>
               <Table sx={{ minWidth: '100%' }}>
                 <TableHead sx={{ bgcolor: '#2666CF', '& th': { color: '#ffffff', fontWeight: '600' } }}>
@@ -962,15 +1051,28 @@ const Contacts = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {getClients().map((contact) => (
+                  {getFilteredContacts().map((contact) => (
                     <TableRow
                       key={contact.id}
                       sx={{ '&:hover': { bgcolor: '#F1F1F1', cursor: 'pointer' } }}
                       onClick={() => handleOpenDrawer(contact)}
                     >
                       {visibleColumns.map((column) => (
-                        <TableCell key={column}>{contact[column]}</TableCell>
-                      ))}
+                      <TableCell
+                        key={column}
+                        sx={{
+                          ...(column === 'tipoContacto' && {
+                            bgcolor: contact[column] === 'Cliente' ? '#d4edda' : '#fff3cd', // Verde suave para Cliente, amarillo suave para Proveedor
+                            color: contact[column] === 'Cliente' ? '#155724' : '#856404',  // Texto verde oscuro o marrón
+                            fontWeight: 'bold',
+                            borderRadius: '4px',  
+                          }),
+                        }}
+                      >
+                        {contact[column]}
+                      </TableCell>
+))}
+
                       <TableCell>
                         <IconButton onClick={(e) => { e.stopPropagation(); handleOpen(contact); }} sx={{ color: '#1A1A40' }}>
                           <EditIcon />
@@ -984,233 +1086,281 @@ const Contacts = () => {
                 </TableBody>
               </Table>
             </TableContainer>
-  
-            {/* Tabla de Proveedores */}
-            <Typography variant="h4" sx={{ mt: 5, mb: 3, color: '#2666CF', fontWeight: '600' }}>Proveedores</Typography>
-            <TableContainer component={Paper} sx={{ borderRadius: 2, boxShadow: '0 3px 10px rgba(0, 0, 0, 0.1)' }}>
-              <Table sx={{ minWidth: '100%' }}>
-                <TableHead sx={{ bgcolor: '#2666CF', '& th': { color: '#ffffff', fontWeight: '600' } }}>
-                  <TableRow>
-                    {allColumns.map((column) =>
-                      visibleColumns.includes(column.id) ? <TableCell key={column.id}>{column.label}</TableCell> : null
-                    )}
-                    <TableCell>Acciones</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {getProviders().map((contact) => (
-                    <TableRow
-                      key={contact.id}
-                      sx={{ '&:hover': { bgcolor: '#F1F1F1', cursor: 'pointer' } }}
-                      onClick={() => handleOpenDrawer(contact)}
-                    >
-                      {visibleColumns.map((column) => (
-                        <TableCell key={column}>{contact[column]}</TableCell>
-                      ))}
-                      <TableCell>
-                        <IconButton onClick={(e) => { e.stopPropagation(); handleOpen(contact); }} sx={{ color: '#1A1A40' }}>
-                          <EditIcon />
-                        </IconButton>
-                        <IconButton onClick={(e) => { e.stopPropagation(); setContacts(contacts.filter((c) => c.id !== contact.id)); }} sx={{ color: '#B00020' }}>
-                          <DeleteIcon />
-                        </IconButton>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
+
   
             <Drawer
-              anchor="right"
-              open={isDrawerOpen}
-              onClose={() => setIsDrawerOpen(false)}
-              sx={{ zIndex: 1300 }}
-            >
-              <Box sx={{ width: 500, p: 2 }}>
-                {/* Nombre y tipo de contacto */}
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                  <Box
-                    sx={{
-                      bgcolor: '#F44336',
-                      borderRadius: '50%',
-                      width: 40,
-                      height: 40,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: '#fff',
-                      mr: 2,
-                    }}
-                  >
-                    {selectedContact?.nombre?.[0]}
-                    {selectedContact?.nombre?.split(' ')[1]?.[0]} {/* Iniciales del contacto */}
-                  </Box>
-                  <Box>
-                    <Typography variant="h6" sx={{ margin: 0, fontWeight: 'bold' }}>
-                      {selectedContact?.nombre}
-                    </Typography>
-                    <Typography variant="body2" sx={{ color: '#8A8A8A' }}>
-                      {selectedContact?.tipoContacto}
-                    </Typography>
-                  </Box>
-                </Box>
+  anchor="right"
+  open={isDrawerOpen}
+  onClose={() => setIsDrawerOpen(false)}
+  sx={{
+    zIndex: 1300,
+    width: isDrawerExpanded ? '900px' : '500px',  // Aumentamos el ancho a 900px al expandirse
+    transition: 'width 0.3s ease',
+    marginTop: '64px',  // Para asegurarse de que el Drawer no se superponga con el Header
+    height: 'calc(100% - 64px)',  // Asegurarse de que no ocupe espacio del Header
+  }}
+  PaperProps={{
+    style: {
+      width: isDrawerExpanded ? '900px' : '500px',  // Control dinámico del tamaño
+      transition: 'width 0.3s ease',
+    },
+  }}
+>
+  <Box sx={{ p: 2, overflowY: 'auto', height: '100%' }}>
+    {/* Nombre, tipo de contacto y botón "Más" */}
+    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+      <Box
+        sx={{
+          bgcolor: '#F44336',
+          borderRadius: '50%',
+          width: 40,
+          height: 40,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: '#fff',
+          mr: 2,
+        }}
+      >
+        {selectedContact?.nombre?.[0]}
+        {selectedContact?.nombre?.split(' ')[1]?.[0]} {/* Iniciales del contacto */}
+      </Box>
+      <Box sx={{ flexGrow: 1 }}>
+        <Typography variant="h6" sx={{ margin: 0, fontWeight: 'bold' }}>
+          {selectedContact?.nombre}
+        </Typography>
+        <Typography variant="body2" sx={{ color: '#8A8A8A' }}>
+          {selectedContact?.tipoContacto}
+        </Typography>
+      </Box>
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', p: 2 }}>
+        <Button
+          startIcon={<ArrowForwardIcon />}
+          onClick={() => setIsDrawerExpanded(!isDrawerExpanded)} // Alterna el estado del Drawer
+          sx={{
+            textTransform: 'none',
+            bgcolor: '#2666CF',
+            color: '#fff',
+            borderRadius: '50px',
+            p: 1,
+          }}
+        >
+          {isDrawerExpanded ? 'Menos' : 'Más'} {/* Cambia el texto dinámicamente */}
+        </Button>
+      </Box>
+    </Box>
 
-                {/* Opciones de contacto */}
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-                  <IconButton>
-                    <EmailIcon />
-                  </IconButton>
-                  <IconButton>
-                    <PhoneIcon />
-                  </IconButton>
-                  <IconButton>
-                    <LanguageIcon />
-                  </IconButton>
-                  <IconButton>
-                    <MapIcon />
-                  </IconButton>
-                  <IconButton>
-                    <MoreVertIcon />
-                  </IconButton>
-                </Box>
+    {/* Opciones de contacto */}
+    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
+      <IconButton>
+        <EmailIcon />
+      </IconButton>
+      <IconButton>
+        <PhoneIcon />
+      </IconButton>
+      <IconButton>
+        <LanguageIcon />
+      </IconButton>
+      <IconButton>
+        <MapIcon />
+      </IconButton>
+      <IconButton>
+        <MoreVertIcon />
+      </IconButton>
+    </Box>
 
-                {/* Sección para crear nuevos elementos */}
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-                  <Button variant="outlined" sx={{ textTransform: 'none' }}>
-                    Nota
-                  </Button>
-                  <Button variant="outlined" sx={{ textTransform: 'none' }}>
-                    Presupuesto
-                  </Button>
-                  <Button variant="outlined" sx={{ textTransform: 'none' }}>
-                    Factura
-                  </Button>
-                  <Button variant="outlined" sx={{ textTransform: 'none' }} onClick={handlePortalClick}>
-                    Portal Cliente
-                  </Button>
-                </Box>
+    {/* Botones de creación rápida */}
+    <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
+      <Button variant="outlined" sx={{ textTransform: 'none' }}>Nuevo Presupuesto</Button>
+      <Button variant="outlined" sx={{ textTransform: 'none' }}>Nuevo Pedido</Button>
+      <Button variant="outlined" sx={{ textTransform: 'none' }}>Nuevo Albarán</Button>
+      <Button variant="outlined" sx={{ textTransform: 'none' }}>Nueva Factura</Button>
+      <Button variant="outlined" sx={{ textTransform: 'none' }}>Añadir Nota</Button>
+    </Box>
 
-                {/* Botón Añadir contraseña */}
-                <Button variant="outlined" sx={{ textTransform: 'none', mb: 3 }} onClick={() => setIsPasswordDialogOpen(true)}>
-                  Añadir Contraseña
-                </Button>
+    {/* Sección para crear nuevos elementos */}
+    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
+      <Button variant="outlined" sx={{ textTransform: 'none' }}>
+        Nota
+      </Button>
+      <Button variant="outlined" sx={{ textTransform: 'none' }}>
+        Presupuesto
+      </Button>
+      <Button variant="outlined" sx={{ textTransform: 'none' }}>
+        Factura
+      </Button>
+      <Button variant="outlined" sx={{ textTransform: 'none' }} onClick={handlePortalClick}>
+        Portal Cliente
+      </Button>
+    </Box>
 
-                {/* Sección de relaciones */}
-                <Typography variant="body1" sx={{ fontWeight: 'bold', mb: 2 }}>
-                  Relaciones
-                </Typography>
-                <Button
-                  variant="outlined"
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'flex-start',
-                    textTransform: 'none',
-                    width: '100%',
-                    mb: 3,
-                  }}
-                  startIcon={<AddIcon />}
-                  onClick={handleOpenDialog} // Abrir el diálogo al hacer clic
-                >
-                  Relacionar persona
-                </Button>
+    {/* Botón Añadir contraseña */}
+    <Button variant="outlined" sx={{ textTransform: 'none', mb: 3 }} onClick={() => setIsPasswordDialogOpen(true)}>
+      Añadir Contraseña
+    </Button>
 
-                {/* Ventas */}
-                <Box sx={{ mb: 2 }}>
-                  <Typography variant="body1" sx={{ fontWeight: 'bold', mb: 1 }}>
-                    Ventas
-                  </Typography>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                    <Box>
-                      <Typography variant="body2" sx={{ color: '#8A8A8A' }}>
-                        0 Facturas
-                      </Typography>
-                    </Box>
-                    <Box>
-                      <Typography variant="body2" sx={{ color: '#8A8A8A' }}>
-                        0.00€
-                      </Typography>
-                    </Box>
-                    <Box>
-                      <Typography variant="body2" sx={{ color: '#8A8A8A' }}>
-                        0 días
-                      </Typography>
-                    </Box>
-                    <Box>
-                      <Typography variant="body2" sx={{ color: '#8A8A8A' }}>
-                        Pend. cobro: 0.00€
-                      </Typography>
-                    </Box>
-                  </Box>
-                </Box>
+    {/* Sección de relaciones */}
+    <Typography variant="body1" sx={{ fontWeight: 'bold', mb: 2 }}>
+      Relaciones
+    </Typography>
+    <Button
+      variant="outlined"
+      sx={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'flex-start',
+        textTransform: 'none',
+        width: '100%',
+        mb: 3,
+      }}
+      startIcon={<AddIcon />}
+      onClick={handleOpenDialog} // Abrir el diálogo al hacer clic
+    >
+      Relacionar persona
+    </Button>
 
-                {/* Compras */}
-                <Box sx={{ mb: 2 }}>
-                  <Typography variant="body1" sx={{ fontWeight: 'bold', mb: 1 }}>
-                    Compras
-                  </Typography>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                    <Box>
-                      <Typography variant="body2" sx={{ color: '#8A8A8A' }}>
-                        0 Facturas
-                      </Typography>
-                    </Box>
-                    <Box>
-                      <Typography variant="body2" sx={{ color: '#8A8A8A' }}>
-                        0.00€
-                      </Typography>
-                    </Box>
-                    <Box>
-                      <Typography variant="body2" sx={{ color: '#8A8A8A' }}>
-                        0 días
-                      </Typography>
-                    </Box>
-                    <Box>
-                      <Typography variant="body2" sx={{ color: '#8A8A8A' }}>
-                        Pend. pago: 0.00€
-                      </Typography>
-                    </Box>
-                  </Box>
-                </Box>
-              </Box>
+    {/* Gráfico de Ventas */}
+    <Box sx={{ mb: 2 }}>
+      <Typography variant="body1" sx={{ fontWeight: 'bold', mb: 1 }}>
+        Ventas
+      </Typography>
+      <Bar
+        data={salesData}
+        options={{
+          responsive: true,
+          plugins: {
+            legend: {
+              display: false,
+            },
+          },
+        }}
+      />
+    </Box>
 
-              {/* Dialogo para Añadir Contraseña */}
-              <Dialog open={isPasswordDialogOpen} onClose={() => setIsPasswordDialogOpen(false)}>
-                <DialogTitle>Añadir Contraseña</DialogTitle>
-                <DialogContent>
-                  <FormControlLabel
-                    control={<Checkbox checked={isPasswordEnabled} onChange={(e) => setIsPasswordEnabled(e.target.checked)} />}
-                    label="Activar contraseña para este cliente"
-                  />
-                  {isPasswordEnabled && (
-                    <TextField
-                      label="Contraseña"
-                      type="password"
-                      fullWidth
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      margin="normal"
-                      variant="outlined"
-                    />
-                  )}
-                </DialogContent>
-                <DialogActions>
-                  <Button onClick={() => setIsPasswordDialogOpen(false)} color="primary">
-                    Cancelar
-                  </Button>
-                  <Button
-                    onClick={() => {
-                      // Aquí puedes manejar la lógica de guardar la contraseña
-                      setIsPasswordDialogOpen(false);
-                    }}
-                    color="primary"
-                  >
-                    Guardar
-                  </Button>
-                </DialogActions>
-              </Dialog>
-            </Drawer>
+    {/* Gráfico de Compras */}
+    <Box sx={{ mb: 2 }}>
+      <Typography variant="body1" sx={{ fontWeight: 'bold', mb: 1 }}>
+        Compras
+      </Typography>
+      <Bar
+        data={purchasesData}
+        options={{
+          responsive: true,
+          plugins: {
+            legend: {
+              display: false,
+            },
+          },
+        }}
+      />
+    </Box>
+
+    {/* Mostrar información extra cuando el Drawer esté expandido */}
+    {isDrawerExpanded && (
+      <Box sx={{ mt: 3, borderTop: '1px solid #e0e0e0', pt: 3 }}>
+        <Typography variant="h5" sx={{ fontWeight: 'bold', mb: 2, color: '#2666CF' }}>
+          Información Adicional
+        </Typography>
+
+        <Grid container spacing={2}>
+          <Grid item xs={6}>
+            <Typography variant="body2" sx={{ color: '#888', fontWeight: 'bold', display: 'flex', alignItems: 'center' }}>
+              <PhoneIcon sx={{ mr: 1, color: '#888' }} /> Teléfono:
+            </Typography>
+            <Typography variant="body1" sx={{ fontWeight: '500', color: '#1A1A40', mb: 2 }}>
+              {selectedContact?.telefono}
+            </Typography>
+          </Grid>
+
+          <Grid item xs={6}>
+            <Typography variant="body2" sx={{ color: '#888', fontWeight: 'bold', display: 'flex', alignItems: 'center' }}>
+              <EmailIcon sx={{ mr: 1, color: '#888' }} /> Email:
+            </Typography>
+            <Typography variant="body1" sx={{ fontWeight: '500', color: '#1A1A40', mb: 2 }}>
+              {selectedContact?.email}
+            </Typography>
+          </Grid>
+
+          <Grid item xs={6}>
+            <Typography variant="body2" sx={{ color: '#888', fontWeight: 'bold', display: 'flex', alignItems: 'center' }}>
+              <MapIcon sx={{ mr: 1, color: '#888' }} /> Dirección:
+            </Typography>
+            <Typography variant="body1" sx={{ fontWeight: '500', color: '#1A1A40', mb: 2 }}>
+              {selectedContact?.direccion}
+            </Typography>
+          </Grid>
+
+          <Grid item xs={6}>
+            <Typography variant="body2" sx={{ color: '#888', fontWeight: 'bold', display: 'flex', alignItems: 'center' }}>
+              <MapIcon sx={{ mr: 1, color: '#888' }} /> Población:
+            </Typography>
+            <Typography variant="body1" sx={{ fontWeight: '500', color: '#1A1A40', mb: 2 }}>
+              {selectedContact?.poblacion}
+            </Typography>
+          </Grid>
+
+          <Grid item xs={6}>
+            <Typography variant="body2" sx={{ color: '#888', fontWeight: 'bold', display: 'flex', alignItems: 'center' }}>
+              <LanguageIcon sx={{ mr: 1, color: '#888' }} /> Código Postal:
+            </Typography>
+            <Typography variant="body1" sx={{ fontWeight: '500', color: '#1A1A40', mb: 2 }}>
+              {selectedContact?.codigoPostal}
+            </Typography>
+          </Grid>
+
+          <Grid item xs={12}>
+            <Typography variant="body2" sx={{ color: '#888', fontWeight: 'bold', display: 'flex', alignItems: 'center' }}>
+              <LanguageIcon sx={{ mr: 1, color: '#888' }} /> Información Adicional:
+            </Typography>
+            <Typography variant="body1" sx={{ fontWeight: '500', color: '#1A1A40' }}>
+              {selectedContact?.informacionAdicional}
+            </Typography>
+          </Grid>
+        </Grid>
+      </Box>
+    )}
+  </Box>
+
+  {/* Dialogo para Añadir Contraseña */}
+  <Dialog open={isPasswordDialogOpen} onClose={() => setIsPasswordDialogOpen(false)}>
+    <DialogTitle>Añadir Contraseña</DialogTitle>
+    <DialogContent>
+      <FormControlLabel
+        control={<Checkbox checked={isPasswordEnabled} onChange={(e) => setIsPasswordEnabled(e.target.checked)} />}
+        label="Activar contraseña para este cliente"
+      />
+      {isPasswordEnabled && (
+        <TextField
+          label="Contraseña"
+          type="password"
+          fullWidth
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          margin="normal"
+          variant="outlined"
+        />
+      )}
+    </DialogContent>
+    <DialogActions>
+      <Button onClick={() => setIsPasswordDialogOpen(false)} color="primary">
+        Cancelar
+      </Button>
+      <Button
+        onClick={() => {
+          // Lógica para guardar la contraseña
+          setIsPasswordDialogOpen(false);
+        }}
+        color="primary"
+      >
+        Guardar
+      </Button>
+    </DialogActions>
+  </Dialog>
+</Drawer>
+
+
+
+
 
 
 

@@ -46,6 +46,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import { ChartOptions } from "chart.js";
 import Fade from "@mui/material/Fade";
 import Zoom from "@mui/material/Zoom";
+import useAuthStore from '../store/useAuthStore';
 import {
   FiShoppingCart,
   FiDollarSign,
@@ -57,6 +58,7 @@ import {
   FiUser,
 } from "react-icons/fi";
 import { UserChecker } from "componentes/UserChecker";
+import ContactService from "../services/ContactService";
 
 ChartJS.register(
   CategoryScale,
@@ -93,6 +95,7 @@ const Dashboard = () => {
   const [amount, setAmount] = useState("€0,00");
   const { t } = useTranslation();
   const [chartData, setChartData] = useState(initialChartData);
+  const { agentId, token } = useAuthStore();
 
   // Estado para controlar la visibilidad de todos los widgets
   const [widgets, setWidgets] = useState({
@@ -175,10 +178,38 @@ const Dashboard = () => {
 
   const handleFormSubmit = async (event) => {
     event.preventDefault();
-    setOpen(false);
-  };
-
   
+    const formValidationErrors = validateForm();
+    if (Object.keys(formValidationErrors).length > 0) {
+      setFormErrors(formValidationErrors); // Si hay errores, se establecen en el estado
+      return;
+    }
+  
+    
+  
+    if (!agentId) {
+      console.error('UserId no disponible. El usuario no ha iniciado sesión correctamente.');
+      return;
+    }
+  
+    const contactData = {
+      contactType: 1, // Tipo de contacto
+      name: formData.name,
+      address: formData.address,
+      country: formData.country,
+      city: formData.city,
+      postalCode: formData.postalCode,
+      email: formData.email,
+      phone: formData.phone,
+    };
+  
+    try {
+      await ContactService.createContact(contactData, token, agentId); // Pasa el token y el agentId como argumentos
+      setOpen(false); // Cierra el modal o muestra un mensaje de éxito
+    } catch (error) {
+      console.error('Error creando el contacto:', error);
+    }
+  };
   
 
   const toggleMenu = () => {
@@ -242,6 +273,60 @@ const Dashboard = () => {
       },
     },
   };
+
+  // Define the interface for formErrors
+interface FormErrors {
+  name?: string;
+  email?: string;
+  country?: string;
+  city?: string;
+  phone?: string;
+  [key: string]: string | undefined;
+}
+
+// Estado del formulario para gestionar los datos
+const [formData, setFormData] = useState({
+  name: "",
+  email: "",
+  country: "",
+  city: "",
+  phone: "",
+  address: "",
+  postalCode: "",
+  nif: "",
+  commercialName: "",
+  province: "",
+  mobile: "",
+  website: "",
+});
+
+// Initialize formErrors with the FormErrors interface
+const [formErrors, setFormErrors] = useState<FormErrors>({});
+
+// Campos obligatorios
+const requiredFields = ["name", "email", "country", "city", "phone"];
+
+const validateForm = (): FormErrors => {
+  const errors: FormErrors = {};
+  requiredFields.forEach((field) => {
+    if (!formData[field]) {
+      errors[field] = `${field} es requerido`;
+    }
+  });
+  return errors;
+};
+
+
+  const handleChange = (event) => {
+    const { name, value } = event.target;
+    setFormData({
+      ...formData,
+      [name]: value,
+    });
+  };
+
+  
+
 
   return (
     <Box
@@ -1648,35 +1733,29 @@ const Dashboard = () => {
         </Box>
 
         {/* Dialog para completar información del usuario */}
+        {/* Dialog para completar información del usuario */}
         <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
-          <DialogTitle
-            sx={{ fontWeight: "700", fontFamily: "Roboto, sans-serif" }}
-          >
+          <DialogTitle sx={{ fontWeight: "700", fontFamily: "Roboto, sans-serif" }}>
             {t("dashboard.completeYourInfo")}
           </DialogTitle>
           <DialogContent>
-            <DialogContentText
-              sx={{ fontWeight: "400", fontFamily: "Roboto, sans-serif" }}
-            >
+            <DialogContentText sx={{ fontWeight: "400", fontFamily: "Roboto, sans-serif" }}>
               {t("dashboard.completeInfoDescription")}
             </DialogContentText>
             <Box
               component="form"
-              onSubmit={handleFormSubmit}
+              onSubmit={handleFormSubmit} // Función actualizada para la validación
               noValidate
               sx={{ mt: 1 }}
             >
               <FormControl component="fieldset" sx={{ mb: 2 }}>
-                <FormLabel
-                  component="legend"
-                  sx={{ fontWeight: "500", fontFamily: "Roboto, sans-serif" }}
-                >
+                <FormLabel component="legend" sx={{ fontWeight: "500", fontFamily: "Roboto, sans-serif" }}>
                   {t("dashboard.userType")}
                 </FormLabel>
                 <RadioGroup
                   row
                   value={userType}
-                  onChange={handleUserTypeChange}
+                  onChange={handleUserTypeChange} // Sigue manejando el tipo de usuario
                 >
                   <FormControlLabel
                     value="freelancer"
@@ -1690,14 +1769,20 @@ const Dashboard = () => {
                   />
                 </RadioGroup>
               </FormControl>
+
+              {/* Inicio de los campos de texto con validación */}
               <Grid container spacing={2}>
                 <Grid item xs={12} sm={6}>
                   <TextField
                     margin="dense"
                     label={t("dashboard.fiscalName")}
-                    name="fiscalName"
+                    name="name" 
                     fullWidth
                     variant="outlined"
+                    value={formData.name} 
+                    onChange={handleChange} 
+                    error={!!formErrors.name} 
+                    helperText={formErrors.name} 
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
@@ -1707,6 +1792,8 @@ const Dashboard = () => {
                     name="nif"
                     fullWidth
                     variant="outlined"
+                    value={formData.nif} 
+                    onChange={handleChange}
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
@@ -1716,15 +1803,19 @@ const Dashboard = () => {
                     name="commercialName"
                     fullWidth
                     variant="outlined"
+                    value={formData.commercialName}
+                    onChange={handleChange}
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <TextField
                     margin="dense"
                     label={t("dashboard.fiscalAddress")}
-                    name="fiscalAddress"
+                    name="address"
                     fullWidth
                     variant="outlined"
+                    value={formData.address}
+                    onChange={handleChange}
                   />
                 </Grid>
                 <Grid item xs={12} sm={4}>
@@ -1734,6 +1825,10 @@ const Dashboard = () => {
                     name="city"
                     fullWidth
                     variant="outlined"
+                    value={formData.city}
+                    onChange={handleChange}
+                    error={!!formErrors.city}
+                    helperText={formErrors.city}
                   />
                 </Grid>
                 <Grid item xs={12} sm={4}>
@@ -1743,6 +1838,8 @@ const Dashboard = () => {
                     name="province"
                     fullWidth
                     variant="outlined"
+                    value={formData.province}
+                    onChange={handleChange}
                   />
                 </Grid>
                 <Grid item xs={12} sm={4}>
@@ -1752,6 +1849,8 @@ const Dashboard = () => {
                     name="postalCode"
                     fullWidth
                     variant="outlined"
+                    value={formData.postalCode}
+                    onChange={handleChange}
                   />
                 </Grid>
                 <Grid item xs={12} sm={4}>
@@ -1761,6 +1860,10 @@ const Dashboard = () => {
                     name="country"
                     fullWidth
                     variant="outlined"
+                    value={formData.country}
+                    onChange={handleChange}
+                    error={!!formErrors.country}
+                    helperText={formErrors.country}
                   />
                 </Grid>
                 <Grid item xs={12} sm={4}>
@@ -1770,6 +1873,10 @@ const Dashboard = () => {
                     name="phone"
                     fullWidth
                     variant="outlined"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    error={!!formErrors.phone}
+                    helperText={formErrors.phone}
                   />
                 </Grid>
                 <Grid item xs={12} sm={4}>
@@ -1779,6 +1886,8 @@ const Dashboard = () => {
                     name="mobile"
                     fullWidth
                     variant="outlined"
+                    value={formData.mobile}
+                    onChange={handleChange}
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
@@ -1788,6 +1897,10 @@ const Dashboard = () => {
                     name="email"
                     fullWidth
                     variant="outlined"
+                    value={formData.email}
+                    onChange={handleChange}
+                    error={!!formErrors.email}
+                    helperText={formErrors.email}
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
@@ -1797,9 +1910,12 @@ const Dashboard = () => {
                     name="website"
                     fullWidth
                     variant="outlined"
+                    value={formData.website}
+                    onChange={handleChange}
                   />
                 </Grid>
               </Grid>
+
               <DialogActions>
                 <Button
                   onClick={handleClose}
@@ -1830,6 +1946,8 @@ const Dashboard = () => {
             </Box>
           </DialogContent>
         </Dialog>
+
+
       </UserChecker>
     </Box>
   );
