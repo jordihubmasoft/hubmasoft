@@ -1,0 +1,1 @@
+export { default } from '../../modules/tpv/pages/restauracion-tpv';

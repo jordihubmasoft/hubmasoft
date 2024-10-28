@@ -5,7 +5,7 @@ import { LanguageProvider } from '../context/LanguageContext';
 import '../styles/globals.css';
 import { AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/router';
-import { AuthProvider } from "../context/AuthContext"; // Asegúrate que la ruta sea correcta
+import { AuthProvider } from "modules/auth/context/AuthContext"; // Asegúrate que la ruta sea correcta
 
 // Tema personalizado
 const theme = createTheme({
