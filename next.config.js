@@ -20,4 +20,48 @@ module.exports = {
 
     return config;
   },
+  async rewrites() {
+    return [
+      {
+        source: '/auth/:path*',
+        destination: '/modules/auth/pages/:path*',
+      },
+      {
+        source: '/contacts/:path*',
+        destination: '/modules/contacts/pages/:path*',
+      },
+      {
+        source: '/dashboard/:path*',
+        destination: '/modules/dashboard/pages/:path*',
+      },
+      {
+        source: '/employees/:path*',
+        destination: '/modules/employees/pages/:path*',
+      },
+      {
+        source: '/inventory/:path*',
+        destination: '/modules/inventory/pages/:path*',
+      },
+      {
+        source: '/projects/:path*',
+        destination: '/modules/projects/pages/:path*',
+      },
+      {
+        source: '/purchases/:path*',
+        destination: '/modules/purchases/pages/:path*',
+      },
+      {
+        source: '/sales/:path*',
+        destination: '/modules/sales/pages/:path*',
+      },
+      {
+        source: '/tpv/:path*',
+        destination: '/modules/tpv/pages/:path*',
+      },
+      {
+        source: '/accounting/:path*',
+        destination: '/modules/accounting/pages/:path*',
+      }
+    ];
+  },
 };

@@ -1,0 +1,1 @@
+export { default } from '../../modules/purchases/pages/pedidos-compras';
