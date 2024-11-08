@@ -23,7 +23,9 @@ import {
   MenuItem, FormControl, Select, InputLabel, TableCell, TableRow, TableBody, Table, TableContainer, TableHead, Checkbox, FormControlLabel, Menu, MenuItem as DropdownMenuItem, Grid, FormHelperText,
   List,
   ListItem,
-  ListItemText
+  ListItemText,
+  Tab,
+  Tabs
 } from '@mui/material';
 import Header from '../../../components/Header';
 import Sidebar from '../../../components/Sidebar';
@@ -794,6 +796,12 @@ const Contacts = () => {
   const [filteredPeople, setFilteredPeople] = useState(allPeople);
   const [filter, setFilter] = useState('todos'); // Estado para manejar el filtro seleccionado
   const [isDrawerExpanded, setIsDrawerExpanded] = useState(false); // Nuevo estado para manejar la expansión del Drawer
+  const [selectedTab, setSelectedTab] = useState(0);
+
+const handleTabChange = (event, newValue) => {
+  setSelectedTab(newValue);
+};
+
 
 
 
@@ -892,6 +900,10 @@ const Contacts = () => {
   };
   
   
+
+ 
+
+
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', bgcolor: '#F3F4F6' }}>
@@ -1094,239 +1106,693 @@ const Contacts = () => {
   onClose={() => setIsDrawerOpen(false)}
   sx={{
     zIndex: 1300,
-    width: isDrawerExpanded ? '900px' : '500px',  // Aumentamos el ancho a 900px al expandirse
+    width: isDrawerExpanded ? '1300px' : '500px', // Ancho dinámico
     transition: 'width 0.3s ease',
-    marginTop: '64px',  // Para asegurarse de que el Drawer no se superponga con el Header
-    height: 'calc(100% - 64px)',  // Asegurarse de que no ocupe espacio del Header
+    marginTop: '64px', // Evita superposición con el Header
+    height: 'calc(100% - 64px)', // Ajusta la altura para no ocupar espacio del Header
   }}
   PaperProps={{
     style: {
-      width: isDrawerExpanded ? '900px' : '500px',  // Control dinámico del tamaño
+      width: isDrawerExpanded ? '1300px' : '500px', // Control dinámico del tamaño
       transition: 'width 0.3s ease',
     },
   }}
 >
-  <Box sx={{ p: 2, overflowY: 'auto', height: '100%' }}>
-    {/* Nombre, tipo de contacto y botón "Más" */}
-    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-      <Box
-        sx={{
-          bgcolor: '#F44336',
-          borderRadius: '50%',
-          width: 40,
-          height: 40,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: '#fff',
-          mr: 2,
-        }}
-      >
-        {selectedContact?.nombre?.[0]}
-        {selectedContact?.nombre?.split(' ')[1]?.[0]} {/* Iniciales del contacto */}
-      </Box>
-      <Box sx={{ flexGrow: 1 }}>
-        <Typography variant="h6" sx={{ margin: 0, fontWeight: 'bold' }}>
-          {selectedContact?.nombre}
-        </Typography>
-        <Typography variant="body2" sx={{ color: '#8A8A8A' }}>
-          {selectedContact?.tipoContacto}
-        </Typography>
-      </Box>
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', p: 2 }}>
-        <Button
-          startIcon={<ArrowForwardIcon />}
-          onClick={() => setIsDrawerExpanded(!isDrawerExpanded)} // Alterna el estado del Drawer
+  {!isDrawerExpanded ? (
+    // **Contenido No Expandido**
+    <Box sx={{ p: 2, overflowY: 'auto', height: '100%' }}>
+      {/* Nombre, tipo de contacto y botón "Más" */}
+      <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+        <Box
           sx={{
-            textTransform: 'none',
-            bgcolor: '#2666CF',
+            bgcolor: '#F44336',
+            borderRadius: '50%',
+            width: 40,
+            height: 40,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
             color: '#fff',
-            borderRadius: '50px',
-            p: 1,
+            mr: 2,
           }}
         >
-          {isDrawerExpanded ? 'Menos' : 'Más'} {/* Cambia el texto dinámicamente */}
+          {selectedContact?.nombre?.[0]}
+          {selectedContact?.nombre?.split(' ')[1]?.[0]} {/* Iniciales del contacto */}
+        </Box>
+        <Box sx={{ flexGrow: 1 }}>
+          <Typography variant="h6" sx={{ margin: 0, fontWeight: 'bold' }}>
+            {selectedContact?.nombre}
+          </Typography>
+          <Typography variant="body2" sx={{ color: '#8A8A8A' }}>
+            {selectedContact?.tipoContacto}
+          </Typography>
+        </Box>
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', p: 2 }}>
+          <Button
+            startIcon={<ArrowForwardIcon />}
+            onClick={() => setIsDrawerExpanded(true)} // Expande el Drawer
+            sx={{
+              textTransform: 'none',
+              bgcolor: '#2666CF',
+              color: '#fff',
+              borderRadius: '50px',
+              p: 1,
+            }}
+          >
+            Más
+          </Button>
+        </Box>
+      </Box>
+
+      {/* Opciones de contacto */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
+        <IconButton>
+          <EmailIcon />
+        </IconButton>
+        <IconButton>
+          <PhoneIcon />
+        </IconButton>
+        <IconButton>
+          <LanguageIcon />
+        </IconButton>
+        <IconButton>
+          <MapIcon />
+        </IconButton>
+        <IconButton>
+          <MoreVertIcon />
+        </IconButton>
+      </Box>
+
+      {/* Botones de creación rápida */}
+      <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
+        <Button variant="outlined" sx={{ textTransform: 'none' }}>Nuevo Presupuesto</Button>
+        <Button variant="outlined" sx={{ textTransform: 'none' }}>Nuevo Pedido</Button>
+        <Button variant="outlined" sx={{ textTransform: 'none' }}>Nuevo Albarán</Button>
+        <Button variant="outlined" sx={{ textTransform: 'none' }}>Nueva Factura</Button>
+        <Button variant="outlined" sx={{ textTransform: 'none' }}>Añadir Nota</Button>
+      </Box>
+
+      {/* Sección para crear nuevos elementos */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
+        <Button variant="outlined" sx={{ textTransform: 'none' }}>
+          Nota
+        </Button>
+        <Button variant="outlined" sx={{ textTransform: 'none' }}>
+          Presupuesto
+        </Button>
+        <Button variant="outlined" sx={{ textTransform: 'none' }}>
+          Factura
+        </Button>
+        <Button variant="outlined" sx={{ textTransform: 'none' }} onClick={handlePortalClick}>
+          Portal Cliente
         </Button>
       </Box>
-    </Box>
 
-    {/* Opciones de contacto */}
-    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-      <IconButton>
-        <EmailIcon />
-      </IconButton>
-      <IconButton>
-        <PhoneIcon />
-      </IconButton>
-      <IconButton>
-        <LanguageIcon />
-      </IconButton>
-      <IconButton>
-        <MapIcon />
-      </IconButton>
-      <IconButton>
-        <MoreVertIcon />
-      </IconButton>
-    </Box>
-
-    {/* Botones de creación rápida */}
-    <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
-      <Button variant="outlined" sx={{ textTransform: 'none' }}>Nuevo Presupuesto</Button>
-      <Button variant="outlined" sx={{ textTransform: 'none' }}>Nuevo Pedido</Button>
-      <Button variant="outlined" sx={{ textTransform: 'none' }}>Nuevo Albarán</Button>
-      <Button variant="outlined" sx={{ textTransform: 'none' }}>Nueva Factura</Button>
-      <Button variant="outlined" sx={{ textTransform: 'none' }}>Añadir Nota</Button>
-    </Box>
-
-    {/* Sección para crear nuevos elementos */}
-    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-      <Button variant="outlined" sx={{ textTransform: 'none' }}>
-        Nota
+      {/* Botón Añadir contraseña */}
+      <Button variant="outlined" sx={{ textTransform: 'none', mb: 3 }} onClick={() => setIsPasswordDialogOpen(true)}>
+        Añadir Contraseña
       </Button>
-      <Button variant="outlined" sx={{ textTransform: 'none' }}>
-        Presupuesto
-      </Button>
-      <Button variant="outlined" sx={{ textTransform: 'none' }}>
-        Factura
-      </Button>
-      <Button variant="outlined" sx={{ textTransform: 'none' }} onClick={handlePortalClick}>
-        Portal Cliente
-      </Button>
-    </Box>
 
-    {/* Botón Añadir contraseña */}
-    <Button variant="outlined" sx={{ textTransform: 'none', mb: 3 }} onClick={() => setIsPasswordDialogOpen(true)}>
-      Añadir Contraseña
-    </Button>
-
-    {/* Sección de relaciones */}
-    <Typography variant="body1" sx={{ fontWeight: 'bold', mb: 2 }}>
-      Relaciones
-    </Typography>
-    <Button
-      variant="outlined"
-      sx={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'flex-start',
-        textTransform: 'none',
-        width: '100%',
-        mb: 3,
-      }}
-      startIcon={<AddIcon />}
-      onClick={handleOpenDialog} // Abrir el diálogo al hacer clic
-    >
-      Relacionar persona
-    </Button>
-
-    {/* Gráfico de Ventas */}
-    <Box sx={{ mb: 2 }}>
-      <Typography variant="body1" sx={{ fontWeight: 'bold', mb: 1 }}>
-        Ventas
+      {/* Sección de relaciones */}
+      <Typography variant="body1" sx={{ fontWeight: 'bold', mb: 2 }}>
+        Relaciones
       </Typography>
-      <Bar
-        data={salesData}
-        options={{
-          responsive: true,
-          plugins: {
-            legend: {
-              display: false,
-            },
-          },
+      <Button
+        variant="outlined"
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'flex-start',
+          textTransform: 'none',
+          width: '100%',
+          mb: 3,
         }}
-      />
-    </Box>
+        startIcon={<AddIcon />}
+        onClick={handleOpenDialog} // Abrir el diálogo al hacer clic
+      >
+        Relacionar persona
+      </Button>
 
-    {/* Gráfico de Compras */}
-    <Box sx={{ mb: 2 }}>
-      <Typography variant="body1" sx={{ fontWeight: 'bold', mb: 1 }}>
-        Compras
-      </Typography>
-      <Bar
-        data={purchasesData}
-        options={{
-          responsive: true,
-          plugins: {
-            legend: {
-              display: false,
-            },
-          },
-        }}
-      />
-    </Box>
-
-    {/* Mostrar información extra cuando el Drawer esté expandido */}
-    {isDrawerExpanded && (
-      <Box sx={{ mt: 3, borderTop: '1px solid #e0e0e0', pt: 3 }}>
-        <Typography variant="h5" sx={{ fontWeight: 'bold', mb: 2, color: '#2666CF' }}>
-          Información Adicional
+      {/* Gráfico de Ventas */}
+      <Box sx={{ mb: 2 }}>
+        <Typography variant="body1" sx={{ fontWeight: 'bold', mb: 1 }}>
+          Ventas
         </Typography>
+        <Bar
+          data={salesData}
+          options={{
+            responsive: true,
+            plugins: {
+              legend: {
+                display: false,
+              },
+            },
+          }}
+        />
+      </Box>
 
-        <Grid container spacing={2}>
-          <Grid item xs={6}>
-            <Typography variant="body2" sx={{ color: '#888', fontWeight: 'bold', display: 'flex', alignItems: 'center' }}>
-              <PhoneIcon sx={{ mr: 1, color: '#888' }} /> Teléfono:
-            </Typography>
-            <Typography variant="body1" sx={{ fontWeight: '500', color: '#1A1A40', mb: 2 }}>
-              {selectedContact?.telefono}
-            </Typography>
-          </Grid>
-
-          <Grid item xs={6}>
-            <Typography variant="body2" sx={{ color: '#888', fontWeight: 'bold', display: 'flex', alignItems: 'center' }}>
-              <EmailIcon sx={{ mr: 1, color: '#888' }} /> Email:
-            </Typography>
-            <Typography variant="body1" sx={{ fontWeight: '500', color: '#1A1A40', mb: 2 }}>
-              {selectedContact?.email}
-            </Typography>
-          </Grid>
-
-          <Grid item xs={6}>
-            <Typography variant="body2" sx={{ color: '#888', fontWeight: 'bold', display: 'flex', alignItems: 'center' }}>
-              <MapIcon sx={{ mr: 1, color: '#888' }} /> Dirección:
-            </Typography>
-            <Typography variant="body1" sx={{ fontWeight: '500', color: '#1A1A40', mb: 2 }}>
-              {selectedContact?.direccion}
-            </Typography>
-          </Grid>
-
-          <Grid item xs={6}>
-            <Typography variant="body2" sx={{ color: '#888', fontWeight: 'bold', display: 'flex', alignItems: 'center' }}>
-              <MapIcon sx={{ mr: 1, color: '#888' }} /> Población:
-            </Typography>
-            <Typography variant="body1" sx={{ fontWeight: '500', color: '#1A1A40', mb: 2 }}>
-              {selectedContact?.poblacion}
-            </Typography>
-          </Grid>
-
-          <Grid item xs={6}>
-            <Typography variant="body2" sx={{ color: '#888', fontWeight: 'bold', display: 'flex', alignItems: 'center' }}>
-              <LanguageIcon sx={{ mr: 1, color: '#888' }} /> Código Postal:
-            </Typography>
-            <Typography variant="body1" sx={{ fontWeight: '500', color: '#1A1A40', mb: 2 }}>
-              {selectedContact?.codigoPostal}
-            </Typography>
-          </Grid>
-
+      {/* Gráfico de Compras */}
+      <Box sx={{ mb: 2 }}>
+        <Typography variant="body1" sx={{ fontWeight: 'bold', mb: 1 }}>
+          Compras
+        </Typography>
+        <Bar
+          data={purchasesData}
+          options={{
+            responsive: true,
+            plugins: {
+              legend: {
+                display: false,
+              },
+            },
+          }}
+        />
+      </Box>
+    </Box>
+  ) : (
+    <Box sx={{ p: 3, overflowY: 'auto', height: '100%', bgcolor: '#F9F9F9' }}>
+    {/* Cabecera */}
+    <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+      <Typography variant="h5" sx={{ fontWeight: 'bold', flexGrow: 1, color: '#333' }}>
+        {selectedContact?.nombre || 'Félix Martínez Giménez'}
+      </Typography>
+      <Button
+        startIcon={<ArrowForwardIcon />}
+        onClick={() => setIsDrawerExpanded(false)}
+        sx={{
+          textTransform: 'none',
+          bgcolor: '#2666CF',
+          color: '#fff',
+          borderRadius: '50px',
+          p: 1,
+          fontWeight: 'bold',
+          boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+        }}
+      >
+        Menos
+      </Button>
+    </Box>
+  
+    {/* Pestañas de Navegación */}
+    <Tabs
+      value={selectedTab}
+      onChange={handleTabChange}
+      sx={{
+        mb: 3,
+        '.MuiTabs-indicator': {
+          bgcolor: '#2666CF',
+        },
+        '.MuiTab-root': {
+          textTransform: 'none',
+          fontWeight: 'bold',
+          color: '#666',
+          '&.Mui-selected': {
+            color: '#2666CF',
+          },
+        },
+      }}
+    >
+      <Tab label="Resumen" />
+      <Tab label="Facturas" />
+      <Tab label="Albaranes" />
+      <Tab label="Pedidos" />
+      <Tab label="Pagos" />
+      <Tab label="Notas" />
+    </Tabs>
+  
+    {/* Contenido del Resumen */}
+{selectedTab === 0 && (
+  <Grid container spacing={3}>
+    {/* Información del Cliente */}
+    <Grid item xs={12} md={3}>
+      <Paper
+        sx={{
+          p: 2,
+          borderRadius: 2,
+          boxShadow: '0 3px 6px rgba(0, 0, 0, 0.1)',
+          height: '100%',
+        }}
+      >
+        <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 2, color: '#2666CF' }}>
+          Información del Cliente
+        </Typography>
+        <Typography variant="body2" sx={{ mb: 1 }}>
+          <strong>Nombre:</strong> Félix Martínez Giménez
+        </Typography>
+        <Typography variant="body2" sx={{ mb: 1 }}>
+          <strong>NIF:</strong> 12345678L
+        </Typography>
+        <Typography variant="body2" sx={{ mb: 1 }}>
+          <strong>Teléfono:</strong>{' '}
+          <a href="tel:648693534" style={{ color: '#2666CF' }}>
+            648693534
+          </a>
+        </Typography>
+        <Typography variant="body2" sx={{ mb: 1 }}>
+          <strong>Email:</strong>{' '}
+          <a href="mailto:info@hubmasoft.com" style={{ color: '#2666CF' }}>
+            info@hubmasoft.com
+          </a>
+        </Typography>
+        <Typography variant="body2" sx={{ mb: 1 }}>
+          <strong>Dirección:</strong>
+        </Typography>
+        <Grid container spacing={1}>
           <Grid item xs={12}>
-            <Typography variant="body2" sx={{ color: '#888', fontWeight: 'bold', display: 'flex', alignItems: 'center' }}>
-              <LanguageIcon sx={{ mr: 1, color: '#888' }} /> Información Adicional:
-            </Typography>
-            <Typography variant="body1" sx={{ fontWeight: '500', color: '#1A1A40' }}>
-              {selectedContact?.informacionAdicional}
-            </Typography>
+            <TextField label="Dirección" fullWidth size="small" />
+          </Grid>
+          <Grid item xs={6}>
+            <TextField label="Código Postal" fullWidth size="small" />
+          </Grid>
+          <Grid item xs={6}>
+            <TextField label="Población" fullWidth size="small" />
+          </Grid>
+          <Grid item xs={6}>
+            <TextField label="Provincia" fullWidth size="small" />
+          </Grid>
+          <Grid item xs={6}>
+            <TextField label="País" fullWidth size="small" />
           </Grid>
         </Grid>
-      </Box>
-    )}
-  </Box>
+      </Paper>
+    </Grid>
 
-  {/* Dialogo para Añadir Contraseña */}
+    <Grid item xs={12} md={6}>
+  <Paper
+    sx={{
+      p: 3,
+          borderRadius: 3,
+          boxShadow: '0 4px 8px rgba(0, 0, 0, 0.15)',
+          height: '400px', // Establece una altura fija para el contenedor
+          display: 'flex',
+          flexDirection: 'column',
+    }}
+  >
+    <Box
+      sx={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        mb: 3,
+      }}
+    >
+      <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#1F4B99' }}>
+        Gráfico de Ventas
+      </Typography>
+      <TextField
+        select
+        size="small"
+        defaultValue="2024"
+        sx={{
+          width: 100,
+          '& .MuiOutlinedInput-root': {
+            borderRadius: 3,
+          },
+        }}
+      >
+        <MenuItem value="2024">2024</MenuItem>
+        <MenuItem value="2023">2023</MenuItem>
+        <MenuItem value="2022">2022</MenuItem>
+      </TextField>
+    </Box>
+    <Bar
+      data={{
+        labels: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio'],
+        datasets: [
+          {
+            label: 'Cobradas',
+            data: [2000, 4000, 10000, 5000, 7000, 6000, 8000],
+            backgroundColor: '#003366',
+            borderRadius: 5,
+            borderWidth: 1,
+          },
+          {
+            label: 'Pendientes',
+            data: [1000, 2000, 3000, 2000, 3000, 2500, 3000],
+            backgroundColor: '#2666CF',
+            borderRadius: 5,
+            borderWidth: 1,
+          },
+          {
+            label: 'Vencidas',
+            data: [500, 1000, 1500, 1000, 2000, 1500, 1000],
+            backgroundColor: '#DC3545',
+            borderRadius: 5,
+            borderWidth: 1,
+          },
+        ],
+      }}
+      options={{
+        responsive: true,
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: {
+              usePointStyle: true,
+              color: '#333',
+              font: {
+                size: 13,
+              },
+            },
+          },
+          tooltip: {
+            callbacks: {
+              label: (context) => `${context.raw} €`,
+            },
+            backgroundColor: '#1F4B99',
+            titleColor: '#FFF',
+            bodyColor: '#FFF',
+            cornerRadius: 5,
+          },
+        },
+        scales: {
+          x: {
+            grid: {
+              drawOnChartArea: false, // No líneas en el área
+              drawTicks: true,
+              color: '#e0e0e0',
+            },
+            ticks: {
+              color: '#555',
+              font: {
+                size: 12,
+              },
+            },
+          },
+          y: {
+            grid: {
+              color: '#e0e0e0',
+            },
+            ticks: {
+              color: '#555',
+              font: {
+                size: 12,
+              },
+              callback: (value) => `${value} €`,
+            },
+          },
+        },
+        maintainAspectRatio: false,
+        layout: {
+          padding: {
+            top: 20,
+            bottom: 10,
+          },
+        },
+      }}
+    />
+  </Paper>
+</Grid>
+
+
+
+    {/* Resumen Financiero */}
+    <Grid item xs={12} md={3}>
+      <Paper sx={{ p: 2, borderRadius: 2, boxShadow: '0 3px 6px rgba(0, 0, 0, 0.1)' }}>
+        <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 2, color: '#2666CF' }}>
+          Resumen Financiero
+          Resumen Financiero
+        </Typography>
+        <Typography variant="body2" sx={{ mb: 1 }}>
+          <strong>Total por vencer:</strong>{' '}
+          <span style={{ color: '#2666CF', fontWeight: 'bold' }}>1.345,98 €</span>
+        </Typography>
+        <Typography variant="body2" sx={{ mb: 1, color: '#B00020', fontWeight: 'bold' }}>
+          <strong>Total vencido por cobrar:</strong> 998,76 €
+        </Typography>
+        <Typography variant="body2" sx={{ mb: 1 }}>
+          <strong>Total cobrado:</strong> 24.986,34 €
+        </Typography>
+        <Typography variant="body2">
+          <strong>Total vendido:</strong> 27.331,08 €
+        </Typography>
+      </Paper>
+    </Grid>
+
+    {/* Portal del Cliente */}
+    <Grid item xs={12} md={6}>
+      <Paper sx={{ p: 2, borderRadius: 2, boxShadow: '0 3px 6px rgba(0, 0, 0, 0.1)' }}>
+        <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 2, color: '#2666CF' }}>
+          Portal Cliente
+        </Typography>
+        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+          <Button
+            variant="outlined"
+            sx={{
+              textTransform: 'none',
+              borderColor: '#2666CF',
+              color: '#2666CF',
+              fontWeight: 'bold',
+            }}
+          >
+            Establecer contraseña del portal
+          </Button>
+          <Button
+            variant="contained"
+            sx={{
+              textTransform: 'none',
+              bgcolor: '#2666CF',
+              color: '#fff',
+              fontWeight: 'bold',
+            }}
+          >
+            Ver portal del cliente
+          </Button>
+        </Box>
+      </Paper>
+    </Grid>
+
+    {/* Notas */}
+    <Grid item xs={12} md={6}>
+      <Paper
+        sx={{
+          p: 2,
+          borderRadius: 2,
+          boxShadow: '0 3px 6px rgba(0, 0, 0, 0.1)',
+          bgcolor: '#FFF8DC',
+        }}
+      >
+        <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 2, color: '#856404' }}>
+          Notas
+        </Typography>
+        <Typography variant="body2" sx={{ mb: 1 }}>
+          21/09/2024: Entregar los pedidos antes de las 13h que cierran el muelle de carga.
+        </Typography>
+        <Button
+          startIcon={<AddIcon />}
+          sx={{
+            mt: 1,
+            textTransform: 'none',
+            color: '#856404',
+            fontWeight: 'bold',
+          }}
+        >
+          + Añadir nota
+        </Button>
+      </Paper>
+    </Grid>
+  </Grid>
+)}
+
+
+  {/* **Contenido de Otras Pestañas** */}
+  {selectedTab === 1 && (
+  <Grid container spacing={3}>
+    <Grid item xs={12}>
+      <Paper sx={{ p: 3, borderRadius: 3, boxShadow: '0 4px 8px rgba(0, 0, 0, 0.15)' }}>
+        <Typography variant="h5" sx={{ mb: 3, fontWeight: 'bold', color: '#2666CF' }}>
+          Facturas
+        </Typography>
+        <TableContainer sx={{ maxHeight: 400 }}>
+          <Table stickyHeader>
+            <TableHead sx={{ bgcolor: '#003366' }}>
+              <TableRow>
+                <TableCell sx={{ color: '#fff', fontWeight: 'bold' }}>Número de Factura</TableCell>
+                <TableCell sx={{ color: '#fff', fontWeight: 'bold' }}>Fecha</TableCell>
+                <TableCell sx={{ color: '#fff', fontWeight: 'bold' }}>Cliente</TableCell>
+                <TableCell sx={{ color: '#fff', fontWeight: 'bold' }}>Total</TableCell>
+                <TableCell sx={{ color: '#fff', fontWeight: 'bold' }}>Estado</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {/* Aquí agregarías dinámicamente las filas de facturas */}
+              <TableRow>
+                <TableCell>FA-2023-001</TableCell>
+                <TableCell>01/01/2023</TableCell>
+                <TableCell>Cliente A</TableCell>
+                <TableCell>1,200.00 €</TableCell>
+                <TableCell sx={{ color: '#28A745', fontWeight: 'bold' }}>Pagada</TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Paper>
+    </Grid>
+  </Grid>
+)}
+{selectedTab === 2 && (
+  <Grid container spacing={3}>
+    <Grid item xs={12}>
+      <Paper sx={{ p: 3, borderRadius: 3, boxShadow: '0 4px 8px rgba(0, 0, 0, 0.15)' }}>
+        <Typography variant="h5" sx={{ mb: 3, fontWeight: 'bold', color: '#2666CF' }}>
+          Albaranes
+        </Typography>
+        <TableContainer sx={{ maxHeight: 400 }}>
+          <Table stickyHeader>
+            <TableHead sx={{ bgcolor: '#003366' }}>
+              <TableRow>
+                <TableCell sx={{ color: '#fff', fontWeight: 'bold' }}>Número de Albarán</TableCell>
+                <TableCell sx={{ color: '#fff', fontWeight: 'bold' }}>Fecha</TableCell>
+                <TableCell sx={{ color: '#fff', fontWeight: 'bold' }}>Cliente</TableCell>
+                <TableCell sx={{ color: '#fff', fontWeight: 'bold' }}>Estado</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {/* Aquí agregarías dinámicamente las filas de albaranes */}
+              <TableRow>
+                <TableCell>AL-2023-001</TableCell>
+                <TableCell>02/01/2023</TableCell>
+                <TableCell>Cliente B</TableCell>
+                <TableCell sx={{ color: '#FFC107', fontWeight: 'bold' }}>Pendiente</TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Paper>
+    </Grid>
+  </Grid>
+)}
+{selectedTab === 3 && (
+  <Grid container spacing={3}>
+    <Grid item xs={12}>
+      <Paper sx={{ p: 3, borderRadius: 3, boxShadow: '0 4px 8px rgba(0, 0, 0, 0.15)' }}>
+        <Typography variant="h5" sx={{ mb: 3, fontWeight: 'bold', color: '#2666CF' }}>
+          Pedidos
+        </Typography>
+        <TableContainer sx={{ maxHeight: 400 }}>
+          <Table stickyHeader>
+            <TableHead sx={{ bgcolor: '#003366' }}>
+              <TableRow>
+                <TableCell sx={{ color: '#fff', fontWeight: 'bold' }}>Número de Pedido</TableCell>
+                <TableCell sx={{ color: '#fff', fontWeight: 'bold' }}>Fecha</TableCell>
+                <TableCell sx={{ color: '#fff', fontWeight: 'bold' }}>Cliente</TableCell>
+                <TableCell sx={{ color: '#fff', fontWeight: 'bold' }}>Total</TableCell>
+                <TableCell sx={{ color: '#fff', fontWeight: 'bold' }}>Estado</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {/* Aquí agregarías dinámicamente las filas de pedidos */}
+              <TableRow>
+                <TableCell>PE-2023-001</TableCell>
+                <TableCell>03/01/2023</TableCell>
+                <TableCell>Cliente C</TableCell>
+                <TableCell>2,500.00 €</TableCell>
+                <TableCell sx={{ color: '#DC3545', fontWeight: 'bold' }}>Cancelado</TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Paper>
+    </Grid>
+  </Grid>
+)}
+{selectedTab === 4 && (
+  <Grid container spacing={3}>
+    <Grid item xs={12}>
+      <Paper sx={{ p: 3, borderRadius: 3, boxShadow: '0 4px 8px rgba(0, 0, 0, 0.15)' }}>
+        <Typography variant="h5" sx={{ mb: 3, fontWeight: 'bold', color: '#2666CF' }}>
+          Pagos
+        </Typography>
+        <TableContainer sx={{ maxHeight: 400 }}>
+          <Table stickyHeader>
+            <TableHead sx={{ bgcolor: '#003366' }}>
+              <TableRow>
+                <TableCell sx={{ color: '#fff', fontWeight: 'bold' }}>Fecha de Pago</TableCell>
+                <TableCell sx={{ color: '#fff', fontWeight: 'bold' }}>Nombre Cliente</TableCell>
+                <TableCell sx={{ color: '#fff', fontWeight: 'bold' }}>Número de Factura</TableCell>
+                <TableCell sx={{ color: '#fff', fontWeight: 'bold' }}>Total Pagado</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {/* Aquí agregarías dinámicamente las filas de pagos */}
+              <TableRow>
+                <TableCell>04/01/2023</TableCell>
+                <TableCell>Cliente D</TableCell>
+                <TableCell>FA-2023-002</TableCell>
+                <TableCell>1,800.00 €</TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Paper>
+    </Grid>
+  </Grid>
+)}
+{selectedTab === 5 && (
+  <Grid container spacing={3}>
+    <Grid item xs={12}>
+      <Paper
+        sx={{
+          p: 3,
+          borderRadius: 3,
+          boxShadow: '0 4px 8px rgba(0, 0, 0, 0.15)',
+          bgcolor: '#FFF8DC',
+        }}
+      >
+        <Typography variant="h5" sx={{ mb: 3, fontWeight: 'bold', color: '#856404' }}>
+          Notas
+        </Typography>
+        <Grid container spacing={2}>
+          {/* Ejemplo de notas en estilo posit */}
+          <Grid item xs={12} sm={6} md={4}>
+            <Paper
+              sx={{
+                p: 2,
+                bgcolor: '#FFF8DC',
+                borderRadius: 2,
+                boxShadow: '0 3px 6px rgba(0, 0, 0, 0.1)',
+                position: 'relative',
+              }}
+            >
+              <Typography variant="body1" sx={{ fontWeight: 'bold', mb: 1 }}>
+                Nota Importante
+              </Typography>
+              <Typography variant="body2" sx={{ color: '#856404' }}>
+                Revisar el envío del pedido antes del cierre.
+              </Typography>
+              <Button
+                size="small"
+                sx={{
+                  position: 'absolute',
+                  bottom: 8,
+                  right: 8,
+                  textTransform: 'none',
+                  color: '#856404',
+                  fontWeight: 'bold',
+                }}
+              >
+                Leer más
+              </Button>
+            </Paper>
+          </Grid>
+        </Grid>
+      </Paper>
+    </Grid>
+  </Grid>
+)}
+
+
+  {/* Diálogo para Añadir Contraseña */}
   <Dialog open={isPasswordDialogOpen} onClose={() => setIsPasswordDialogOpen(false)}>
     <DialogTitle>Añadir Contraseña</DialogTitle>
     <DialogContent>
       <FormControlLabel
-        control={<Checkbox checked={isPasswordEnabled} onChange={(e) => setIsPasswordEnabled(e.target.checked)} />}
+        control={
+          <Checkbox
+            checked={isPasswordEnabled}
+            onChange={(e) => setIsPasswordEnabled(e.target.checked)}
+          />
+        }
         label="Activar contraseña para este cliente"
       />
       {isPasswordEnabled && (
@@ -1356,11 +1822,10 @@ const Contacts = () => {
       </Button>
     </DialogActions>
   </Dialog>
+</Box>
+  )}
 </Drawer>
-
-
-
-
+  
 
 
 

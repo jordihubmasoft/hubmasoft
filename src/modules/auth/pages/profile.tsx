@@ -10,49 +10,42 @@ import {
   CardContent, 
   Avatar, 
   Grid, 
-  Tabs, 
-  Tab,
   Table, 
   TableHead, 
   TableRow, 
   TableCell, 
-  TableBody 
+  TableBody, 
+  MenuItem
 } from '@mui/material';
 import { motion } from 'framer-motion';
 import Header from '../../../components/Header';
 import Sidebar from '../../../components/Sidebar';
-import { useAuth } from '../context/AuthContext'; // Importa el hook useAuth
-import { useRouter } from 'next/router'; // Importa el hook de routing para redirecciones
-
-function a11yProps(index: number) {
-  return {
-    id: `simple-tab-${index}`,
-    'aria-controls': `simple-tabpanel-${index}`,
-  };
-}
+import { useAuth } from '../context/AuthContext';
+import { useRouter } from 'next/router';
+import { SiVisa } from 'react-icons/si';
 
 const Profile = () => {
-  const { user, logout } = useAuth(); // Usa el hook useAuth para acceder al usuario y la función de cerrar sesión
-  const router = useRouter(); // Define el router para hacer redirecciones
+  const { user, logout } = useAuth();
+  const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = React.useState(true);
-  const [value, setValue] = React.useState(0);
+  const [selectedTab, setSelectedTab] = React.useState(0);
+  const [openModal, setOpenModal] = React.useState(false);
 
-  // Redirige al login si el usuario no está autenticado
+
   React.useEffect(() => {
     if (!user) {
-      router.push('/auth/login'); // Redirige al login si no hay usuario
+      router.push('/auth/login');
     }
-  }, [user, router]); // Se ejecuta cada vez que cambia user o router
+  }, [user, router]);
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
 
-  const handleChange = (event: React.SyntheticEvent, newValue: number) => {
-    setValue(newValue);
+  const handleTabChange = (index) => {
+    setSelectedTab(index);
   };
 
-  // Si el usuario no está autenticado, muestra un mensaje de cargando
   if (!user) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
@@ -61,16 +54,30 @@ const Profile = () => {
     );
   }
 
+  const tabs = [
+    'Perfil',
+    'Preferencias',
+    'Plantillas de Documentos',
+    'Formas de Pago',
+    'Impuestos',
+    'Suscripción',
+    'Importar',
+    'Votar Mejoras',
+    'Añadir Cuenta',
+    'Cerrar Sesión'
+  ];
+
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', bgcolor: '#E5E5E5' }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', bgcolor: '#F3F4F6' }}> {/* Fondo oscuro aplicado a todo */}
       <Header isMenuOpen={isMenuOpen} />
       <Box sx={{ display: 'flex', flexGrow: 1, mt: 8 }}>
+        {/* Sidebar principal */}
         <Box
           component="nav"
           sx={{
             width: isMenuOpen ? '240px' : '70px',
             flexShrink: 0,
-            bgcolor: '#1A1A40',
+            bgcolor: '#d4d4d9',
             overflow: 'hidden',
             boxShadow: '0 3px 10px rgba(0, 0, 0, 0.1)',
             zIndex: 1201,
@@ -81,49 +88,125 @@ const Profile = () => {
         >
           <Sidebar isMenuOpen={isMenuOpen} toggleMenu={toggleMenu} />
         </Box>
+  
+        {/* Mini Sidebar */}
+        <Box
+          component="nav"
+          sx={{
+            width: isMenuOpen ? '240px' : '80px',
+            background: 'linear-gradient(180deg, #f9f9fc, #e0e3ea)',
+            borderRight: '1px solid rgba(0, 0, 0, 0.15)',
+            position: 'fixed',
+            left: isMenuOpen ? '260px' : '90px',
+            top: '50%',
+            transform: 'translateY(-50%)',
+            pt: 2,
+            pb: 2,
+            px: 1.5,
+            display: 'flex',
+            flexDirection: 'column',
+            borderRadius: '12px',
+            boxShadow: '0px 2px 6px rgba(0, 0, 0, 0.1)',
+            overflow: 'hidden',
+            maxHeight: '80vh',
+            transition: 'width 0.3s ease, left 0.3s ease',
+            '&:hover': {
+              overflowY: 'auto',
+            },
+            '&::-webkit-scrollbar': {
+              width: '8px',
+            },
+            '&::-webkit-scrollbar-track': {
+              background: 'rgba(255, 255, 255, 0.3)',
+            },
+            '&::-webkit-scrollbar-thumb': {
+              background: '#B0B3BC',
+              borderRadius: 6,
+              '&:hover': {
+                background: '#9094A1',
+              },
+            },
+          }}
+        >
+          <Typography
+            variant="h6"
+            sx={{
+              fontWeight: 'bold',
+              color: '#1A1A40',
+              px: 2,
+              py: 1,
+              mb: 1.5,
+              borderBottom: '1px solid rgba(0, 0, 0, 0.1)',
+              fontSize: '1.1rem',
+              textAlign: isMenuOpen ? 'left' : 'center',
+            }}
+          >
+            {isMenuOpen ? 'Configuración' : '⚙️'}
+          </Typography>
+  
+          {tabs.map((label, index) => (
+            <Button
+              key={label}
+              onClick={() => handleTabChange(index)}
+              sx={{
+                justifyContent: isMenuOpen ? 'flex-start' : 'center',
+                width: '100%',
+                py: 1.5,
+                px: isMenuOpen ? 2.5 : 1,
+                color: selectedTab === index ? '#FFFFFF' : '#1A1A40',
+                bgcolor: selectedTab === index ? '#3A3A8A' : 'transparent',
+                textAlign: 'left',
+                borderRadius: '6px',
+                fontSize: '0.9rem',
+                fontWeight: selectedTab === index ? 'bold' : 'medium',
+                transition: 'background-color 0.2s ease, color 0.2s ease',
+                mb: 0.5,
+                display: 'flex',
+                alignItems: 'center',
+                '&:hover': {
+                  bgcolor: selectedTab === index ? '#3A3A8A' : 'rgba(58, 58, 138, 0.15)',
+                  color: selectedTab === index ? '#FFFFFF' : '#1A1A40',
+                },
+                boxShadow: selectedTab === index ? '0px 4px 6px rgba(58, 58, 138, 0.2)' : 'none',
+              }}
+            >
+              {isMenuOpen && label}
+            </Button>
+          ))}
+        </Box>
+  
+        {/* Área de contenido principal */}
         <Box
           component="main"
           sx={{
             flexGrow: 1,
             p: 4,
+            marginLeft: isMenuOpen ? '440px' : '270px',
             transition: 'margin-left 0.3s ease',
-            marginLeft: isMenuOpen ? '240px' : '70px',
-            bgcolor: '#F9FAFC',
+            bgcolor: 'transparent', // Hacer el fondo transparente para que use el fondo del contenedor externo
             borderRadius: 3,
             overflow: 'auto',
           }}
         >
           <Container maxWidth="lg">
-            <Typography variant="h4" gutterBottom sx={{ color: '#1A1A40', fontWeight: 'bold' }}>
-              Configuración de Perfil
-            </Typography>
-            <Divider sx={{ mb: 4 }} />
+          {selectedTab === 0 && (
+            <Box>
+              <Typography variant="h4" gutterBottom sx={{ color: '#1A1A40', fontWeight: 'bold' }}>
+                Configuración de Perfil
+              </Typography>
 
-            <Grid container spacing={3}>
-              {/* Sección de Perfil */}
-              <Grid item xs={12} md={4}>
-                <motion.div
-                  initial={{ opacity: 0, x: -50 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.7 }}
-                  whileHover={{ scale: 1.05 }}
-                  style={{ display: 'flex', flexDirection: 'column', height: '100%' }}
-                >
+              <Grid container spacing={3}>
+                {/* Sección Editar Perfil */}
+                <Grid item xs={12} md={4}>
                   <Card
                     sx={{
                       textAlign: 'center',
                       padding: '30px',
-                      flex: 1,
-                      display: 'flex',
-                      flexDirection: 'column',
-                      justifyContent: 'space-between',
                       borderRadius: 5,
                       boxShadow: '0px 10px 30px rgba(0,0,0,0.15)',
-                      background: 'linear-gradient(145deg, #f0f0f0, #cacaca)',
-                      transition: 'all 0.3s ease',
+                      bgcolor: '#f0f0f0',
                     }}
                   >
-                    <Box>
                     <Avatar
                       sx={{
                         bgcolor: '#1A1A40',
@@ -131,103 +214,64 @@ const Profile = () => {
                         height: 100,
                         fontSize: 50,
                         mx: 'auto',
-                        marginBottom: 2,
-                        transition: 'all 0.3s ease',
+                        mb: 2,
+                      }}
+                    >
+                      {user?.name?.charAt(0)}
+                    </Avatar>
+                    <Typography variant="h6" sx={{ fontWeight: '600', mb: 2 }}>
+                      {user?.name || "Nombre no disponible"}
+                    </Typography>
+                    <Typography variant="body2" color="textSecondary" sx={{ mb: 3 }}>
+                      {user?.email || "Email no disponible"}
+                    </Typography>
+                    <Button variant="outlined" fullWidth sx={{ mb: 2 }}>
+                      Cambiar Foto
+                    </Button>
+                    <Button
+                      variant="text"
+                      color="error"
+                      fullWidth
+                      onClick={logout}
+                      sx={{
                         '&:hover': {
-                          transform: 'scale(1.05)',
+                          color: '#ff4d4f',
                         },
                       }}
                     >
-                      {/* Mostrar la inicial del nombre del usuario */}
-                      {user?.name?.charAt(0)}
-                    </Avatar>
-
-                      <Typography variant="h6" sx={{ fontWeight: '600' }}>
-                        {/* Mostrar el nombre del usuario */}
-                        {user?.name || "Nombre no disponible"}
-                      </Typography>
-                      <Typography variant="body2" color="textSecondary" sx={{ marginBottom: 2 }}>
-                        {/* Mostrar el correo del usuario */}
-                        {user?.email || "Email no disponible"}
-                      </Typography>
-                    </Box>
-                    <Box>
-                      <Button variant="outlined" fullWidth sx={{ padding: '10px 20px', marginBottom: 2, borderRadius: 3 }}>
-                        Cambiar Foto
-                      </Button>
-                      <Button
-                        variant="text"
-                        color="error"
-                        fullWidth
-                        onClick={logout}
-                        sx={{
-                          transition: 'color 0.3s ease',
-                          '&:hover': {
-                            color: '#ff4d4f',
-                          },
-                        }}
-                      >
-                        Eliminar Cuenta
-                      </Button>
-                    </Box>
+                      Eliminar Cuenta
+                    </Button>
                   </Card>
-                </motion.div>
-              </Grid>
+                </Grid>
 
-              {/* Sección de Editar Perfil */}
-              <Grid item xs={12} md={8}>
-                <motion.div
-                  initial={{ opacity: 0, x: 50 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.7 }}
-                  whileHover={{ scale: 1.02 }}
-                  style={{ display: 'flex', flexDirection: 'column', height: '100%' }}
-                >
+                {/* Sección de Formulario para Editar Perfil */}
+                <Grid item xs={12} md={8}>
                   <Card
                     sx={{
                       padding: '30px',
-                      flex: 1,
                       borderRadius: 5,
                       boxShadow: '0px 10px 30px rgba(0,0,0,0.15)',
-                      background: '#FFFFFF',
+                      bgcolor: '#FFFFFF',
                       border: '1px solid rgba(255, 255, 255, 0.3)',
-                      transition: 'all 0.3s ease',
                     }}
                   >
-                    <Typography variant="h5" gutterBottom sx={{ color: '#1A1A40', fontWeight: '500' }}>
+                    <Typography variant="h5" gutterBottom sx={{ color: '#1A1A40', fontWeight: '500', mb: 3 }}>
                       Editar Perfil
                     </Typography>
                     <Grid container spacing={2}>
                       <Grid item xs={12} sm={6}>
-                        <TextField
-                          fullWidth
-                          label="Nombre"
-                          variant="outlined"
-                          sx={{ marginBottom: 2 }}
-                          defaultValue={user?.name || ""} // Usar el nombre del usuario
-                        />
+                        <TextField fullWidth label="Nombre" variant="outlined" defaultValue={user?.name || ""} />
                       </Grid>
                       <Grid item xs={12} sm={6}>
-                        <TextField
-                          fullWidth
-                          label="Apellidos"
-                          variant="outlined"
-                          sx={{ marginBottom: 2 }}
-                        />
+                        <TextField fullWidth label="Apellidos" variant="outlined" />
                       </Grid>
                     </Grid>
-                    
-                    <TextField
-                      fullWidth
-                      label="Correo Electrónico"
-                      variant="outlined"
-                      sx={{ marginBottom: 3 }}
-                      defaultValue={user?.email || ""} // Usar el email del usuario
-                    />
+                    <TextField fullWidth label="Correo Electrónico" variant="outlined" defaultValue={user?.email || ""} sx={{ mt: 3 }} />
                     <Button
                       variant="contained"
+                      fullWidth
                       sx={{
-                        width: '100%',
+                        mt: 3,
                         padding: '12px 0',
                         backgroundColor: '#1A1A40',
                         '&:hover': {
@@ -239,9 +283,9 @@ const Profile = () => {
                     </Button>
                     <Button
                       variant="text"
+                      fullWidth
                       sx={{
-                        width: '100%',
-                        marginTop: 2,
+                        mt: 2,
                         color: '#1A1A40',
                         '&:hover': {
                           color: '#333366',
@@ -251,414 +295,708 @@ const Profile = () => {
                       Cambiar Contraseña
                     </Button>
                   </Card>
-                </motion.div>
+                </Grid>
               </Grid>
-            </Grid>
 
-            <Divider sx={{ my: 4 }} />
+              {/* Sección Datos Fiscales */}
+              <Typography variant="h5" gutterBottom sx={{ color: '#1A1A40', fontWeight: '500', mt: 5 }}>
+                Datos Fiscales
+              </Typography>
+              <Card
+                sx={{
+                  borderRadius: 5,
+                  boxShadow: '0px 10px 30px rgba(0,0,0,0.15)',
+                  bgcolor: '#FFFFFF',
+                  p: 3,
+                  mb: 4,
+                }}
+              >
+                <Grid container spacing={2}>
+                  <Grid item xs={12} sm={6}>
+                    <TextField fullWidth label="Nombre de la Empresa" variant="outlined" />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField fullWidth label="NIF" variant="outlined" />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField fullWidth label="Nombre Comercial" variant="outlined" />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField fullWidth label="Identificador VAT" variant="outlined" />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField fullWidth label="Dirección" variant="outlined" />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField fullWidth label="Código Postal" variant="outlined" />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField fullWidth label="Provincia" variant="outlined" select>
+                      {/* Aquí puedes añadir opciones */}
+                    </TextField>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField fullWidth label="País" variant="outlined" select>
+                      {/* Aquí puedes añadir opciones */}
+                    </TextField>
+                  </Grid>
+                </Grid>
+              </Card>
 
-            {/* Sección: Configuración */}
-            <Typography variant="h5" gutterBottom sx={{ color: '#1A1A40', fontWeight: '500' }}>
-              Configuración
-            </Typography>
-            <Card
-              sx={{
-                borderRadius: 5,
-                boxShadow: '0px 10px 30px rgba(0,0,0,0.15)',
-                background: 'linear-gradient(145deg, #f0f0f0, #cacaca)',
-                backdropFilter: 'blur(10px)',
-              }}
-            >
-              <CardContent>
-                <Tabs
-                  value={value}
-                  onChange={handleChange}
-                  aria-label="configuración tabs"
-                  variant="scrollable"
-                  scrollButtons="auto"
+              {/* Sección Datos de Contacto */}
+              <Typography variant="h5" gutterBottom sx={{ color: '#1A1A40', fontWeight: '500' }}>
+                Datos de Contacto
+              </Typography>
+              <Card
+                sx={{
+                  borderRadius: 5,
+                  boxShadow: '0px 10px 30px rgba(0,0,0,0.15)',
+                  bgcolor: '#FFFFFF',
+                  p: 3,
+                  mb: 4,
+                }}
+              >
+                <Grid container spacing={2}>
+                  <Grid item xs={12} sm={6}>
+                    <TextField fullWidth label="Email" variant="outlined" />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField fullWidth label="Teléfono" variant="outlined" />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField fullWidth label="Sitio Web" variant="outlined" />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField fullWidth label="Móvil" variant="outlined" />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField fullWidth label="Dirección de Envío" variant="outlined" />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <Button variant="outlined" sx={{ width: '100%' }}>Añadir Dirección</Button>
+                  </Grid>
+                </Grid>
+              </Card>
+            </Box>
+          )}
+
+
+            
+            {selectedTab === 1 && (
+              <Box
+                sx={{
+                  bgcolor: '#F7F9FC', // Fondo suave para diferenciar
+                  padding: 4,
+                  borderRadius: 2,
+                  boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)',
+                }}
+              >
+                <Typography variant="h5" gutterBottom sx={{ color: '#1A1A40', fontWeight: '600' }}>
+                  Preferencias
+                </Typography>
+                <Divider sx={{ mb: 3 }} />
+                <Grid container spacing={3}>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      label="Moneda"
+                      variant="outlined"
+                      select
+                      defaultValue="EUR"
+                      sx={{
+                        bgcolor: '#FFFFFF', // Fondo blanco en los selectores
+                        borderRadius: 1,
+                        '& .MuiOutlinedInput-notchedOutline': {
+                          borderColor: '#d3d3d3',
+                        },
+                        '&:hover .MuiOutlinedInput-notchedOutline': {
+                          borderColor: '#1A1A40',
+                        },
+                      }}
+                    >
+                      <MenuItem value="EUR">Euro (EUR)</MenuItem>
+                      <MenuItem value="USD">Dólar (USD)</MenuItem>
+                      <MenuItem value="GBP">Libra (GBP)</MenuItem>
+                    </TextField>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      label="Formato numérico"
+                      variant="outlined"
+                      select
+                      defaultValue="1,593.50"
+                      sx={{
+                        bgcolor: '#FFFFFF',
+                        borderRadius: 1,
+                        '& .MuiOutlinedInput-notchedOutline': {
+                          borderColor: '#d3d3d3',
+                        },
+                        '&:hover .MuiOutlinedInput-notchedOutline': {
+                          borderColor: '#1A1A40',
+                        },
+                      }}
+                    >
+                      <MenuItem value="1,593.50">1,593.50</MenuItem>
+                      <MenuItem value="1.593,50">1.593,50</MenuItem>
+                    </TextField>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      label="Decimales"
+                      variant="outlined"
+                      select
+                      defaultValue="2"
+                      sx={{
+                        bgcolor: '#FFFFFF',
+                        borderRadius: 1,
+                        '& .MuiOutlinedInput-notchedOutline': {
+                          borderColor: '#d3d3d3',
+                        },
+                        '&:hover .MuiOutlinedInput-notchedOutline': {
+                          borderColor: '#1A1A40',
+                        },
+                      }}
+                    >
+                      <MenuItem value="0">0</MenuItem>
+                      <MenuItem value="1">1</MenuItem>
+                      <MenuItem value="2">2</MenuItem>
+                    </TextField>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      label="Zona horaria"
+                      variant="outlined"
+                      select
+                      defaultValue="Europe/Madrid"
+                      sx={{
+                        bgcolor: '#FFFFFF',
+                        borderRadius: 1,
+                        '& .MuiOutlinedInput-notchedOutline': {
+                          borderColor: '#d3d3d3',
+                        },
+                        '&:hover .MuiOutlinedInput-notchedOutline': {
+                          borderColor: '#1A1A40',
+                        },
+                      }}
+                    >
+                      <MenuItem value="Europe/Madrid">Europa/Madrid</MenuItem>
+                      <MenuItem value="America/New_York">América/Nueva York</MenuItem>
+                      <MenuItem value="Asia/Tokyo">Asia/Tokio</MenuItem>
+                    </TextField>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      label="Idioma"
+                      variant="outlined"
+                      select
+                      defaultValue="Español"
+                      sx={{
+                        bgcolor: '#FFFFFF',
+                        borderRadius: 1,
+                        '& .MuiOutlinedInput-notchedOutline': {
+                          borderColor: '#d3d3d3',
+                        },
+                        '&:hover .MuiOutlinedInput-notchedOutline': {
+                          borderColor: '#1A1A40',
+                        },
+                      }}
+                    >
+                      <MenuItem value="Español">Español</MenuItem>
+                      <MenuItem value="Inglés">Inglés</MenuItem>
+                      <MenuItem value="Francés">Francés</MenuItem>
+                    </TextField>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      label="Formato de fecha"
+                      variant="outlined"
+                      select
+                      defaultValue="dd/mm/yyyy"
+                      sx={{
+                        bgcolor: '#FFFFFF',
+                        borderRadius: 1,
+                        '& .MuiOutlinedInput-notchedOutline': {
+                          borderColor: '#d3d3d3',
+                        },
+                        '&:hover .MuiOutlinedInput-notchedOutline': {
+                          borderColor: '#1A1A40',
+                        },
+                      }}
+                    >
+                      <MenuItem value="dd/mm/yyyy">dd/mm/yyyy</MenuItem>
+                      <MenuItem value="mm/dd/yyyy">mm/dd/yyyy</MenuItem>
+                      <MenuItem value="yyyy-mm-dd">yyyy-mm-dd</MenuItem>
+                    </TextField>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      label="Color corporativo"
+                      variant="outlined"
+                      type="color"
+                      defaultValue="#f24141"
+                      sx={{
+                        bgcolor: '#FFFFFF',
+                        borderRadius: 1,
+                        '& .MuiOutlinedInput-notchedOutline': {
+                          borderColor: '#d3d3d3',
+                        },
+                      }}
+                    />
+                  </Grid>
+                </Grid>
+                <Button
+                  variant="contained"
                   sx={{
-                    '& .MuiTabs-flexContainer': {
-                      justifyContent: 'space-between',
+                    mt: 4,
+                    bgcolor: '#1A1A40',
+                    color: '#FFFFFF',
+                    fontWeight: 'bold',
+                    '&:hover': {
+                      bgcolor: '#333366',
                     },
                   }}
                 >
-                  <Tab label="Cuenta" {...a11yProps(0)} />
-                  <Tab label="Email" {...a11yProps(1)} />
-                  <Tab label="Facturación" {...a11yProps(2)} />
-                  <Tab label="Preferencias" {...a11yProps(3)} />
-                  <Tab label="Plantillas de Documentos" {...a11yProps(4)} />
-                  <Tab label="Formas de Pago" {...a11yProps(5)} />
-                  <Tab label="Impuestos" {...a11yProps(6)} />
-                  <Tab label="Certificado Electrónico" {...a11yProps(7)} />
-                  <Tab label="Suscripción" {...a11yProps(8)} />
-                  <Tab label="Calendario" {...a11yProps(9)} />
-                  <Tab label="Contactos Recomendados" {...a11yProps(10)} />
-                  <Tab label="Importar" {...a11yProps(11)} />
-                  <Tab label="Votar Mejoras" {...a11yProps(12)} />
-                  <Tab label="Añadir Cuenta" {...a11yProps(13)} />
-                  <Tab label="Cerrar Sesión" {...a11yProps(14)} sx={{ color: 'red' }} onClick={logout} />
-                </Tabs>
+                  Guardar Cambios
+                </Button>
+              </Box>
+            )}
+            {selectedTab === 5 && (
+              <Box
+                sx={{
+                  bgcolor: '#F7F9FC',
+                  padding: 4,
+                  borderRadius: 2,
+                  boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)',
+                  maxWidth: '800px', // Limitar el ancho
+                  margin: '0 auto' // Centrar
+                }}
+              >
+                <Typography variant="h5" gutterBottom sx={{ color: '#1A1A40', fontWeight: '600' }}>
+                  Suscripción
+                </Typography>
+                <Divider sx={{ mb: 3 }} />
 
-                {/* Ejemplo de Contenidos para Cada Pestaña */}
-                <Box sx={{ p: 3, maxHeight: '400px', overflow: 'auto' }}>
-                  {value === 0 && (
-                    <Box>
-                      <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>Información de la Cuenta</Typography>
-                      <Typography variant="body2" gutterBottom sx={{ color: 'textSecondary', mb: 2 }}>
-                        Aquí puedes ver y actualizar la información de tu cuenta.
-                      </Typography>
-                      <TextField fullWidth label="Nombre de Usuario" variant="outlined" defaultValue={user?.name || "Usuario"} sx={{ mb: 2 }} />
-                      <TextField fullWidth label="Rol de Usuario" variant="outlined" defaultValue="Administrador" sx={{ mb: 2 }} />
-                      <Button variant="outlined" sx={{ width: '100%', mb: 2 }}>Guardar Cambios</Button>
-                    </Box>
-                  )}
-                  {value === 1 && (
-                    <Box>
-                      <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>Envío de emails</Typography>
-                      <Typography variant="body2" gutterBottom sx={{ color: 'textSecondary', mb: 2 }}>
-                        Escoge y configura el método de envío según tu proveedor de servicios de email.
-                      </Typography>
-                      <Grid container spacing={2}>
-                        <Grid item xs={12} sm={6}>
-                          <TextField fullWidth label="Sistema de envío" variant="outlined" select defaultValue="Enviar desde Holded">
-                            <option value="Enviar desde Holded">Enviar desde Holded</option>
-                            <option value="Otro">Otro</option>
-                          </TextField>
-                        </Grid>
-                        <Grid item xs={12} sm={6}>
-                          <Button variant="outlined" sx={{ width: '100%' }}>Historial</Button>
-                        </Grid>
-                      </Grid>
-                      <Grid container spacing={2} mt={2}>
-                        <Grid item xs={12} sm={6}>
-                          <TextField fullWidth label="Nombre del email" variant="outlined" defaultValue="Fermaplastics" />
-                        </Grid>
-                        <Grid item xs={12} sm={6}>
-                          <TextField fullWidth label="Responder a" variant="outlined" defaultValue="info@fermaplastics.com" />
-                        </Grid>
-                      </Grid>
-                      <Grid container spacing={2} mt={2}>
-                        <Grid item xs={12} sm={6}>
-                          <TextField fullWidth label="Enviar desde" variant="outlined" defaultValue="info@fermaplastics.com" />
-                        </Grid>
-                        <Grid item xs={12} sm={6}>
-                          <TextField fullWidth label="CC" variant="outlined" defaultValue="" />
-                        </Grid>
-                      </Grid>
-                      <TextField fullWidth label="BCC - Correos en copia no visibles" variant="outlined" defaultValue="" sx={{ mt: 2 }} />
-                    </Box>
-                  )}
-                  {value === 2 && (
-                    <Box>
-                      <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>Configuración de Facturación</Typography>
-                      <Typography variant="body2" gutterBottom sx={{ color: 'textSecondary', mb: 2 }}>
-                        Configura tus preferencias de facturación y revisa tu historial de pagos.
-                      </Typography>
-                      <TextField fullWidth label="Dirección de Facturación" variant="outlined" defaultValue="Calle Falsa 123" sx={{ mb: 2 }} />
-                      <TextField fullWidth label="Método de Pago Predeterminado" variant="outlined" select defaultValue="Tarjeta de Crédito">
-                        <option value="Tarjeta de Crédito">Tarjeta de Crédito</option>
-                        <option value="Transferencia Bancaria">Transferencia Bancaria</option>
-                        <option value="PayPal">PayPal</option>
-                      </TextField>
-                      <Button variant="outlined" sx={{ width: '100%', mt: 2 }}>Actualizar Información de Facturación</Button>
-                    </Box>
-                  )}
-                  {value === 3 && (
-                    <Box>
-                      <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>Preferencias de Usuario</Typography>
-                      <Typography variant="body2" gutterBottom sx={{ color: 'textSecondary', mb: 2 }}>
-                        Ajusta tus preferencias de usuario como idioma, formato de fecha y notificaciones.
-                      </Typography>
-                      <TextField fullWidth label="Idioma" variant="outlined" select defaultValue="Español" sx={{ mb: 2 }}>
-                        <option value="Español">Español</option>
-                        <option value="Inglés">Inglés</option>
-                        <option value="Francés">Francés</option>
-                      </TextField>
-                      <TextField fullWidth label="Zona Horaria" variant="outlined" select defaultValue="GMT-5" sx={{ mb: 2 }}>
-                        <option value="GMT-5">GMT-5</option>
-                        <option value="GMT+0">GMT+0</option>
-                        <option value="GMT+1">GMT+1</option>
-                      </TextField>
-                      <Button variant="outlined" sx={{ width: '100%', mt: 2 }}>Guardar Preferencias</Button>
-                    </Box>
-                  )}
-                  <Box sx={{ p: 3, maxHeight: '400px', overflow: 'auto' }}>
-                    {value === 4 && (
-                      <Box>
-                        <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>Plantillas de Documentos</Typography>
-                        <Typography variant="body2" gutterBottom sx={{ color: 'textSecondary', mb: 2 }}>
-                          Gestiona y edita tus plantillas de documentos.
-                        </Typography>
-                        <Button variant="outlined" fullWidth sx={{ mb: 2 }}>
-                          Añadir Nueva Plantilla
-                        </Button>
-                        <TextField
-                          fullWidth
-                          label="Buscar Plantillas"
-                          variant="outlined"
-                          sx={{ mb: 2 }}
-                        />
-                        <Button variant="outlined" sx={{ width: '100%' }}>
-                          Ver Plantillas Guardadas
-                        </Button>
-                      </Box>
-                    )}
-                    {value === 5 && (
-                      <Box>
-                        <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>Formas de Pago</Typography>
-                        <Typography variant="body2" gutterBottom sx={{ color: 'textSecondary', mb: 2 }}>
-                          Configura y actualiza tus métodos de pago.
-                        </Typography>
-                        <TextField
-                          fullWidth
-                          label="Añadir Nueva Forma de Pago"
-                          variant="outlined"
-                          sx={{ mb: 2 }}
-                        />
-                        <Button variant="outlined" sx={{ width: '100%', mb: 2 }}>
-                          Añadir
-                        </Button>
-                        <Typography variant="body2" gutterBottom>
-                          Formas de pago actuales:
-                        </Typography>
-                        <Table>
-                          <TableHead>
-                            <TableRow>
-                              <TableCell>Método</TableCell>
-                              <TableCell>Detalles</TableCell>
-                              <TableCell>Acciones</TableCell>
-                            </TableRow>
-                          </TableHead>
-                          <TableBody>
-                            <TableRow>
-                              <TableCell>Tarjeta de Crédito</TableCell>
-                              <TableCell>Visa **** 1234</TableCell>
-                              <TableCell>
-                                <Button variant="text" color="error">
-                                  Eliminar
-                                </Button>
-                              </TableCell>
-                            </TableRow>
-                          </TableBody>
-                        </Table>
-                      </Box>
-                    )}
-                    {value === 6 && (
-                      <Box>
-                        <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>Impuestos</Typography>
-                        <Typography variant="body2" gutterBottom sx={{ color: 'textSecondary', mb: 2 }}>
-                          Administra las configuraciones de impuestos para tu cuenta.
-                        </Typography>
-                        <TextField
-                          fullWidth
-                          label="Tasa de Impuesto Predeterminada"
-                          variant="outlined"
-                          sx={{ mb: 2 }}
-                          defaultValue="21%"
-                        />
-                        <Button variant="outlined" sx={{ width: '100%', mb: 2 }}>
-                          Actualizar Impuestos
-                        </Button>
-                        <Typography variant="body2" gutterBottom>
-                          Configuraciones de impuestos adicionales:
-                        </Typography>
-                        <Table>
-                          <TableHead>
-                            <TableRow>
-                              <TableCell>Nombre</TableCell>
-                              <TableCell>Tasa</TableCell>
-                              <TableCell>Acciones</TableCell>
-                            </TableRow>
-                          </TableHead>
-                          <TableBody>
-                            <TableRow>
-                              <TableCell>IVA</TableCell>
-                              <TableCell>21%</TableCell>
-                              <TableCell>
-                                <Button variant="text" color="error">
-                                  Eliminar
-                                </Button>
-                              </TableCell>
-                            </TableRow>
-                          </TableBody>
-                        </Table>
-                      </Box>
-                    )}
-                    {value === 7 && (
-                      <Box>
-                        <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>Certificado Electrónico</Typography>
-                        <Typography variant="body2" gutterBottom sx={{ color: 'textSecondary', mb: 2 }}>
-                          Configura tu certificado electrónico para la firma digital de documentos.
-                        </Typography>
-                        <Button variant="outlined" sx={{ width: '100%', mb: 2 }}>
-                          Subir Certificado
-                        </Button>
-                        <TextField
-                          fullWidth
-                          label="Contraseña del Certificado"
-                          type="password"
-                          variant="outlined"
-                          sx={{ mb: 2 }}
-                        />
-                        <Button variant="outlined" sx={{ width: '100%' }}>
-                          Guardar Certificado
-                        </Button>
-                      </Box>
-                    )}
-                    {value === 8 && (
-                      <Box>
-                        <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>Suscripción</Typography>
-                        <Typography variant="body2" gutterBottom sx={{ color: 'textSecondary', mb: 2 }}>
-                          Administra tu suscripción y revisa tu plan actual.
-                        </Typography>
-                        <TextField
-                          fullWidth
-                          label="Tipo de Suscripción"
-                          variant="outlined"
-                          defaultValue="Premium"
-                          disabled
-                          sx={{ mb: 2 }}
-                        />
-                        <Button variant="outlined" sx={{ width: '100%', mb: 2 }}>
-                          Actualizar Plan
-                        </Button>
-                        <Button variant="outlined" color="error" sx={{ width: '100%' }}>
-                          Cancelar Suscripción
-                        </Button>
-                      </Box>
-                    )}
-                    {value === 9 && (
-                      <Box>
-                        <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>Calendario</Typography>
-                        <Typography variant="body2" gutterBottom sx={{ color: 'textSecondary', mb: 2 }}>
-                          Configura las preferencias de tu calendario.
-                        </Typography>
-                        <TextField
-                          fullWidth
-                          label="Zona Horaria"
-                          variant="outlined"
-                          select
-                          defaultValue="GMT-5"
-                          sx={{ mb: 2 }}
-                        >
-                          <option value="GMT-5">GMT-5</option>
-                          <option value="GMT+0">GMT+0</option>
-                          <option value="GMT+1">GMT+1</option>
-                        </TextField>
-                        <Button variant="outlined" sx={{ width: '100%' }}>
-                          Guardar Configuración del Calendario
-                        </Button>
-                      </Box>
-                    )}
-                    {value === 10 && (
-                      <Box>
-                        <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>Contactos Recomendados</Typography>
-                        <Typography variant="body2" gutterBottom sx={{ color: 'textSecondary', mb: 2 }}>
-                          Revisa y administra tus contactos recomendados.
-                        </Typography>
-                        <TextField
-                          fullWidth
-                          label="Buscar Contacto"
-                          variant="outlined"
-                          sx={{ mb: 2 }}
-                        />
-                        <Button variant="outlined" sx={{ width: '100%' }}>
-                          Buscar
-                        </Button>
-                        <Typography variant="body2" gutterBottom>
-                          Contactos recomendados:
-                        </Typography>
-                        <Table>
-                          <TableHead>
-                            <TableRow>
-                              <TableCell>Nombre</TableCell>
-                              <TableCell>Email</TableCell>
-                              <TableCell>Acciones</TableCell>
-                            </TableRow>
-                          </TableHead>
-                          <TableBody>
-                            <TableRow>
-                              <TableCell>Juan Pérez</TableCell>
-                              <TableCell>juan.perez@example.com</TableCell>
-                              <TableCell>
-                                <Button variant="text" color="error">
-                                  Eliminar
-                                </Button>
-                              </TableCell>
-                            </TableRow>
-                          </TableBody>
-                        </Table>
-                      </Box>
-                    )}
-                    {value === 11 && (
-                      <Box>
-                        <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>Importar</Typography>
-                        <Typography variant="body2" gutterBottom sx={{ color: 'textSecondary', mb: 2 }}>
-                          Importa datos desde otros servicios o archivos.
-                        </Typography>
-                        <Button variant="outlined" sx={{ width: '100%', mb: 2 }}>
-                          Importar desde Excel
-                        </Button>
-                        <Button variant="outlined" sx={{ width: '100%' }}>
-                          Importar desde Google Sheets
-                        </Button>
-                      </Box>
-                    )}
-                    {value === 12 && (
-                      <Box>
-                        <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>Votar Mejoras</Typography>
-                        <Typography variant="body2" gutterBottom sx={{ color: 'textSecondary', mb: 2 }}>
-                          Vota por nuevas características o mejoras en la plataforma.
-                        </Typography>
-                        <TextField
-                          fullWidth
-                          label="Buscar Sugerencias"
-                          variant="outlined"
-                          sx={{ mb: 2 }}
-                        />
-                        <Button variant="outlined" sx={{ width: '100%' }}>
-                          Ver Sugerencias
-                        </Button>
-                      </Box>
-                    )}
-                    {value === 13 && (
-                      <Box>
-                        <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>Añadir Cuenta</Typography>
-                        <Typography variant="body2" gutterBottom sx={{ color: 'textSecondary', mb: 2 }}>
-                          Añade una nueva cuenta de usuario al sistema.
-                        </Typography>
-                        <TextField
-                          fullWidth
-                          label="Email de la Nueva Cuenta"
-                          variant="outlined"
-                          sx={{ mb: 2 }}
-                        />
-                        <Button variant="outlined" sx={{ width: '100%' }}>
-                          Añadir Cuenta
-                        </Button>
-                      </Box>
-                    )}
-                    {value === 14 && (
-                      <Box>
-                        <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>Cerrar Sesión</Typography>
-                        <Typography variant="body2" gutterBottom sx={{ color: 'textSecondary', mb: 2 }}>
-                          ¿Seguro que quieres cerrar sesión?
-                        </Typography>
-                        <Button variant="contained" color="error" sx={{ width: '100%' }} onClick={logout}>
-                          Cerrar Sesión
-                        </Button>
-                      </Box>
-                    )}
-                  </Box>
-
-                  {/* Añadir más ejemplos según las pestañas */}
+                {/* Plan Actual */}
+                <Box sx={{ mb: 4 }}>
+                  <Typography variant="body1" sx={{ fontWeight: 'bold', color: '#1A1A40' }}>Plan actual:</Typography>
+                  <Typography variant="h6" sx={{ color: '#333366' }}>Autónomo básico</Typography>
+                  <Typography variant="body2" sx={{ color: '#555', display: 'flex', alignItems: 'center', mt: 1 }}>
+                    <span>4,99€</span>
+                    <span style={{ marginLeft: '5px', color: '#1A1A40' }}>/mes</span>
+                    <Button
+                      onClick={() => alert("Redirigiendo a comparar planes...")}
+                      sx={{ ml: 'auto', color: '#0066cc', fontWeight: 'bold', textDecoration: 'underline' }}
+                    >
+                      Comparar planes
+                    </Button>
+                  </Typography>
                 </Box>
-              </CardContent>
-            </Card>
+
+                {/* Extras del Plan */}
+                <Box sx={{ mb: 4 }}>
+                  <Typography variant="body1" sx={{ fontWeight: 'bold', color: '#1A1A40' }}>Extras del plan:</Typography>
+                  <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    <Card sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)' }}>
+                      <Typography>Plan trabajador 5</Typography>
+                      <Typography variant="body2" sx={{ color: '#333366' }}>4,99€/mes</Typography>
+                    </Card>
+                    <Card sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)' }}>
+                      <Typography>Inventario</Typography>
+                      <Typography variant="body2" sx={{ color: '#333366' }}>25,00€/mes</Typography>
+                    </Card>
+                  </Box>
+                </Box>
+
+                {/* Información de Pago */}
+                <Box sx={{ mb: 4 }}>
+                  <Typography variant="body1" sx={{ fontWeight: 'bold', color: '#1A1A40' }}>Información de pago:</Typography>
+                  <Typography
+                    variant="body2"
+                    sx={{ color: '#0066cc', mb: 1, cursor: 'pointer', textDecoration: 'underline' }}
+                    onClick={() => alert("Redirigiendo a ver facturas...")}
+                  >
+                    Ver facturas
+                  </Typography>
+                  <Typography variant="body2" sx={{ mb: 1 }}>Próxima factura: 34,98€ - 15/11/2024</Typography>
+
+                  {/* Forma de Pago */}
+                  <Box sx={{ display: 'flex', alignItems: 'center', mt: 2, gap: 2 }}>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        backgroundColor: '#e0e3ea',
+                        padding: '10px 20px',
+                        borderRadius: '8px',
+                        gap: 2,
+                        minWidth: '280px'
+                      }}
+                    >
+                      {/* Usar icono de Visa */}
+                      <SiVisa color="#1A1A40" size={28} />
+                      <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                        <Typography sx={{ fontWeight: 'bold' }}>VISA</Typography>
+                        <Typography sx={{ fontSize: '0.9rem' }}>Acabada en 8727 - Expira 08/2029</Typography>
+                      </Box>
+                      <Button onClick={() => alert("Establecer como predeterminado")} sx={{ color: '#0066cc', fontSize: '0.75rem', ml: 'auto' }}>
+                        Predeterminada
+                      </Button>
+                    </Box>
+                    <Button
+                      variant="outlined"
+                      onClick={() => alert("Añadir nuevo método de pago")}
+                      sx={{ color: '#0066cc', borderColor: '#0066cc' }}
+                    >
+                      Añadir
+                    </Button>
+                  </Box>
+                </Box>
+
+                {/* Dirección de Facturación */}
+                <Box>
+                  <Typography variant="body1" sx={{ fontWeight: 'bold', color: '#1A1A40' }}>Dirección de facturación:</Typography>
+                  <Typography variant="body2" sx={{ mt: 1 }}>
+                    Félix Martínez Fernández <br />
+                    info@hubmasoft.com <br />
+                    48095109T <br />
+                    Avda. Juan Carlos, 103, Vic, 08500, Barcelona <br />
+                    España, ES
+                  </Typography>
+                  <Button
+                    variant="outlined"
+                    onClick={() => alert("Editar dirección de facturación")}
+                    sx={{ color: '#0066cc', borderColor: '#0066cc', mt: 1 }}
+                  >
+                    Editar
+                  </Button>
+                </Box>
+              </Box>
+            )}
+            {selectedTab === 4 && (
+              <Box
+                sx={{
+                  bgcolor: '#F7F9FC',
+                  padding: 4,
+                  borderRadius: 2,
+                  boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)',
+                  maxWidth: '900px',
+                  margin: '0 auto',
+                }}
+              >
+                <Typography variant="h5" gutterBottom sx={{ color: '#1A1A40', fontWeight: '600' }}>
+                  Impuestos
+                </Typography>
+                <Divider sx={{ mb: 3 }} />
+
+                {/* Botón para añadir impuestos */}
+                <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+                  <Button
+                    variant="contained"
+                    onClick={() => alert("Abrir modal para añadir impuesto")}
+                    sx={{
+                      bgcolor: '#1A1A40',
+                      color: '#FFFFFF',
+                      fontWeight: 'bold',
+                      '&:hover': {
+                        bgcolor: '#333366',
+                      },
+                      borderRadius: 2,
+                      paddingX: 3,
+                      paddingY: 1,
+                    }}
+                  >
+                    + Añadir impuesto
+                  </Button>
+                </Box>
+
+                {/* Tabla de Impuestos */}
+                <Box sx={{ overflowX: 'auto' }}>
+                  <Table sx={{ minWidth: 650, bgcolor: '#FFFFFF', borderRadius: 2, boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)' }}>
+                    <TableHead>
+                      <TableRow>
+                        <TableCell sx={{ fontWeight: 'bold', color: '#1A1A40', borderBottom: '2px solid #d3d3d3' }}>Nombre</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold', color: '#1A1A40', borderBottom: '2px solid #d3d3d3' }}>Valor</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold', color: '#1A1A40', borderBottom: '2px solid #d3d3d3' }}>Ámbito</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold', color: '#1A1A40', borderBottom: '2px solid #d3d3d3' }}>Grupo</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold', color: '#1A1A40', borderBottom: '2px solid #d3d3d3' }}>Cuenta</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {/* Ejemplo de filas de datos */}
+                      <TableRow>
+                        <TableCell sx={{ color: '#333366' }}>IVA 21%</TableCell>
+                        <TableCell sx={{ color: '#333366' }}>+21%</TableCell>
+                        <TableCell sx={{ color: '#333366' }}>VENTAS</TableCell>
+                        <TableCell sx={{ color: '#333366' }}>IVA</TableCell>
+                        <TableCell sx={{ color: '#333366' }}>47700000 - Hacienda Pública, IVA repercutido</TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell sx={{ color: '#333366' }}>RET 19%</TableCell>
+                        <TableCell sx={{ color: '#333366' }}>-19%</TableCell>
+                        <TableCell sx={{ color: '#333366' }}>VENTAS</TableCell>
+                        <TableCell sx={{ color: '#333366' }}>RETENCIÓN</TableCell>
+                        <TableCell sx={{ color: '#333366' }}>47510000 - Retenciones practicadas</TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell sx={{ color: '#333366' }}>REC 5.2%</TableCell>
+                        <TableCell sx={{ color: '#333366' }}>+5.2%</TableCell>
+                        <TableCell sx={{ color: '#333366' }}>COMPRAS</TableCell>
+                        <TableCell sx={{ color: '#333366' }}>REC. DE EQ.</TableCell>
+                        <TableCell sx={{ color: '#333366' }}>47710000 - IVA soportado</TableCell>
+                      </TableRow>
+                    </TableBody>
+                  </Table>
+                </Box>
+              </Box>
+            )}
+
+
+
+            {selectedTab === 3 && (
+              <Box
+                sx={{
+                  bgcolor: '#F7F9FC', // Fondo suave para diferenciar
+                  padding: 4,
+                  borderRadius: 2,
+                  boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)',
+                }}
+              >
+                <Typography variant="h5" gutterBottom sx={{ color: '#1A1A40', fontWeight: '600' }}>
+                  Formas de pago
+                </Typography>
+                <Divider sx={{ mb: 3 }} />
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                  <Typography variant="body1" sx={{ color: '#1A1A40' }}>
+                    Aquí puedes añadir o ver los métodos de pago para tus documentos.
+                  </Typography>
+                  <Button
+                    variant="contained"
+                    sx={{
+                      bgcolor: '#1A1A40',
+                      color: '#FFFFFF',
+                      fontWeight: 'bold',
+                      borderRadius: '8px',
+                      '&:hover': { bgcolor: '#333366' },
+                    }}
+                    onClick={() => setOpenModal(true)} // Abre el modal para añadir métodos de pago
+                  >
+                    + Añadir método de pago
+                  </Button>
+                </Box>
+            
+                <Grid container spacing={3}>
+                  {/* Ejemplo de método de pago */}
+                  <Grid item xs={12} sm={6}>
+                    <Card sx={{ padding: 3, borderRadius: 2, boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)' }}>
+                      <Typography variant="h6" sx={{ fontWeight: '600', color: '#1A1A40' }}>
+                        Transferencia a 30 días
+                      </Typography>
+                      <Typography variant="body2" sx={{ color: '#555', mt: 1 }}>
+                        Transferencia a 30 días. <br />
+                        <span style={{ fontWeight: 'bold' }}>Cuenta:</span> ESXX XXXX XXXX XXXX XXXX
+                      </Typography>
+                    </Card>
+                  </Grid>
+                  {/* Añade otros métodos de pago aquí si es necesario */}
+                </Grid>
+              </Box>
+            )}
+
+
           </Container>
+          {openModal && (
+            <Box
+              onClick={() => setOpenModal(false)} // Cerrar modal al hacer clic en el fondo oscuro
+              sx={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                bgcolor: 'rgba(0, 0, 0, 0.5)', // Fondo oscuro semitransparente
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                zIndex: 1300, // Asegura que el modal esté por encima de otros elementos
+              }}
+            >
+              {/* Detiene la propagación de clics para evitar el cierre del modal al hacer clic dentro de él */}
+              <Box
+                onClick={(e) => e.stopPropagation()}
+                sx={{
+                  width: '90%',
+                  maxWidth: 600,
+                  bgcolor: '#FFFFFF',
+                  borderRadius: 3,
+                  boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.2)',
+                  p: 4,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 3,
+                }}
+              >
+                <Typography variant="h6" gutterBottom sx={{ color: '#1A1A40', fontWeight: '600' }}>
+                  Añadir método de pago manual
+                </Typography>
+                <Divider sx={{ mb: 3 }} />
+
+                <TextField
+                  fullWidth
+                  label="Nombre interno"
+                  placeholder="Nombre del método de pago"
+                  variant="outlined"
+                  sx={{
+                    bgcolor: '#F3F4F6',
+                    borderRadius: 1,
+                    '& .MuiOutlinedInput-root': {
+                      '& fieldset': {
+                        borderColor: '#d3d3d3',
+                      },
+                      '&:hover fieldset': {
+                        borderColor: '#1A1A40',
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: '#1A1A40',
+                      },
+                    },
+                  }}
+                />
+
+                <TextField
+                  fullWidth
+                  label="Texto que se muestra en el documento"
+                  placeholder="Ejemplo: Pagar por transferencia a..."
+                  multiline
+                  minRows={3}
+                  variant="outlined"
+                  sx={{
+                    bgcolor: '#F3F4F6',
+                    borderRadius: 1,
+                    '& .MuiOutlinedInput-root': {
+                      '& fieldset': {
+                        borderColor: '#d3d3d3',
+                      },
+                      '&:hover fieldset': {
+                        borderColor: '#1A1A40',
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: '#1A1A40',
+                      },
+                    },
+                  }}
+                />
+
+                <TextField
+                  fullWidth
+                  label="Banco"
+                  select
+                  placeholder="Seleccionar banco"
+                  sx={{
+                    bgcolor: '#F3F4F6',
+                    borderRadius: 1,
+                    '& .MuiOutlinedInput-root': {
+                      '& fieldset': {
+                        borderColor: '#d3d3d3',
+                      },
+                      '&:hover fieldset': {
+                        borderColor: '#1A1A40',
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: '#1A1A40',
+                      },
+                    },
+                  }}
+                >
+                  <MenuItem value="Banco1">Banco 1</MenuItem>
+                  <MenuItem value="Banco2">Banco 2</MenuItem>
+                </TextField>
+
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <TextField
+                    label="Vencimiento"
+                    select
+                    fullWidth
+                    placeholder="Días de vencimiento"
+                    sx={{
+                      bgcolor: '#F3F4F6',
+                      borderRadius: 1,
+                      '& .MuiOutlinedInput-root': {
+                        '& fieldset': {
+                          borderColor: '#d3d3d3',
+                        },
+                        '&:hover fieldset': {
+                          borderColor: '#1A1A40',
+                        },
+                        '&.Mui-focused fieldset': {
+                          borderColor: '#1A1A40',
+                        },
+                      },
+                    }}
+                  >
+                    <MenuItem value={15}>15 días</MenuItem>
+                    <MenuItem value={30}>30 días</MenuItem>
+                    <MenuItem value={60}>60 días</MenuItem>
+                  </TextField>
+                </Box>
+
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+                    Incluir el IBAN del cliente debajo del texto:
+                  </Typography>
+                  <TextField
+                    type="checkbox"
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        '& fieldset': {
+                          borderColor: '#d3d3d3',
+                        },
+                        '&:hover fieldset': {
+                          borderColor: '#1A1A40',
+                        },
+                        '&.Mui-focused fieldset': {
+                          borderColor: '#1A1A40',
+                        },
+                      },
+                    }}
+                  />
+                </Box>
+
+                <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
+                  <Button onClick={() => setOpenModal(false)} sx={{ color: '#555' }}>
+                    Cancelar
+                  </Button>
+                  <Button
+                    variant="contained"
+                    sx={{
+                      bgcolor: '#1A1A40',
+                      color: '#FFFFFF',
+                      fontWeight: 'bold',
+                      '&:hover': { bgcolor: '#333366' },
+                    }}
+                    onClick={() => setOpenModal(false)}
+                  >
+                    Guardar
+                  </Button>
+                </Box>
+              </Box>
+            </Box>
+          )}
+
+
+
         </Box>
       </Box>
     </Box>
+    
+    
+
+
   );
 };
 
