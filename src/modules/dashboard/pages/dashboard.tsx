@@ -23,6 +23,8 @@ import {
   Menu,
   Checkbox,
   ListItemText,
+  Avatar,
+  Divider,
 } from "@mui/material";
 import { Bar, Chart } from "react-chartjs-2";
 import {
@@ -326,6 +328,7 @@ const validateForm = (): FormErrors => {
   };
 
   
+
 
 
   return (
@@ -1734,218 +1737,440 @@ const validateForm = (): FormErrors => {
 
         {/* Dialog para completar información del usuario */}
         {/* Dialog para completar información del usuario */}
-        <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
-          <DialogTitle sx={{ fontWeight: "700", fontFamily: "Roboto, sans-serif" }}>
-            {t("dashboard.completeYourInfo")}
-          </DialogTitle>
-          <DialogContent>
-            <DialogContentText sx={{ fontWeight: "400", fontFamily: "Roboto, sans-serif" }}>
-              {t("dashboard.completeInfoDescription")}
-            </DialogContentText>
-            <Box
-              component="form"
-              onSubmit={handleFormSubmit} // Función actualizada para la validación
-              noValidate
-              sx={{ mt: 1 }}
-            >
-              <FormControl component="fieldset" sx={{ mb: 2 }}>
-                <FormLabel component="legend" sx={{ fontWeight: "500", fontFamily: "Roboto, sans-serif" }}>
-                  {t("dashboard.userType")}
-                </FormLabel>
-                <RadioGroup
-                  row
-                  value={userType}
-                  onChange={handleUserTypeChange} // Sigue manejando el tipo de usuario
+        <Dialog open={open} onClose={handleClose} maxWidth="lg" fullWidth>
+  <DialogTitle sx={{ fontWeight: "700", fontFamily: "Roboto, sans-serif" }}>
+    {t("dashboard.completeYourInfo")}
+  </DialogTitle>
+  <DialogContent>
+    <DialogContentText sx={{ fontWeight: "400", fontFamily: "Roboto, sans-serif" }}>
+      {t("dashboard.completeInfoDescription")}
+    </DialogContentText>
+    <Box
+      component="form"
+      onSubmit={handleFormSubmit} // Función actualizada para la validación
+      noValidate
+      sx={{ mt: 1 }}
+    >
+      {/* Contenedor principal para Perfil y Editar perfil */}
+      <Grid container spacing={4}>
+        {/* Sección 1: Perfil */}
+        <Grid item xs={12} md={4}>
+          <Box sx={{ mb: 4 }}>
+            <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
+              Perfil
+            </Typography>
+            <Grid container direction="column" spacing={2} alignItems="center">
+              <Grid item>
+                <Avatar
+                  sx={{ width: 100, height: 100 }}
                 >
-                  <FormControlLabel
-                    value="freelancer"
-                    control={<Radio />}
-                    label={t("dashboard.freelancer")}
-                  />
-                  <FormControlLabel
-                    value="company"
-                    control={<Radio />}
-                    label={t("dashboard.company")}
-                  />
-                </RadioGroup>
-              </FormControl>
-
-              {/* Inicio de los campos de texto con validación */}
-              <Grid container spacing={2}>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    margin="dense"
-                    label={t("dashboard.fiscalName")}
-                    name="name" 
-                    fullWidth
-                    variant="outlined"
-                    value={formData.name} 
-                    onChange={handleChange} 
-                    error={!!formErrors.name} 
-                    helperText={formErrors.name} 
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    margin="dense"
-                    label={t("dashboard.nif")}
-                    name="nif"
-                    fullWidth
-                    variant="outlined"
-                    value={formData.nif} 
-                    onChange={handleChange}
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    margin="dense"
-                    label={t("dashboard.commercialName")}
-                    name="commercialName"
-                    fullWidth
-                    variant="outlined"
-                    value={formData.commercialName}
-                    onChange={handleChange}
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    margin="dense"
-                    label={t("dashboard.fiscalAddress")}
-                    name="address"
-                    fullWidth
-                    variant="outlined"
-                    value={formData.address}
-                    onChange={handleChange}
-                  />
-                </Grid>
-                <Grid item xs={12} sm={4}>
-                  <TextField
-                    margin="dense"
-                    label={t("dashboard.city")}
-                    name="city"
-                    fullWidth
-                    variant="outlined"
-                    value={formData.city}
-                    onChange={handleChange}
-                    error={!!formErrors.city}
-                    helperText={formErrors.city}
-                  />
-                </Grid>
-                <Grid item xs={12} sm={4}>
-                  <TextField
-                    margin="dense"
-                    label={t("dashboard.province")}
-                    name="province"
-                    fullWidth
-                    variant="outlined"
-                    value={formData.province}
-                    onChange={handleChange}
-                  />
-                </Grid>
-                <Grid item xs={12} sm={4}>
-                  <TextField
-                    margin="dense"
-                    label={t("dashboard.postalCode")}
-                    name="postalCode"
-                    fullWidth
-                    variant="outlined"
-                    value={formData.postalCode}
-                    onChange={handleChange}
-                  />
-                </Grid>
-                <Grid item xs={12} sm={4}>
-                  <TextField
-                    margin="dense"
-                    label={t("dashboard.country")}
-                    name="country"
-                    fullWidth
-                    variant="outlined"
-                    value={formData.country}
-                    onChange={handleChange}
-                    error={!!formErrors.country}
-                    helperText={formErrors.country}
-                  />
-                </Grid>
-                <Grid item xs={12} sm={4}>
-                  <TextField
-                    margin="dense"
-                    label={t("dashboard.phone")}
-                    name="phone"
-                    fullWidth
-                    variant="outlined"
-                    value={formData.phone}
-                    onChange={handleChange}
-                    error={!!formErrors.phone}
-                    helperText={formErrors.phone}
-                  />
-                </Grid>
-                <Grid item xs={12} sm={4}>
-                  <TextField
-                    margin="dense"
-                    label={t("dashboard.mobile")}
-                    name="mobile"
-                    fullWidth
-                    variant="outlined"
-                    value={formData.mobile}
-                    onChange={handleChange}
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    margin="dense"
-                    label={t("dashboard.email")}
-                    name="email"
-                    fullWidth
-                    variant="outlined"
-                    value={formData.email}
-                    onChange={handleChange}
-                    error={!!formErrors.email}
-                    helperText={formErrors.email}
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    margin="dense"
-                    label={t("dashboard.website")}
-                    name="website"
-                    fullWidth
-                    variant="outlined"
-                    value={formData.website}
-                    onChange={handleChange}
-                  />
-                </Grid>
+                  {!formData.name ? 'NA' : formData.name.charAt(0).toUpperCase()}
+                </Avatar>
               </Grid>
+              <Grid item>
+                <Typography variant="subtitle1">
+                  {formData.name || 'Nombre no disponible'}
+                </Typography>
+                <Typography variant="body2" color="textSecondary">
+                  {formData.email || 'Email no disponible'}
+                </Typography>
+              </Grid>
+              <Grid item sx={{ width: '100%' }}>
+                <Button
+                  variant="outlined"
+                  fullWidth
+                  sx={{ mb: 1 }}
+                >
+                  Cambiar foto
+                </Button>
+                <Button
+                  variant="text"
+                  color="error"
+                  fullWidth
+                >
+                  Eliminar cuenta
+                </Button>
+              </Grid>
+            </Grid>
+          </Box>
+        </Grid>
 
-              <DialogActions>
-                <Button
-                  onClick={handleClose}
-                  sx={{
-                    color: "#2666CF",
-                    fontWeight: "500",
-                    textTransform: "none",
-                    bgcolor: "#ffffff",
-                    border: "1px solid #2666CF",
-                    borderRadius: 2,
-                  }}
-                >
-                  {t("dashboard.fillOutLater")}
-                </Button>
-                <Button
-                  type="submit"
-                  sx={{
-                    color: "#ffffff",
-                    fontWeight: "500",
-                    textTransform: "none",
-                    bgcolor: "#2666CF",
-                    borderRadius: 2,
-                  }}
-                >
-                  {t("dashboard.save")}
-                </Button>
-              </DialogActions>
+        {/* Sección 2: Editar perfil */}
+        <Grid item xs={12} md={8}>
+          <Box sx={{ mb: 4 }}>
+            <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
+              Editar perfil
+            </Typography>
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  label={t('dashboard.name')}
+                  name="name"
+                  fullWidth
+                  variant="outlined"
+                  value={formData.name}
+                  onChange={handleChange}
+                  error={!!formErrors.name}
+                  helperText={formErrors.name}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  label={t('dashboard.email')}
+                  name="email"
+                  fullWidth
+                  variant="outlined"
+                  value={formData.email}
+                  onChange={handleChange}
+                  error={!!formErrors.email}
+                  helperText={formErrors.email}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  label={t('dashboard.phone')}
+                  name="phone"
+                  fullWidth
+                  variant="outlined"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  error={!!formErrors.phone}
+                  helperText={formErrors.phone}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  label={t('dashboard.mobile')}
+                  name="mobile"
+                  fullWidth
+                  variant="outlined"
+                  value={formData.mobile}
+                  onChange={handleChange}
+                  error={!!formErrors.mobile}
+                  helperText={formErrors.mobile}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  label={t('dashboard.website')}
+                  name="website"
+                  fullWidth
+                  variant="outlined"
+                  value={formData.website}
+                  onChange={handleChange}
+                  error={!!formErrors.website}
+                  helperText={formErrors.website}
+                />
+              </Grid>
+            </Grid>
+            <Box sx={{ mt: 2, display: 'flex', gap: 2 }}>
+              <Button
+                variant="contained"
+                color="primary"
+                fullWidth
+              >
+                Guardar cambios
+              </Button>
+              <Button
+                variant="outlined"
+                color="secondary"
+                fullWidth
+              >
+                Cambiar contraseña
+              </Button>
             </Box>
-          </DialogContent>
-        </Dialog>
+          </Box>
+        </Grid>
+      </Grid>
+
+      <Divider sx={{ my: 4 }} />
+
+      {/* Sección 3: Datos fiscales */}
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
+          Datos fiscales
+        </Typography>
+        <Grid container spacing={2}>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              label={t('dashboard.nif')}
+              name="nif"
+              fullWidth
+              variant="outlined"
+              value={formData.nif}
+              onChange={handleChange}
+              error={!!formErrors.nif}
+              helperText={formErrors.nif}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              label={t('dashboard.commercialName')}
+              name="commercialName"
+              fullWidth
+              variant="outlined"
+              value={formData.commercialName}
+              onChange={handleChange}
+              error={!!formErrors.commercialName}
+              helperText={formErrors.commercialName}
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 500, mt: 2 }}>
+              Dirección fiscal:
+            </Typography>
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              label={t('dashboard.fiscalAddress')}
+              name="address"
+              fullWidth
+              variant="outlined"
+              value={formData.address}
+              onChange={handleChange}
+              error={!!formErrors.address}
+              helperText={formErrors.address}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              label={t('dashboard.city')}
+              name="city"
+              fullWidth
+              variant="outlined"
+              value={formData.city}
+              onChange={handleChange}
+              error={!!formErrors.city}
+              helperText={formErrors.city}
+            />
+          </Grid>
+          <Grid item xs={12} sm={4}>
+            <TextField
+              label={t('dashboard.province')}
+              name="province"
+              fullWidth
+              variant="outlined"
+              select
+              value={formData.province}
+              onChange={handleChange}
+              error={!!formErrors.province}
+              helperText={formErrors.province}
+            >
+              <MenuItem value="">Seleccionar provincia</MenuItem>
+              <MenuItem value="provincia1">Provincia 1</MenuItem>
+              <MenuItem value="provincia2">Provincia 2</MenuItem>
+              {/* Añade más opciones según sea necesario */}
+            </TextField>
+          </Grid>
+          <Grid item xs={12} sm={4}>
+            <TextField
+              label={t('dashboard.postalCode')}
+              name="postalCode"
+              fullWidth
+              variant="outlined"
+              value={formData.postalCode}
+              onChange={handleChange}
+            />
+          </Grid>
+          <Grid item xs={12} sm={4}>
+            <TextField
+              label={t('dashboard.country')}
+              name="country"
+              fullWidth
+              variant="outlined"
+              select
+              value={formData.country}
+              onChange={handleChange}
+              error={!!formErrors.country}
+              helperText={formErrors.country}
+            >
+              <MenuItem value="">Seleccionar país</MenuItem>
+              <MenuItem value="es">España</MenuItem>
+              <MenuItem value="fr">Francia</MenuItem>
+              {/* Añade más opciones según sea necesario */}
+            </TextField>
+          </Grid>
+        </Grid>
+      </Box>
+
+      <Divider sx={{ my: 4 }} />
+
+      {/* Sección 4: Datos de contacto */}
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
+          Datos de contacto
+        </Typography>
+        <Grid container spacing={2}>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              label={t('dashboard.phone')}
+              name="phone"
+              fullWidth
+              variant="outlined"
+              value={formData.phone}
+              onChange={handleChange}
+              error={!!formErrors.phone}
+              helperText={formErrors.phone}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              label={t('dashboard.email')}
+              name="email"
+              fullWidth
+              variant="outlined"
+              value={formData.email}
+              onChange={handleChange}
+              error={!!formErrors.email}
+              helperText={formErrors.email}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              label={t('dashboard.mobile')}
+              name="mobile"
+              fullWidth
+              variant="outlined"
+              value={formData.mobile}
+              onChange={handleChange}
+              error={!!formErrors.mobile}
+              helperText={formErrors.mobile}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              label={t('dashboard.website')}
+              name="website"
+              fullWidth
+              variant="outlined"
+              value={formData.website}
+              onChange={handleChange}
+              error={!!formErrors.website}
+              helperText={formErrors.website}
+            />
+          </Grid>
+        </Grid>
+      </Box>
+
+      <Divider sx={{ my: 4 }} />
+
+      {/* Sección 5: Dirección de envío */}
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
+          Dirección de envío
+        </Typography>
+        <Grid container spacing={2}>
+          {/* Reutilizamos los mismos campos para Dirección de envío */}
+          <Grid item xs={12} sm={6}>
+            <TextField
+              label={t('dashboard.fiscalAddress')} // Puedes cambiar la etiqueta si es necesario
+              name="address"
+              fullWidth
+              variant="outlined"
+              value={formData.address}
+              onChange={handleChange}
+              // No agregar error y helperText para evitar duplicaciones
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              label={t('dashboard.city')} // Puedes cambiar la etiqueta si es necesario
+              name="city"
+              fullWidth
+              variant="outlined"
+              value={formData.city}
+              onChange={handleChange}
+              // No agregar error y helperText para evitar duplicaciones
+            />
+          </Grid>
+          <Grid item xs={12} sm={4}>
+            <TextField
+              label={t('dashboard.province')} // Puedes cambiar la etiqueta si es necesario
+              name="province"
+              fullWidth
+              variant="outlined"
+              select
+              value={formData.province}
+              onChange={handleChange}
+              // No agregar error y helperText para evitar duplicaciones
+            >
+              <MenuItem value="">Seleccionar provincia</MenuItem>
+              <MenuItem value="provincia1">Provincia 1</MenuItem>
+              <MenuItem value="provincia2">Provincia 2</MenuItem>
+              {/* Añade más opciones según sea necesario */}
+            </TextField>
+          </Grid>
+          <Grid item xs={12} sm={4}>
+            <TextField
+              label={t('dashboard.postalCode')} // Puedes cambiar la etiqueta si es necesario
+              name="postalCode"
+              fullWidth
+              variant="outlined"
+              value={formData.postalCode}
+              onChange={handleChange}
+              // No agregar error y helperText para evitar duplicaciones
+            />
+          </Grid>
+          <Grid item xs={12} sm={4}>
+            <TextField
+              label={t('dashboard.country')} // Puedes cambiar la etiqueta si es necesario
+              name="country"
+              fullWidth
+              variant="outlined"
+              select
+              value={formData.country}
+              onChange={handleChange}
+              // No agregar error y helperText para evitar duplicaciones
+            >
+              <MenuItem value="">Seleccionar país</MenuItem>
+              <MenuItem value="es">España</MenuItem>
+              <MenuItem value="fr">Francia</MenuItem>
+              {/* Añade más opciones según sea necesario */}
+            </TextField>
+          </Grid>
+        </Grid>
+        <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
+          <Button
+            variant="outlined"
+          >
+            Añadir dirección de envío
+          </Button>
+        </Box>
+      </Box>
+
+      {/* Botones de acciones del diálogo */}
+      <Box sx={{ mt: 4, display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
+        <Button
+          onClick={handleClose}
+          sx={{
+            color: "#2666CF",
+            fontWeight: "500",
+            textTransform: "none",
+            bgcolor: "#ffffff",
+            border: "1px solid #2666CF",
+            borderRadius: 2,
+          }}
+        >
+          {t("dashboard.fillOutLater")}
+        </Button>
+        <Button
+          type="submit"
+          sx={{
+            color: "#ffffff",
+            fontWeight: "500",
+            textTransform: "none",
+            bgcolor: "#2666CF",
+            borderRadius: 2,
+          }}
+        >
+          {t("dashboard.save")}
+        </Button>
+      </Box>
+    </Box>
+  </DialogContent>
+</Dialog>
+
+
 
 
       </UserChecker>

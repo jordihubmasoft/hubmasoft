@@ -943,12 +943,13 @@ const handleTabChange = (event, newValue) => {
             <Typography variant="h3" gutterBottom sx={{ color: '#1A1A40', fontWeight: '600' }}>
               Contactos
             </Typography>
-            <Box sx={{ display: 'flex', mb: 3, flexWrap: 'wrap', gap: 1 }}>
+  
+            {/* Campo de búsqueda */}
+            <Box sx={{ mb: 3 }}>
               <TextField
                 variant="outlined"
                 placeholder="Buscar..."
                 fullWidth
-                sx={{ flexGrow: 1 }}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
@@ -957,97 +958,130 @@ const handleTabChange = (event, newValue) => {
                   ),
                 }}
               />
-              <Button
-                variant="contained"
-                sx={{
-                  bgcolor: 'linear-gradient(90deg, #2666CF, #6A82FB)',
-                  color: '#ffffff',
-                  fontWeight: '500',
-                  textTransform: 'none',
-                  borderRadius: 2,
-                  boxShadow: '0 3px 6px rgba(0,0,0,0.1)',
-                  minWidth: '120px',
-                }}
-                startIcon={<AddIcon />}
-                onClick={() => handleOpen()}
-              >
-                Agregar
-              </Button>
-              <Button
-                variant="outlined"
-                sx={{ color: '#2666CF', borderColor: '#2666CF', fontWeight: '500', minWidth: '120px' }}
-                startIcon={<ImportExportIcon />}
-              >
-                Importar/Exportar
-              </Button>
-              <Button
-                variant="outlined"
-                sx={{ color: '#2666CF', borderColor: '#2666CF', fontWeight: '500', minWidth: '120px' }}
-                startIcon={<PortalIcon />}
-                onClick={handlePortalClick}
-              >
-                Portal
-              </Button>
-  
-              <IconButton
-                sx={{
-                  bgcolor: '#FFA500',
-                  color: '#ffffff',
-                  borderRadius: 2,
-                  boxShadow: '0 3px 6px rgba(0, 0, 0, 0.1)',
-                  transition: 'background-color 0.3s ease',
-                  '&:hover': {
-                    bgcolor: '#FF8C00',
-                  },
-                  minWidth: '48px',
-                  minHeight: '48px'
-                }}
-                onClick={handleMenuOpen}
-              >
-                <ViewColumnIcon />
-              </IconButton>
-              <Menu
-                anchorEl={anchorEl}
-                open={Boolean(anchorEl)}
-                onClose={handleMenuClose}
-                PaperProps={{
-                  style: {
-                    maxHeight: '400px',
-                    width: '250px',
-                  },
-                }}
-              >
-                {allColumns.map((column) => (
-                  <DropdownMenuItem key={column.id}>
-                    <FormControlLabel
-                      control={<Checkbox checked={visibleColumns.includes(column.id)} onChange={() => handleColumnToggle(column.id)} />}
-                      label={column.label}
-                    />
-                  </DropdownMenuItem>
-                ))}
-              </Menu>
             </Box>
-            <Box sx={{ display: 'flex', justifyContent: 'flex-start', mb: 3 }}>
-              <Button
-                variant={filter === 'todos' ? 'contained' : 'outlined'}
-                onClick={() => setFilter('todos')}
-                sx={{ mr: 1 }}
-              >
-                TODOS
-              </Button>
-              <Button
-                variant={filter === 'clientes' ? 'contained' : 'outlined'}
-                onClick={() => setFilter('clientes')}
-                sx={{ mr: 1 }}
-              >
-                CLIENTES
-              </Button>
-              <Button
-                variant={filter === 'proveedores' ? 'contained' : 'outlined'}
-                onClick={() => setFilter('proveedores')}
-              >
-                PROVEEDORES
-              </Button>
+  
+            {/* Contenedor para filtros y botones de acción */}
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                mb: 3,
+                flexWrap: 'wrap',
+                gap: 2,
+              }}
+            >
+              {/* Filtros alineados a la izquierda */}
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+                <Button
+                  variant={filter === 'todos' ? 'contained' : 'outlined'}
+                  onClick={() => setFilter('todos')}
+                  sx={{ mr: 1 }}
+                >
+                  TODOS
+                </Button>
+                <Button
+                  variant={filter === 'clientes' ? 'contained' : 'outlined'}
+                  onClick={() => setFilter('clientes')}
+                  sx={{ mr: 1 }}
+                >
+                  CLIENTES
+                </Button>
+                <Button
+                  variant={filter === 'proveedores' ? 'contained' : 'outlined'}
+                  onClick={() => setFilter('proveedores')}
+                >
+                  PROVEEDORES
+                </Button>
+              </Box>
+  
+              {/* Botones de acción alineados a la derecha */}
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+                <Button
+                  variant="contained"
+                  sx={{
+                    background: 'linear-gradient(90deg, #2666CF, #6A82FB)',
+                    color: '#ffffff',
+                    fontWeight: '500',
+                    textTransform: 'none',
+                    borderRadius: 2,
+                    boxShadow: '0 3px 6px rgba(0,0,0,0.1)',
+                    minWidth: '120px',
+                  }}
+                  startIcon={<AddIcon />}
+                  onClick={() => handleOpen()}
+                >
+                  Agregar
+                </Button>
+                <Button
+                  variant="outlined"
+                  sx={{
+                    color: '#2666CF',
+                    borderColor: '#2666CF',
+                    fontWeight: '500',
+                    minWidth: '150px',
+                  }}
+                  startIcon={<ImportExportIcon />}
+                >
+                  Importar/Exportar
+                </Button>
+                <Button
+                  variant="outlined"
+                  sx={{
+                    color: '#2666CF',
+                    borderColor: '#2666CF',
+                    fontWeight: '500',
+                    minWidth: '120px',
+                  }}
+                  startIcon={<PortalIcon />}
+                  onClick={handlePortalClick}
+                >
+                  Portal
+                </Button>
+  
+                <IconButton
+                  sx={{
+                    bgcolor: '#FFA500',
+                    color: '#ffffff',
+                    borderRadius: 2,
+                    boxShadow: '0 3px 6px rgba(0, 0, 0, 0.1)',
+                    transition: 'background-color 0.3s ease',
+                    '&:hover': {
+                      bgcolor: '#FF8C00',
+                    },
+                    minWidth: '48px',
+                    minHeight: '48px',
+                  }}
+                  onClick={handleMenuOpen}
+                >
+                  <ViewColumnIcon />
+                </IconButton>
+                <Menu
+                  anchorEl={anchorEl}
+                  open={Boolean(anchorEl)}
+                  onClose={handleMenuClose}
+                  PaperProps={{
+                    style: {
+                      maxHeight: '400px',
+                      width: '250px',
+                    },
+                  }}
+                >
+                  {allColumns.map((column) => (
+                    <DropdownMenuItem key={column.id}>
+                      <FormControlLabel
+                        control={
+                          <Checkbox
+                            checked={visibleColumns.includes(column.id)}
+                            onChange={() => handleColumnToggle(column.id)}
+                          />
+                        }
+                        label={column.label}
+                      />
+                    </DropdownMenuItem>
+                  ))}
+                </Menu>
+              </Box>
             </Box>
   
             {/* Tabla combinada de Contactos */}
@@ -1118,7 +1152,7 @@ const handleTabChange = (event, newValue) => {
     },
   }}
 >
-  {!isDrawerExpanded ? (
+{!isDrawerExpanded ? (
     // **Contenido No Expandido**
     <Box sx={{ p: 2, overflowY: 'auto', height: '100%' }}>
       {/* Nombre, tipo de contacto y botón "Más" */}
@@ -1183,6 +1217,37 @@ const handleTabChange = (event, newValue) => {
         </IconButton>
       </Box>
 
+      {/* Información de Contacto */}
+      <Box sx={{ mb: 3 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+          <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+            Información de Contacto
+          </Typography>
+          <Button
+            variant="text"
+            startIcon={<EditIcon />} // Función para editar la información
+            sx={{ textTransform: 'none', color: '#2666CF' }}
+          >
+            Editar
+          </Button>
+        </Box>
+        <Typography variant="body2">
+          <strong>Nombre:</strong> {selectedContact?.nombre}
+        </Typography>
+        <Typography variant="body2">
+          <strong>Nif:</strong> {selectedContact?.nif}
+        </Typography>
+        <Typography variant="body2">
+          <strong>Dirección:</strong> {selectedContact?.direccion}
+        </Typography>
+        <Typography variant="body2">
+          <strong>Teléfono:</strong> {selectedContact?.telefono}
+        </Typography>
+        <Typography variant="body2">
+          <strong>Email:</strong> {selectedContact?.email}
+        </Typography>
+      </Box>
+
       {/* Botones de creación rápida */}
       <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
         <Button variant="outlined" sx={{ textTransform: 'none' }}>Nuevo Presupuesto</Button>
@@ -1238,6 +1303,100 @@ const handleTabChange = (event, newValue) => {
         <Typography variant="body1" sx={{ fontWeight: 'bold', mb: 1 }}>
           Ventas
         </Typography>
+        {/* Nueva Sección de Información */}
+        <Box
+          sx={{
+            bgcolor: '#FFFFFF',
+            p: 1,
+            borderRadius: 1,
+            boxShadow: 1,
+            mb: 1,
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+          }}
+        >
+          {/* Dato Principal y Enlace */}
+          <Box sx={{ display: 'flex', flexDirection: 'column', flex: '1 1 30%' }}>
+            <Typography
+              variant="body2"
+              sx={{ color: '#4A4A4A', fontSize: '0.875rem' }}
+            >
+              Ventas
+            </Typography>
+            <Typography
+              variant="body1"
+              sx={{ fontWeight: 'bold', color: '#000000', fontSize: '1rem' }}
+            >
+              27.682,56 €
+            </Typography>
+            <Button
+              variant="text"
+              sx={{
+                p: 0,
+                mt: 0.5,
+                textTransform: 'none',
+                color: '#2666CF',
+                display: 'flex',
+                alignItems: 'center',
+                fontSize: '0.75rem',
+              }}
+              endIcon={<ArrowForwardIcon sx={{ fontSize: '1rem' }} />}
+              onClick={() => {
+                // Función al hacer clic en "8 facturas"
+              }}
+            >
+              8 facturas
+            </Button>
+          </Box>
+
+          {/* Promedio por Venta */}
+          <Box sx={{ display: 'flex', flexDirection: 'column', flex: '1 1 30%', textAlign: 'center' }}>
+            <Typography
+              variant="body2"
+              sx={{ color: '#B0B0B0', fontSize: '0.75rem' }}
+            >
+              Promedio/venta
+            </Typography>
+            <Typography
+              variant="body1"
+              sx={{ fontWeight: 'medium', color: '#000000', fontSize: '0.875rem' }}
+            >
+              3.460,32 €
+            </Typography>
+          </Box>
+
+          {/* Frecuencia Media y Pendiente de Cobro */}
+          <Box sx={{ display: 'flex', flexDirection: 'column', flex: '1 1 30%', textAlign: 'right' }}>
+            <Typography
+              variant="body2"
+              sx={{ color: '#B0B0B0', fontSize: '0.75rem' }}
+            >
+              Frec. media
+            </Typography>
+            <Typography
+              variant="body1"
+              sx={{ fontWeight: 'medium', color: '#000000', fontSize: '0.875rem' }}
+            >
+              0 días
+            </Typography>
+
+            <Typography
+              variant="body2"
+              sx={{ color: '#B0B0B0', fontSize: '0.75rem', mt: 1 }}
+            >
+              Pend. cobro
+            </Typography>
+            <Typography
+              variant="body1"
+              sx={{ fontWeight: 'medium', color: '#000000', fontSize: '0.875rem' }}
+            >
+              2.514,87 €
+            </Typography>
+          </Box>
+        </Box>
+
         <Bar
           data={salesData}
           options={{
@@ -1256,6 +1415,100 @@ const handleTabChange = (event, newValue) => {
         <Typography variant="body1" sx={{ fontWeight: 'bold', mb: 1 }}>
           Compras
         </Typography>
+        {/* Nueva Sección de Información */}
+        <Box
+          sx={{
+            bgcolor: '#FFFFFF',
+            p: 1,
+            borderRadius: 1,
+            boxShadow: 1,
+            mb: 1,
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+          }}
+        >
+          {/* Dato Principal y Enlace */}
+          <Box sx={{ display: 'flex', flexDirection: 'column', flex: '1 1 30%' }}>
+            <Typography
+              variant="body2"
+              sx={{ color: '#4A4A4A', fontSize: '0.875rem' }}
+            >
+              Compras
+            </Typography>
+            <Typography
+              variant="body1"
+              sx={{ fontWeight: 'bold', color: '#000000', fontSize: '1rem' }}
+            >
+              15.234,89 €
+            </Typography>
+            <Button
+              variant="text"
+              sx={{
+                p: 0,
+                mt: 0.5,
+                textTransform: 'none',
+                color: '#2666CF',
+                display: 'flex',
+                alignItems: 'center',
+                fontSize: '0.75rem',
+              }}
+              endIcon={<ArrowForwardIcon sx={{ fontSize: '1rem' }} />}
+              onClick={() => {
+                // Función al hacer clic en "5 pedidos"
+              }}
+            >
+              5 pedidos
+            </Button>
+          </Box>
+
+          {/* Promedio por Compra */}
+          <Box sx={{ display: 'flex', flexDirection: 'column', flex: '1 1 30%', textAlign: 'center' }}>
+            <Typography
+              variant="body2"
+              sx={{ color: '#B0B0B0', fontSize: '0.75rem' }}
+            >
+              Promedio/compra
+            </Typography>
+            <Typography
+              variant="body1"
+              sx={{ fontWeight: 'medium', color: '#000000', fontSize: '0.875rem' }}
+            >
+              3.046,78 €
+            </Typography>
+          </Box>
+
+          {/* Frecuencia Media y Pendiente de Pago */}
+          <Box sx={{ display: 'flex', flexDirection: 'column', flex: '1 1 30%', textAlign: 'right' }}>
+            <Typography
+              variant="body2"
+              sx={{ color: '#B0B0B0', fontSize: '0.75rem' }}
+            >
+              Frec. media
+            </Typography>
+            <Typography
+              variant="body1"
+              sx={{ fontWeight: 'medium', color: '#000000', fontSize: '0.875rem' }}
+            >
+              5 días
+            </Typography>
+
+            <Typography
+              variant="body2"
+              sx={{ color: '#B0B0B0', fontSize: '0.75rem', mt: 1 }}
+            >
+              Pend. pago
+            </Typography>
+            <Typography
+              variant="body1"
+              sx={{ fontWeight: 'medium', color: '#000000', fontSize: '0.875rem' }}
+            >
+              1.200,50 €
+            </Typography>
+          </Box>
+        </Box>
+
         <Bar
           data={purchasesData}
           options={{
@@ -1269,6 +1522,8 @@ const handleTabChange = (event, newValue) => {
         />
       </Box>
     </Box>
+
+
   ) : (
     <Box sx={{ p: 3, overflowY: 'auto', height: '100%', bgcolor: '#F9F9F9' }}>
     {/* Cabecera */}
@@ -1325,57 +1580,65 @@ const handleTabChange = (event, newValue) => {
   <Grid container spacing={3}>
     {/* Información del Cliente */}
     <Grid item xs={12} md={3}>
-      <Paper
-        sx={{
-          p: 2,
-          borderRadius: 2,
-          boxShadow: '0 3px 6px rgba(0, 0, 0, 0.1)',
-          height: '100%',
-        }}
-      >
-        <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 2, color: '#2666CF' }}>
-          Información del Cliente
-        </Typography>
-        <Typography variant="body2" sx={{ mb: 1 }}>
-          <strong>Nombre:</strong> Félix Martínez Giménez
-        </Typography>
-        <Typography variant="body2" sx={{ mb: 1 }}>
-          <strong>NIF:</strong> 12345678L
-        </Typography>
-        <Typography variant="body2" sx={{ mb: 1 }}>
-          <strong>Teléfono:</strong>{' '}
-          <a href="tel:648693534" style={{ color: '#2666CF' }}>
-            648693534
-          </a>
-        </Typography>
-        <Typography variant="body2" sx={{ mb: 1 }}>
-          <strong>Email:</strong>{' '}
-          <a href="mailto:info@hubmasoft.com" style={{ color: '#2666CF' }}>
-            info@hubmasoft.com
-          </a>
-        </Typography>
-        <Typography variant="body2" sx={{ mb: 1 }}>
-          <strong>Dirección:</strong>
-        </Typography>
-        <Grid container spacing={1}>
-          <Grid item xs={12}>
-            <TextField label="Dirección" fullWidth size="small" />
-          </Grid>
-          <Grid item xs={6}>
-            <TextField label="Código Postal" fullWidth size="small" />
-          </Grid>
-          <Grid item xs={6}>
-            <TextField label="Población" fullWidth size="small" />
-          </Grid>
-          <Grid item xs={6}>
-            <TextField label="Provincia" fullWidth size="small" />
-          </Grid>
-          <Grid item xs={6}>
-            <TextField label="País" fullWidth size="small" />
-          </Grid>
-        </Grid>
-      </Paper>
+  <Paper
+    sx={{
+      p: 2,
+      borderRadius: 2,
+      boxShadow: '0 3px 6px rgba(0, 0, 0, 0.1)',
+      height: '100%',
+    }}
+  >
+    {/* Encabezado con el botón "Editar" */}
+    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+      <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: '#2666CF' }}>
+        Información del Cliente
+      </Typography>
+      <Button variant="text" color="primary" >
+        Editar
+      </Button>
+    </Box>
+
+    <Typography variant="body2" sx={{ mb: 1 }}>
+      <strong>Nombre:</strong> Félix Martínez Giménez
+    </Typography>
+    <Typography variant="body2" sx={{ mb: 1 }}>
+      <strong>NIF:</strong> 12345678L
+    </Typography>
+    <Typography variant="body2" sx={{ mb: 1 }}>
+      <strong>Teléfono:</strong>{' '}
+      <a href="tel:648693534" style={{ color: '#2666CF' }}>
+        648693534
+      </a>
+    </Typography>
+    <Typography variant="body2" sx={{ mb: 1 }}>
+      <strong>Email:</strong>{' '}
+      <a href="mailto:info@hubmasoft.com" style={{ color: '#2666CF' }}>
+        info@hubmasoft.com
+      </a>
+    </Typography>
+    <Typography variant="body2" sx={{ mb: 1 }}>
+      <strong>Dirección:</strong>
+    </Typography>
+    <Grid container spacing={1}>
+      <Grid item xs={12}>
+        <TextField label="Dirección" fullWidth size="small" />
+      </Grid>
+      <Grid item xs={6}>
+        <TextField label="Código Postal" fullWidth size="small" />
+      </Grid>
+      <Grid item xs={6}>
+        <TextField label="Población" fullWidth size="small" />
+      </Grid>
+      <Grid item xs={6}>
+        <TextField label="Provincia" fullWidth size="small" />
+      </Grid>
+      <Grid item xs={6}>
+        <TextField label="País" fullWidth size="small" />
+      </Grid>
     </Grid>
+  </Paper>
+</Grid>
+
 
     <Grid item xs={12} md={6}>
   <Paper
@@ -1510,7 +1773,6 @@ const handleTabChange = (event, newValue) => {
     <Grid item xs={12} md={3}>
       <Paper sx={{ p: 2, borderRadius: 2, boxShadow: '0 3px 6px rgba(0, 0, 0, 0.1)' }}>
         <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 2, color: '#2666CF' }}>
-          Resumen Financiero
           Resumen Financiero
         </Typography>
         <Typography variant="body2" sx={{ mb: 1 }}>
