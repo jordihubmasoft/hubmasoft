@@ -1,5 +1,10 @@
 import { useState } from 'react';
-import { Box, Container, Typography, Button, TextField, IconButton, Paper, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, InputAdornment, MenuItem, TableCell, TableRow, TableBody, Table, TableContainer, TableHead, Menu } from '@mui/material';
+import { 
+  Box, Container, Typography, Button, TextField, IconButton, Paper, 
+  Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, 
+  InputAdornment, MenuItem, TableCell, TableRow, TableBody, Table, 
+  TableContainer, TableHead, Menu, Snackbar, Alert 
+} from '@mui/material';
 import Header from 'components/Header';
 import Sidebar from 'components/Sidebar';
 import AddIcon from '@mui/icons-material/Add';
@@ -10,34 +15,27 @@ import SearchIcon from '@mui/icons-material/Search';
 import ImportExportIcon from '@mui/icons-material/ImportExport';
 import PrintIcon from '@mui/icons-material/Print';
 import { useTranslation } from 'hooks/useTranslations';
+import ProductService from '../services/productService'; // Ajusta la ruta según tu estructura de proyecto
 
-const productsData = [
-  // Example data for products
+// Datos de ejemplo para productos
+const initialProductsData = [
   {
     id: 1,
     name: 'Product A',
     description: 'Description of product A',
     reference: 'REF001',
-    factoryCode: 'CF001',
-    variant: 'Variant A',
+    companyCode: 'COMP001',
     tags: 'Tag1',
-    type: 'Type A',
-    warehouse: 'Warehouse A',
-    channel: 'Channel A',
-    account: 'Account A',
     stock: 100,
-    cost: 10,
-    purchasePrice: 12,
-    costValue: 1000,
-    saleValue: 1200,
-    subtotal: 1000,
-    vat: 21,
-    retention: 0,
-    equivalenceSurcharge: 0,
-    taxes: 210,
-    total: 1210,
+    price: 50.0,
+    purchasePrice: 30.0,
+    costValue: 20.0,
+    sellsValue: 10.0,
+    priceWithoutVAT: 45.0,
+    percentageVAT: 10.0,
+    contactId: 'contactId123',
   },
-  // ... more example data
+  // ... más datos de ejemplo
 ];
 
 const ProductForm = ({ open, handleClose, product, handleSave }) => {
@@ -47,36 +45,31 @@ const ProductForm = ({ open, handleClose, product, handleSave }) => {
     name: '',
     description: '',
     reference: '',
-    factoryCode: '',
-    variant: '',
+    companyCode: '',
     tags: '',
-    type: '',
-    warehouse: '',
-    channel: '',
-    account: '',
-    stock: '',
-    cost: '',
-    purchasePrice: '',
-    costValue: '',
-    saleValue: '',
-    subtotal: '',
-    vat: '',
-    retention: '',
-    equivalenceSurcharge: '',
-    taxes: '',
-    total: '',
+    stock: 0,
+    price: 0,
+    purchasePrice: 0,
+    costValue: 0,
+    sellsValue: 0,
+    priceWithoutVAT: 0,
+    percentageVAT: 0,
+    contactId: '',
   });
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: ['stock', 'price', 'purchasePrice', 'costValue', 'sellsValue', 'priceWithoutVAT', 'percentageVAT'].includes(name)
+        ? Number(value)
+        : value,
+    }));
   };
 
   const handleSubmit = () => {
     handleSave(formData);
-    handleClose();
+    // No llamamos handleClose aquí, ya que handleSave lo hace en el finally
   };
 
   return (
@@ -88,33 +81,155 @@ const ProductForm = ({ open, handleClose, product, handleSave }) => {
         <DialogContentText sx={{ fontWeight: '400', fontFamily: 'Roboto, sans-serif' }}>
           {product ? t('inventory.editProductDialogDescription') : t('inventory.addProductDialogDescription')}
         </DialogContentText>
-        <TextField margin="dense" label={t('inventory.name')} name="name" fullWidth variant="outlined" value={formData.name} onChange={handleChange} />
-        <TextField margin="dense" label={t('inventory.description')} name="description" fullWidth variant="outlined" value={formData.description} onChange={handleChange} />
-        <TextField margin="dense" label={t('inventory.reference')} name="reference" fullWidth variant="outlined" value={formData.reference} onChange={handleChange} />
-        <TextField margin="dense" label={t('inventory.factoryCode')} name="factoryCode" fullWidth variant="outlined" value={formData.factoryCode} onChange={handleChange} />
-        <TextField margin="dense" label={t('inventory.variant')} name="variant" fullWidth variant="outlined" value={formData.variant} onChange={handleChange} />
-        <TextField margin="dense" label={t('inventory.tags')} name="tags" fullWidth variant="outlined" value={formData.tags} onChange={handleChange} />
-        <TextField margin="dense" label={t('inventory.type')} name="type" fullWidth variant="outlined" value={formData.type} onChange={handleChange} />
-        <TextField margin="dense" label={t('inventory.warehouse')} name="warehouse" fullWidth variant="outlined" value={formData.warehouse} onChange={handleChange} />
-        <TextField margin="dense" label={t('inventory.channel')} name="channel" fullWidth variant="outlined" value={formData.channel} onChange={handleChange} />
-        <TextField margin="dense" label={t('inventory.account')} name="account" fullWidth variant="outlined" value={formData.account} onChange={handleChange} />
-        <TextField margin="dense" label={t('inventory.stock')} name="stock" fullWidth variant="outlined" value={formData.stock} onChange={handleChange} />
-        <TextField margin="dense" label={t('inventory.cost')} name="cost" fullWidth variant="outlined" value={formData.cost} onChange={handleChange} />
-        <TextField margin="dense" label={t('inventory.purchasePrice')} name="purchasePrice" fullWidth variant="outlined" value={formData.purchasePrice} onChange={handleChange} />
-        <TextField margin="dense" label={t('inventory.costValue')} name="costValue" fullWidth variant="outlined" value={formData.costValue} onChange={handleChange} />
-        <TextField margin="dense" label={t('inventory.saleValue')} name="saleValue" fullWidth variant="outlined" value={formData.saleValue} onChange={handleChange} />
-        <TextField margin="dense" label={t('inventory.subtotal')} name="subtotal" fullWidth variant="outlined" value={formData.subtotal} onChange={handleChange} />
-        <TextField margin="dense" label={t('inventory.vat')} name="vat" fullWidth variant="outlined" value={formData.vat} onChange={handleChange} />
-        <TextField margin="dense" label={t('inventory.retention')} name="retention" fullWidth variant="outlined" value={formData.retention} onChange={handleChange} />
-        <TextField margin="dense" label={t('inventory.equivalenceSurcharge')} name="equivalenceSurcharge" fullWidth variant="outlined" value={formData.equivalenceSurcharge} onChange={handleChange} />
-        <TextField margin="dense" label={t('inventory.taxes')} name="taxes" fullWidth variant="outlined" value={formData.taxes} onChange={handleChange} />
-        <TextField margin="dense" label={t('inventory.total')} name="total" fullWidth variant="outlined" value={formData.total} onChange={handleChange} />
+        <TextField 
+          margin="dense" 
+          label={t('inventory.name')} 
+          name="name" 
+          fullWidth 
+          variant="outlined" 
+          value={formData.name} 
+          onChange={handleChange} 
+        />
+        <TextField 
+          margin="dense" 
+          label={t('inventory.description')} 
+          name="description" 
+          fullWidth 
+          variant="outlined" 
+          value={formData.description} 
+          onChange={handleChange} 
+        />
+        <TextField 
+          margin="dense" 
+          label={t('inventory.reference')} 
+          name="reference" 
+          fullWidth 
+          variant="outlined" 
+          value={formData.reference} 
+          onChange={handleChange} 
+        />
+        <TextField 
+          margin="dense" 
+          label={t('inventory.companyCode')} 
+          name="companyCode" 
+          fullWidth 
+          variant="outlined" 
+          value={formData.companyCode} 
+          onChange={handleChange} 
+        />
+        <TextField 
+          margin="dense" 
+          label={t('inventory.tags')} 
+          name="tags" 
+          fullWidth 
+          variant="outlined" 
+          value={formData.tags} 
+          onChange={handleChange} 
+        />
+        <TextField 
+          margin="dense" 
+          label={t('inventory.stock')} 
+          name="stock" 
+          type="number" 
+          fullWidth 
+          variant="outlined" 
+          value={formData.stock} 
+          onChange={handleChange} 
+        />
+        <TextField 
+          margin="dense" 
+          label={t('inventory.price')} 
+          name="price" 
+          type="number" 
+          fullWidth 
+          variant="outlined" 
+          value={formData.price} 
+          onChange={handleChange} 
+        />
+        <TextField 
+          margin="dense" 
+          label={t('inventory.purchasePrice')} 
+          name="purchasePrice" 
+          type="number" 
+          fullWidth 
+          variant="outlined" 
+          value={formData.purchasePrice} 
+          onChange={handleChange} 
+        />
+        <TextField 
+          margin="dense" 
+          label={t('inventory.costValue')} 
+          name="costValue" 
+          type="number" 
+          fullWidth 
+          variant="outlined" 
+          value={formData.costValue} 
+          onChange={handleChange} 
+        />
+        <TextField 
+          margin="dense" 
+          label={t('inventory.sellsValue')} 
+          name="sellsValue" 
+          type="number" 
+          fullWidth 
+          variant="outlined" 
+          value={formData.sellsValue} 
+          onChange={handleChange} 
+        />
+        <TextField 
+          margin="dense" 
+          label={t('inventory.priceWithoutVAT')} 
+          name="priceWithoutVAT" 
+          type="number" 
+          fullWidth 
+          variant="outlined" 
+          value={formData.priceWithoutVAT} 
+          onChange={handleChange} 
+        />
+        <TextField 
+          margin="dense" 
+          label={t('inventory.percentageVAT')} 
+          name="percentageVAT" 
+          type="number" 
+          fullWidth 
+          variant="outlined" 
+          value={formData.percentageVAT} 
+          onChange={handleChange} 
+        />
+        <TextField 
+          margin="dense" 
+          label={t('inventory.contactId')} 
+          name="contactId" 
+          fullWidth 
+          variant="outlined" 
+          value={formData.contactId} 
+          onChange={handleChange} 
+        />
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClose} sx={{ color: '#2666CF', fontWeight: '500', textTransform: 'none', bgcolor: '#ffffff', border: '1px solid #2666CF', borderRadius: 2 }}>
+        <Button 
+          onClick={handleClose} 
+          sx={{ 
+            color: '#2666CF', 
+            fontWeight: '500', 
+            textTransform: 'none', 
+            bgcolor: '#ffffff', 
+            border: '1px solid #2666CF', 
+            borderRadius: 2 
+          }}
+        >
           {t('inventory.cancel')}
         </Button>
-        <Button onClick={handleSubmit} sx={{ color: '#ffffff', fontWeight: '500', textTransform: 'none', bgcolor: '#2666CF', borderRadius: 2 }}>
+        <Button 
+          onClick={handleSubmit} 
+          sx={{ 
+            color: '#ffffff', 
+            fontWeight: '500', 
+            textTransform: 'none', 
+            bgcolor: '#2666CF', 
+            borderRadius: 2 
+          }}
+        >
           {t('inventory.save')}
         </Button>
       </DialogActions>
@@ -126,9 +241,10 @@ const Inventory = () => {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
-  const [products, setProducts] = useState(productsData);
+  const [products, setProducts] = useState(initialProductsData);
   const [anchorEl, setAnchorEl] = useState(null);
   const [isMenuOpen, setIsMenuOpen] = useState(true);
+  const [error, setError] = useState(''); // Estado para manejar errores
 
   const handleOpen = (product = null) => {
     setSelectedProduct(product);
@@ -140,12 +256,35 @@ const Inventory = () => {
     setSelectedProduct(null);
   };
 
-  const handleSave = (product) => {
-    if (selectedProduct) {
-      setProducts(products.map((p) => (p.id === product.id ? product : p)));
-    } else {
-      product.id = products.length + 1;
-      setProducts([...products, product]);
+  const handleSave = async (product) => {
+    try {
+      if (selectedProduct) {
+        // Aquí podrías implementar la lógica para actualizar un producto existente
+        // Por ejemplo:
+        // const response = await ProductService.update(selectedProduct.id, product, token);
+        // if (response.result.resultNumber === 0) {
+        //   setProducts(products.map(p => p.id === selectedProduct.id ? response.data : p));
+        // }
+        // Por ahora, nos enfocaremos en la creación
+      } else {
+        // Obtener el token de localStorage o de donde lo tengas almacenado
+        const token = localStorage.getItem('token'); // Asegúrate de que el token esté almacenado aquí
+        if (!token) {
+          throw new Error("No autorizado. Por favor, inicia sesión nuevamente.");
+        }
+
+        const response = await ProductService.create(product, token);
+        if (response.result.resultNumber === 0) { // Ajusta según tu lógica de respuesta
+          setProducts([...products, response.data]); // Agrega el producto creado al estado
+        } else {
+          setError(response.result.errorMessage);
+        }
+      }
+    } catch (error) {
+      console.error("Error al guardar el producto:", error);
+      setError(error.message || "Ocurrió un problema al guardar el producto.");
+    } finally {
+      handleClose();
     }
   };
 
@@ -228,7 +367,15 @@ const Inventory = () => {
               />
               <Button 
                 variant="contained" 
-                sx={{ bgcolor: 'linear-gradient(90deg, #2666CF, #6A82FB)', color: '#ffffff', fontWeight: '500', textTransform: 'none', borderRadius: 2, boxShadow: '0 3px 6px rgba(0,0,0,0.1)', ml: 2 }} 
+                sx={{ 
+                  background: 'linear-gradient(90deg, #2666CF, #6A82FB)', 
+                  color: '#ffffff', 
+                  fontWeight: '500', 
+                  textTransform: 'none', 
+                  borderRadius: 2, 
+                  boxShadow: '0 3px 6px rgba(0,0,0,0.1)', 
+                  ml: 2 
+                }} 
                 startIcon={<AddIcon />} 
                 onClick={() => handleOpen()}
               >
@@ -273,24 +420,16 @@ const Inventory = () => {
                     <TableCell>{t('inventory.name')}</TableCell>
                     <TableCell>{t('inventory.description')}</TableCell>
                     <TableCell>{t('inventory.reference')}</TableCell>
-                    <TableCell>{t('inventory.factoryCode')}</TableCell>
-                    <TableCell>{t('inventory.variant')}</TableCell>
+                    <TableCell>{t('inventory.companyCode')}</TableCell>
                     <TableCell>{t('inventory.tags')}</TableCell>
-                    <TableCell>{t('inventory.type')}</TableCell>
-                    <TableCell>{t('inventory.warehouse')}</TableCell>
-                    <TableCell>{t('inventory.channel')}</TableCell>
-                    <TableCell>{t('inventory.account')}</TableCell>
                     <TableCell>{t('inventory.stock')}</TableCell>
-                    <TableCell>{t('inventory.cost')}</TableCell>
+                    <TableCell>{t('inventory.price')}</TableCell>
                     <TableCell>{t('inventory.purchasePrice')}</TableCell>
                     <TableCell>{t('inventory.costValue')}</TableCell>
-                    <TableCell>{t('inventory.saleValue')}</TableCell>
-                    <TableCell>{t('inventory.subtotal')}</TableCell>
-                    <TableCell>{t('inventory.vat')}</TableCell>
-                    <TableCell>{t('inventory.retention')}</TableCell>
-                    <TableCell>{t('inventory.equivalenceSurcharge')}</TableCell>
-                    <TableCell>{t('inventory.taxes')}</TableCell>
-                    <TableCell>{t('inventory.total')}</TableCell>
+                    <TableCell>{t('inventory.sellsValue')}</TableCell>
+                    <TableCell>{t('inventory.priceWithoutVAT')}</TableCell>
+                    <TableCell>{t('inventory.percentageVAT')}</TableCell>
+                    <TableCell>{t('inventory.contactId')}</TableCell>
                     <TableCell>{t('inventory.actions')}</TableCell>
                   </TableRow>
                 </TableHead>
@@ -300,24 +439,16 @@ const Inventory = () => {
                       <TableCell>{product.name}</TableCell>
                       <TableCell>{product.description}</TableCell>
                       <TableCell>{product.reference}</TableCell>
-                      <TableCell>{product.factoryCode}</TableCell>
-                      <TableCell>{product.variant}</TableCell>
+                      <TableCell>{product.companyCode}</TableCell>
                       <TableCell>{product.tags}</TableCell>
-                      <TableCell>{product.type}</TableCell>
-                      <TableCell>{product.warehouse}</TableCell>
-                      <TableCell>{product.channel}</TableCell>
-                      <TableCell>{product.account}</TableCell>
                       <TableCell>{product.stock}</TableCell>
-                      <TableCell>{product.cost}</TableCell>
+                      <TableCell>{product.price}</TableCell>
                       <TableCell>{product.purchasePrice}</TableCell>
                       <TableCell>{product.costValue}</TableCell>
-                      <TableCell>{product.saleValue}</TableCell>
-                      <TableCell>{product.subtotal}</TableCell>
-                      <TableCell>{product.vat}</TableCell>
-                      <TableCell>{product.retention}</TableCell>
-                      <TableCell>{product.equivalenceSurcharge}</TableCell>
-                      <TableCell>{product.taxes}</TableCell>
-                      <TableCell>{product.total}</TableCell>
+                      <TableCell>{product.sellsValue}</TableCell>
+                      <TableCell>{product.priceWithoutVAT}</TableCell>
+                      <TableCell>{product.percentageVAT}</TableCell>
+                      <TableCell>{product.contactId}</TableCell>
                       <TableCell>
                         <IconButton onClick={() => handleOpen(product)} sx={{ color: '#1A1A40' }}>
                           <EditIcon />
@@ -335,6 +466,13 @@ const Inventory = () => {
         </Box>
       </Box>
       <ProductForm open={open} handleClose={handleClose} product={selectedProduct} handleSave={handleSave} />
+      
+      {/* Snackbar para mostrar mensajes de error */}
+      <Snackbar open={!!error} autoHideDuration={6000} onClose={() => setError('')}>
+        <Alert onClose={() => setError('')} severity="error" sx={{ width: '100%' }}>
+          {error}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };
