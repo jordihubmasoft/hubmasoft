@@ -1,4 +1,4 @@
-// src/modules/auth/pages/profile.tsx
+// src/pages/auth/profile.tsx
 import React, { useState } from 'react';
 import {
   Box,
@@ -6,13 +6,11 @@ import {
   Typography,
   Divider,
   Grid,
-  Card,
-  Avatar,
   Button,
+  Card,
   MenuItem,
   TextField,
 } from '@mui/material';
-import { SiVisa } from 'react-icons/si';
 import Header from '../../../components/Header';
 import Sidebar from '../../../components/Sidebar';
 import { useAuth } from '../context/AuthContext';
@@ -109,12 +107,12 @@ const Profile: React.FC = () => {
     console.log('Añadir Dirección de Envío:', data);
   };
   const handlePreferences = (data: any) => {
-    // Implementa la lógica para añadir una dirección de envío
+    // Implementa la lógica para añadir preferencias
     console.log('Añadir Preferencias', data);
   };
   const handleDocumentTemplates = (data: any) => {
-    // Implementa la lógica para añadir una dirección de envío
-    console.log('Añadir Plantila', data);
+    // Implementa la lógica para añadir plantillas
+    console.log('Añadir Plantilla', data);
   };
 
   return (
@@ -474,7 +472,7 @@ const Profile: React.FC = () => {
                         minWidth: '280px',
                       }}
                     >
-                      <SiVisa color="#1A1A40" size={28} />
+                      
                       <Box sx={{ display: 'flex', flexDirection: 'column' }}>
                         <Typography sx={{ fontWeight: 'bold' }}>VISA</Typography>
                         <Typography sx={{ fontSize: '0.9rem' }}>
@@ -504,8 +502,8 @@ const Profile: React.FC = () => {
                     Dirección de facturación:
                   </Typography>
                   <Typography variant="body2" sx={{ mt: 1 }}>
-                    Félix Martínez Fernández <br />
-                    info@hubmasoft.com <br />
+                    {user.name} <br />
+                    {user.email} <br />
                     48095109T <br />
                     Avda. Juan Carlos, 103, Vic, 08500, Barcelona <br />
                     España, ES
@@ -538,7 +536,6 @@ const Profile: React.FC = () => {
                 {/* ... */}
               </Box>
             )}
-
 
             {selectedTab === 7 && (
               <Box
@@ -760,7 +757,7 @@ const Profile: React.FC = () => {
                   </Button>
                 </Box>
               </Box>
-            </Box>
+          </Box>
           )}
         </Box>
       </Box>

@@ -292,6 +292,7 @@ const [formData, setFormData] = useState({
   email: "",
   country: "",
   city: "",
+  userType: '',
   phone: "",
   address: "",
   postalCode: "",
@@ -400,13 +401,14 @@ const validateForm = (): FormErrors => {
                   <Button
                     variant="contained"
                     sx={{
-                      bgcolor: "#2666CF",
-                      color: "#ffffff",
-                      fontWeight: "500",
-                      textTransform: "none",
+                      background: 'linear-gradient(90deg, #2666CF, #6A82FB)',
+                      color: '#ffffff',
+                      fontWeight: '500',
+                      textTransform: 'none',
+                      padding: '10px 20px',
                       borderRadius: 2,
-                      boxShadow: "0 3px 6px rgba(0,0,0,0.1)",
-                      padding: "10px 20px",
+                      boxShadow: '0 3px 6px rgba(0,0,0,0.1)',
+                      minWidth: '120px',
                     }}
                   >
                     {t("dashboard.newContactRequests")}
@@ -432,10 +434,13 @@ const validateForm = (): FormErrors => {
                   <IconButton
                     onClick={handleMenuClick}
                     sx={{
-                      bgcolor: "#2666CF",
-                      color: "#fff",
+                      background: 'linear-gradient(90deg, #2666CF, #6A82FB)',
+                      color: '#ffffff',
+                      fontWeight: '500',
+                      textTransform: 'none',
                       borderRadius: 2,
-                      boxShadow: "0 3px 6px rgba(0,0,0,0.1)",
+                      boxShadow: '0 3px 6px rgba(0,0,0,0.1)',
+                      
                     }}
                   >
                     <AddCircleOutlineIcon sx={{ fontSize: 32 }} />
@@ -1121,9 +1126,13 @@ const validateForm = (): FormErrors => {
                           <Button
                             variant="contained"
                             sx={{
-                              bgcolor: "#2666CF",
-                              color: "#fff",
-                              textTransform: "none",
+                              background: 'linear-gradient(90deg, #2666CF, #6A82FB)',
+                              color: '#ffffff',
+                              fontWeight: '500',
+                              textTransform: 'none',
+                              borderRadius: 2,
+                              boxShadow: '0 3px 6px rgba(0,0,0,0.1)',
+                              minWidth: '120px',
                             }}
                           >
                             Filtrar
@@ -1737,7 +1746,7 @@ const validateForm = (): FormErrors => {
 
         {/* Dialog para completar información del usuario */}
         {/* Dialog para completar información del usuario */}
-        <Dialog open={open} onClose={handleClose} maxWidth="lg" fullWidth>
+<Dialog open={open} onClose={handleClose} maxWidth="lg" fullWidth>
   <DialogTitle sx={{ fontWeight: "700", fontFamily: "Roboto, sans-serif" }}>
     {t("dashboard.completeYourInfo")}
   </DialogTitle>
@@ -1808,10 +1817,10 @@ const validateForm = (): FormErrors => {
                   name="name"
                   fullWidth
                   variant="outlined"
-                  value={formData.name}
+                  value={formData.name || ''}
                   onChange={handleChange}
                   error={!!formErrors.name}
-                  helperText={formErrors.name}
+                  helperText={formErrors.name || ''}
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
@@ -1820,22 +1829,44 @@ const validateForm = (): FormErrors => {
                   name="email"
                   fullWidth
                   variant="outlined"
-                  value={formData.email}
+                  value={formData.email || ''}
                   onChange={handleChange}
                   error={!!formErrors.email}
-                  helperText={formErrors.email}
+                  helperText={formErrors.email || ''}
                 />
               </Grid>
+
+              {/* Nueva Sección: Tipo de usuario */}
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  label={t('dashboard.userType')}
+                  name="userType"
+                  fullWidth
+                  variant="outlined"
+                  select
+                  value={formData.userType || ''}
+                  onChange={handleChange}
+                  error={!!formErrors.userType}
+                  helperText={formErrors.userType || ''}
+                >
+                  <MenuItem value="">Seleccionar tipo</MenuItem>
+                  <MenuItem value="freelancer">Freelancer</MenuItem>
+                  <MenuItem value="company">Empresa</MenuItem>
+                </TextField>
+              </Grid>
+              {/* Fin de la nueva sección */}
+
+              {/* Campos comunes */}
               <Grid item xs={12} sm={6}>
                 <TextField
                   label={t('dashboard.phone')}
                   name="phone"
                   fullWidth
                   variant="outlined"
-                  value={formData.phone}
+                  value={formData.phone || ''}
                   onChange={handleChange}
                   error={!!formErrors.phone}
-                  helperText={formErrors.phone}
+                  helperText={formErrors.phone || ''}
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
@@ -1844,10 +1875,10 @@ const validateForm = (): FormErrors => {
                   name="mobile"
                   fullWidth
                   variant="outlined"
-                  value={formData.mobile}
+                  value={formData.mobile || ''}
                   onChange={handleChange}
                   error={!!formErrors.mobile}
-                  helperText={formErrors.mobile}
+                  helperText={formErrors.mobile || ''}
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
@@ -1856,17 +1887,91 @@ const validateForm = (): FormErrors => {
                   name="website"
                   fullWidth
                   variant="outlined"
-                  value={formData.website}
+                  value={formData.website || ''}
                   onChange={handleChange}
                   error={!!formErrors.website}
-                  helperText={formErrors.website}
+                  helperText={formErrors.website || ''}
                 />
               </Grid>
+
+              {/* Campos específicos para Freelancer */}
+              {formData.userType === 'freelancer' && (
+                <>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      label={t('dashboard.skills')}
+                      name="skills"
+                      fullWidth
+                      variant="outlined"
+                      value={''}
+                      onChange={handleChange}
+                      error={!!formErrors.skills}
+                      helperText={formErrors.skills || ''}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      label={t('dashboard.experience')}
+                      name="experience"
+                      fullWidth
+                      variant="outlined"
+                      value={''}
+                      onChange={handleChange}
+                      error={!!formErrors.experience}
+                      helperText={formErrors.experience || ''}
+                    />
+                  </Grid>
+                </>
+              )}
+
+              {/* Campos específicos para Empresa */}
+              {formData.userType === 'company' && (
+                <>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      label={t('dashboard.companyName')}
+                      name="companyName"
+                      fullWidth
+                      variant="outlined"
+                      value={''}
+                      onChange={handleChange}
+                      error={!!formErrors.companyName}
+                      helperText={formErrors.companyName || ''}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      label={t('dashboard.companySize')}
+                      name="companySize"
+                      fullWidth
+                      variant="outlined"
+                      select
+                      value={''}
+                      onChange={handleChange}
+                      error={!!formErrors.companySize}
+                      helperText={formErrors.companySize || ''}
+                    >
+                      <MenuItem value="">Seleccionar tamaño</MenuItem>
+                      <MenuItem value="1-10">1-10 empleados</MenuItem>
+                      <MenuItem value="11-50">11-50 empleados</MenuItem>
+                      <MenuItem value="51-200">51-200 empleados</MenuItem>
+                      <MenuItem value="201+">201+ empleados</MenuItem>
+                    </TextField>
+                  </Grid>
+                </>
+              )}
             </Grid>
             <Box sx={{ mt: 2, display: 'flex', gap: 2 }}>
               <Button
-                variant="contained"
-                color="primary"
+                sx={{
+                  background: 'linear-gradient(90deg, #2666CF, #6A82FB)',
+                  color: '#ffffff',
+                  fontWeight: '500',
+                  textTransform: 'none',
+                  borderRadius: 2,
+                  boxShadow: '0 3px 6px rgba(0,0,0,0.1)',
+                  minWidth: '120px',
+                }}
                 fullWidth
               >
                 Guardar cambios
@@ -1897,10 +2002,10 @@ const validateForm = (): FormErrors => {
               name="nif"
               fullWidth
               variant="outlined"
-              value={formData.nif}
+              value={formData.nif || ''}
               onChange={handleChange}
               error={!!formErrors.nif}
-              helperText={formErrors.nif}
+              helperText={formErrors.nif || ''}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
@@ -1909,10 +2014,10 @@ const validateForm = (): FormErrors => {
               name="commercialName"
               fullWidth
               variant="outlined"
-              value={formData.commercialName}
+              value={formData.commercialName || ''}
               onChange={handleChange}
               error={!!formErrors.commercialName}
-              helperText={formErrors.commercialName}
+              helperText={formErrors.commercialName || ''}
             />
           </Grid>
           <Grid item xs={12}>
@@ -1926,10 +2031,10 @@ const validateForm = (): FormErrors => {
               name="address"
               fullWidth
               variant="outlined"
-              value={formData.address}
+              value={formData.address || ''}
               onChange={handleChange}
               error={!!formErrors.address}
-              helperText={formErrors.address}
+              helperText={formErrors.address || ''}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
@@ -1938,10 +2043,10 @@ const validateForm = (): FormErrors => {
               name="city"
               fullWidth
               variant="outlined"
-              value={formData.city}
+              value={formData.city || ''}
               onChange={handleChange}
               error={!!formErrors.city}
-              helperText={formErrors.city}
+              helperText={formErrors.city || ''}
             />
           </Grid>
           <Grid item xs={12} sm={4}>
@@ -1951,10 +2056,10 @@ const validateForm = (): FormErrors => {
               fullWidth
               variant="outlined"
               select
-              value={formData.province}
+              value={formData.province || ''}
               onChange={handleChange}
               error={!!formErrors.province}
-              helperText={formErrors.province}
+              helperText={formErrors.province || ''}
             >
               <MenuItem value="">Seleccionar provincia</MenuItem>
               <MenuItem value="provincia1">Provincia 1</MenuItem>
@@ -1968,8 +2073,9 @@ const validateForm = (): FormErrors => {
               name="postalCode"
               fullWidth
               variant="outlined"
-              value={formData.postalCode}
+              value={formData.postalCode || ''}
               onChange={handleChange}
+              // No agregar error y helperText para evitar duplicaciones
             />
           </Grid>
           <Grid item xs={12} sm={4}>
@@ -1979,10 +2085,10 @@ const validateForm = (): FormErrors => {
               fullWidth
               variant="outlined"
               select
-              value={formData.country}
+              value={formData.country || ''}
               onChange={handleChange}
               error={!!formErrors.country}
-              helperText={formErrors.country}
+              helperText={formErrors.country || ''}
             >
               <MenuItem value="">Seleccionar país</MenuItem>
               <MenuItem value="es">España</MenuItem>
@@ -2007,10 +2113,10 @@ const validateForm = (): FormErrors => {
               name="phone"
               fullWidth
               variant="outlined"
-              value={formData.phone}
+              value={formData.phone || ''}
               onChange={handleChange}
               error={!!formErrors.phone}
-              helperText={formErrors.phone}
+              helperText={formErrors.phone || ''}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
@@ -2019,10 +2125,10 @@ const validateForm = (): FormErrors => {
               name="email"
               fullWidth
               variant="outlined"
-              value={formData.email}
+              value={formData.email || ''}
               onChange={handleChange}
               error={!!formErrors.email}
-              helperText={formErrors.email}
+              helperText={formErrors.email || ''}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
@@ -2031,10 +2137,10 @@ const validateForm = (): FormErrors => {
               name="mobile"
               fullWidth
               variant="outlined"
-              value={formData.mobile}
+              value={formData.mobile || ''}
               onChange={handleChange}
               error={!!formErrors.mobile}
-              helperText={formErrors.mobile}
+              helperText={formErrors.mobile || ''}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
@@ -2043,10 +2149,10 @@ const validateForm = (): FormErrors => {
               name="website"
               fullWidth
               variant="outlined"
-              value={formData.website}
+              value={formData.website || ''}
               onChange={handleChange}
               error={!!formErrors.website}
-              helperText={formErrors.website}
+              helperText={formErrors.website || ''}
             />
           </Grid>
         </Grid>
@@ -2067,7 +2173,7 @@ const validateForm = (): FormErrors => {
               name="address"
               fullWidth
               variant="outlined"
-              value={formData.address}
+              value={formData.address || ''}
               onChange={handleChange}
               // No agregar error y helperText para evitar duplicaciones
             />
@@ -2078,7 +2184,7 @@ const validateForm = (): FormErrors => {
               name="city"
               fullWidth
               variant="outlined"
-              value={formData.city}
+              value={formData.city || ''}
               onChange={handleChange}
               // No agregar error y helperText para evitar duplicaciones
             />
@@ -2090,7 +2196,7 @@ const validateForm = (): FormErrors => {
               fullWidth
               variant="outlined"
               select
-              value={formData.province}
+              value={formData.province || ''}
               onChange={handleChange}
               // No agregar error y helperText para evitar duplicaciones
             >
@@ -2106,7 +2212,7 @@ const validateForm = (): FormErrors => {
               name="postalCode"
               fullWidth
               variant="outlined"
-              value={formData.postalCode}
+              value={formData.postalCode || ''}
               onChange={handleChange}
               // No agregar error y helperText para evitar duplicaciones
             />
@@ -2118,7 +2224,7 @@ const validateForm = (): FormErrors => {
               fullWidth
               variant="outlined"
               select
-              value={formData.country}
+              value={formData.country || ''}
               onChange={handleChange}
               // No agregar error y helperText para evitar duplicaciones
             >
@@ -2156,11 +2262,13 @@ const validateForm = (): FormErrors => {
         <Button
           type="submit"
           sx={{
-            color: "#ffffff",
-            fontWeight: "500",
-            textTransform: "none",
-            bgcolor: "#2666CF",
+            background: 'linear-gradient(90deg, #2666CF, #6A82FB)',
+            color: '#ffffff',
+            fontWeight: '500',
+            textTransform: 'none',
             borderRadius: 2,
+            boxShadow: '0 3px 6px rgba(0,0,0,0.1)',
+            minWidth: '120px',
           }}
         >
           {t("dashboard.save")}
@@ -2173,11 +2281,10 @@ const validateForm = (): FormErrors => {
 
 
 
-      </UserChecker>
-    </Box>
-  );
+</UserChecker>
+</Box>
+);
 };
 
 
 export default Dashboard;
-
