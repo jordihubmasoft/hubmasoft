@@ -401,13 +401,14 @@ const validateForm = (): FormErrors => {
                   <Button
                     variant="contained"
                     sx={{
-                      bgcolor: "#2666CF",
-                      color: "#ffffff",
-                      fontWeight: "500",
-                      textTransform: "none",
+                      background: 'linear-gradient(90deg, #2666CF, #6A82FB)',
+                      color: '#ffffff',
+                      fontWeight: '500',
+                      textTransform: 'none',
+                      padding: '10px 20px',
                       borderRadius: 2,
-                      boxShadow: "0 3px 6px rgba(0,0,0,0.1)",
-                      padding: "10px 20px",
+                      boxShadow: '0 3px 6px rgba(0,0,0,0.1)',
+                      minWidth: '120px',
                     }}
                   >
                     {t("dashboard.newContactRequests")}
@@ -433,10 +434,13 @@ const validateForm = (): FormErrors => {
                   <IconButton
                     onClick={handleMenuClick}
                     sx={{
-                      bgcolor: "#2666CF",
-                      color: "#fff",
+                      background: 'linear-gradient(90deg, #2666CF, #6A82FB)',
+                      color: '#ffffff',
+                      fontWeight: '500',
+                      textTransform: 'none',
                       borderRadius: 2,
-                      boxShadow: "0 3px 6px rgba(0,0,0,0.1)",
+                      boxShadow: '0 3px 6px rgba(0,0,0,0.1)',
+                      
                     }}
                   >
                     <AddCircleOutlineIcon sx={{ fontSize: 32 }} />
@@ -1122,9 +1126,13 @@ const validateForm = (): FormErrors => {
                           <Button
                             variant="contained"
                             sx={{
-                              bgcolor: "#2666CF",
-                              color: "#fff",
-                              textTransform: "none",
+                              background: 'linear-gradient(90deg, #2666CF, #6A82FB)',
+                              color: '#ffffff',
+                              fontWeight: '500',
+                              textTransform: 'none',
+                              borderRadius: 2,
+                              boxShadow: '0 3px 6px rgba(0,0,0,0.1)',
+                              minWidth: '120px',
                             }}
                           >
                             Filtrar
@@ -1955,8 +1963,15 @@ const validateForm = (): FormErrors => {
             </Grid>
             <Box sx={{ mt: 2, display: 'flex', gap: 2 }}>
               <Button
-                variant="contained"
-                color="primary"
+                sx={{
+                  background: 'linear-gradient(90deg, #2666CF, #6A82FB)',
+                  color: '#ffffff',
+                  fontWeight: '500',
+                  textTransform: 'none',
+                  borderRadius: 2,
+                  boxShadow: '0 3px 6px rgba(0,0,0,0.1)',
+                  minWidth: '120px',
+                }}
                 fullWidth
               >
                 Guardar cambios
@@ -2247,11 +2262,13 @@ const validateForm = (): FormErrors => {
         <Button
           type="submit"
           sx={{
-            color: "#ffffff",
-            fontWeight: "500",
-            textTransform: "none",
-            bgcolor: "#2666CF",
+            background: 'linear-gradient(90deg, #2666CF, #6A82FB)',
+            color: '#ffffff',
+            fontWeight: '500',
+            textTransform: 'none',
             borderRadius: 2,
+            boxShadow: '0 3px 6px rgba(0,0,0,0.1)',
+            minWidth: '120px',
           }}
         >
           {t("dashboard.save")}

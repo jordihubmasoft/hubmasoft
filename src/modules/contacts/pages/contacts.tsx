@@ -797,6 +797,22 @@ const Contacts = () => {
   const [filter, setFilter] = useState('todos'); // Estado para manejar el filtro seleccionado
   const [isDrawerExpanded, setIsDrawerExpanded] = useState(false); // Nuevo estado para manejar la expansión del Drawer
   const [selectedTab, setSelectedTab] = useState(0);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editData, setEditData] = useState(selectedContact);
+  const [isEditingClient, setIsEditingClient] = useState(false);
+  const [editClientData, setEditClientData] = useState({
+    nombre: selectedContact?.nombre || '',
+    nif: selectedContact?.nif || '',
+    telefono: selectedContact?.telefono || '',
+    email: selectedContact?.email || '',
+    direccion: selectedContact?.direccion || '',
+    codigoPostal: selectedContact?.codigoPostal || '',
+    poblacion: selectedContact?.poblacion || '',
+    provincia: selectedContact?.provincia || '',
+    pais: selectedContact?.pais || '',
+  });
+
+
 
 const handleTabChange = (event, newValue) => {
   setSelectedTab(newValue);
@@ -832,6 +848,30 @@ const handleTabChange = (event, newValue) => {
     localStorage.setItem('visibleColumns', JSON.stringify(visibleColumns));
   }, [visibleColumns]);
 
+  useEffect(() => {
+    setEditData(selectedContact);
+    setIsEditing(false);
+  }, [selectedContact]);
+
+  useEffect(() => {
+    if (selectedContact) {
+      setEditClientData({
+        nombre: selectedContact.nombre || '',
+        nif: selectedContact.nif || '',
+        telefono: selectedContact.telefono || '',
+        email: selectedContact.email || '',
+        direccion: selectedContact.direccion || '',
+        codigoPostal: selectedContact.codigoPostal || '',
+        poblacion: selectedContact.poblacion || '',
+        provincia: selectedContact.provincia || '',
+        pais: selectedContact.pais || '',
+      });
+      setIsEditingClient(false); // Salir del modo edición al cambiar de contacto
+    }
+  }, [selectedContact]);
+  
+  
+
   const handleOpen = (contact = null) => {
     setSelectedContact(contact);
     setOpen(true);
@@ -843,6 +883,7 @@ const handleTabChange = (event, newValue) => {
   };
   const handleOpenDrawer = (contact) => {
     setSelectedContact(contact);
+    setEditData(contact);
     setIsDrawerOpen(true);
   };
   
@@ -850,11 +891,13 @@ const handleTabChange = (event, newValue) => {
   const handleSave = (contact) => {
     if (selectedContact) {
       setContacts(contacts.map((c) => (c.id === contact.id ? contact : c)));
+      setSelectedContact(contact);
     } else {
       contact.id = contacts.length + 1;
       setContacts([...contacts, contact]);
     }
   };
+  
 
   const handleColumnToggle = (column) => {
     setVisibleColumns((prev) =>
@@ -976,7 +1019,15 @@ const handleTabChange = (event, newValue) => {
                 <Button
                   variant={filter === 'todos' ? 'contained' : 'outlined'}
                   onClick={() => setFilter('todos')}
-                  sx={{ mr: 1 }}
+                  sx={{
+                    background: 'linear-gradient(90deg, #2666CF, #6A82FB)',
+                    color: '#ffffff',
+                    fontWeight: '500',
+                    textTransform: 'none',
+                    borderRadius: 2,
+                    boxShadow: '0 3px 6px rgba(0,0,0,0.1)',
+                    minWidth: '120px',
+                  }}
                 >
                   TODOS
                 </Button>
@@ -1186,11 +1237,13 @@ const handleTabChange = (event, newValue) => {
             startIcon={<ArrowForwardIcon />}
             onClick={() => setIsDrawerExpanded(true)} // Expande el Drawer
             sx={{
+              background: 'linear-gradient(90deg, #2666CF, #6A82FB)',
+              color: '#ffffff',
+              fontWeight: '500',
               textTransform: 'none',
-              bgcolor: '#2666CF',
-              color: '#fff',
-              borderRadius: '50px',
-              p: 1,
+              borderRadius: 2,
+              boxShadow: '0 3px 6px rgba(0,0,0,0.1)',
+              minWidth: '120px',
             }}
           >
             Más
@@ -1223,30 +1276,99 @@ const handleTabChange = (event, newValue) => {
           <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
             Información de Contacto
           </Typography>
-          <Button
-            variant="text"
-            startIcon={<EditIcon />} // Función para editar la información
-            sx={{ textTransform: 'none', color: '#2666CF' }}
-          >
-            Editar
-          </Button>
+          {isEditing ? (
+            <Box>
+              <Button
+                variant="text"
+                onClick={() => {
+                  setSelectedContact(editData);
+                  setIsEditing(false);
+                }}
+                sx={{ textTransform: 'none', color: '#2666CF', mr: 1 }}
+              >
+                Guardar
+              </Button>
+              <Button
+                variant="text"
+                onClick={() => {
+                  setEditData(selectedContact);
+                  setIsEditing(false);
+                }}
+                sx={{ textTransform: 'none', color: '#B00020' }}
+              >
+                Cancelar
+              </Button>
+            </Box>
+          ) : (
+            <Button
+              variant="text"
+              startIcon={<EditIcon />}
+              onClick={() => setIsEditing(true)}
+              sx={{ textTransform: 'none', color: '#2666CF' }}
+            >
+              Editar
+            </Button>
+          )}
         </Box>
-        <Typography variant="body2">
-          <strong>Nombre:</strong> {selectedContact?.nombre}
-        </Typography>
-        <Typography variant="body2">
-          <strong>Nif:</strong> {selectedContact?.nif}
-        </Typography>
-        <Typography variant="body2">
-          <strong>Dirección:</strong> {selectedContact?.direccion}
-        </Typography>
-        <Typography variant="body2">
-          <strong>Teléfono:</strong> {selectedContact?.telefono}
-        </Typography>
-        <Typography variant="body2">
-          <strong>Email:</strong> {selectedContact?.email}
-        </Typography>
+        {isEditing ? (
+          <>
+            <TextField
+              label="Nombre"
+              value={editData.nombre}
+              onChange={(e) => setEditData({ ...editData, nombre: e.target.value })}
+              fullWidth
+              sx={{ mb: 1 }}
+            />
+            <TextField
+              label="Nif"
+              value={editData.nif}
+              onChange={(e) => setEditData({ ...editData, nif: e.target.value })}
+              fullWidth
+              sx={{ mb: 1 }}
+            />
+            <TextField
+              label="Dirección"
+              value={editData.direccion}
+              onChange={(e) => setEditData({ ...editData, direccion: e.target.value })}
+              fullWidth
+              sx={{ mb: 1 }}
+            />
+            <TextField
+              label="Teléfono"
+              value={editData.telefono}
+              onChange={(e) => setEditData({ ...editData, telefono: e.target.value })}
+              fullWidth
+              sx={{ mb: 1 }}
+            />
+            <TextField
+              label="Email"
+              value={editData.email}
+              onChange={(e) => setEditData({ ...editData, email: e.target.value })}
+              fullWidth
+              sx={{ mb: 1 }}
+            />
+          </>
+        ) : (
+          <>
+            <Typography variant="body2">
+              <strong>Nombre:</strong> {selectedContact?.nombre}
+            </Typography>
+            <Typography variant="body2">
+              <strong>Nif:</strong> {selectedContact?.nif}
+            </Typography>
+            <Typography variant="body2">
+              <strong>Dirección:</strong> {selectedContact?.direccion}
+            </Typography>
+            <Typography variant="body2">
+              <strong>Teléfono:</strong> {selectedContact?.telefono}
+            </Typography>
+            <Typography variant="body2">
+              <strong>Email:</strong> {selectedContact?.email}
+            </Typography>
+          </>
+        )}
       </Box>
+
 
       {/* Botones de creación rápida */}
       <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
@@ -1535,13 +1657,13 @@ const handleTabChange = (event, newValue) => {
         startIcon={<ArrowForwardIcon />}
         onClick={() => setIsDrawerExpanded(false)}
         sx={{
+          background: 'linear-gradient(90deg, #2666CF, #6A82FB)',
+          color: '#ffffff',
+          fontWeight: '500',
           textTransform: 'none',
-          bgcolor: '#2666CF',
-          color: '#fff',
-          borderRadius: '50px',
-          p: 1,
-          fontWeight: 'bold',
-          boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+          borderRadius: 2,
+          boxShadow: '0 3px 6px rgba(0,0,0,0.1)',
+          minWidth: '120px',
         }}
       >
         Menos
@@ -1593,51 +1715,211 @@ const handleTabChange = (event, newValue) => {
       <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: '#2666CF' }}>
         Información del Cliente
       </Typography>
-      <Button variant="text" color="primary" >
-        Editar
-      </Button>
+      {isEditingClient ? (
+        <Box>
+          <Button
+            variant="text"
+            onClick={() => {
+              // Guardar los cambios
+              handleSave({ ...selectedContact, ...editClientData });
+              setIsEditingClient(false);
+            }}
+            sx={{ textTransform: 'none', color: '#2666CF', mr: 1 }}
+          >
+            Guardar
+          </Button>
+          <Button
+            variant="text"
+            onClick={() => {
+              // Cancelar los cambios
+              setEditClientData({
+                nombre: selectedContact.nombre || '',
+                nif: selectedContact.nif || '',
+                telefono: selectedContact.telefono || '',
+                email: selectedContact.email || '',
+                direccion: selectedContact.direccion || '',
+                codigoPostal: selectedContact.codigoPostal || '',
+                poblacion: selectedContact.poblacion || '',
+                provincia: selectedContact.provincia || '',
+                pais: selectedContact.pais || '',
+              });
+              setIsEditingClient(false);
+            }}
+            sx={{ textTransform: 'none', color: '#B00020' }}
+          >
+            Cancelar
+          </Button>
+        </Box>
+      ) : (
+        <Button
+          variant="text"
+          startIcon={<EditIcon />}
+          onClick={() => setIsEditingClient(true)}
+          sx={{ textTransform: 'none', color: '#2666CF' }}
+        >
+          Editar
+        </Button>
+      )}
     </Box>
 
-    <Typography variant="body2" sx={{ mb: 1 }}>
-      <strong>Nombre:</strong> Félix Martínez Giménez
-    </Typography>
-    <Typography variant="body2" sx={{ mb: 1 }}>
-      <strong>NIF:</strong> 12345678L
-    </Typography>
-    <Typography variant="body2" sx={{ mb: 1 }}>
-      <strong>Teléfono:</strong>{' '}
-      <a href="tel:648693534" style={{ color: '#2666CF' }}>
-        648693534
-      </a>
-    </Typography>
-    <Typography variant="body2" sx={{ mb: 1 }}>
-      <strong>Email:</strong>{' '}
-      <a href="mailto:info@hubmasoft.com" style={{ color: '#2666CF' }}>
-        info@hubmasoft.com
-      </a>
-    </Typography>
-    <Typography variant="body2" sx={{ mb: 1 }}>
-      <strong>Dirección:</strong>
-    </Typography>
-    <Grid container spacing={1}>
-      <Grid item xs={12}>
-        <TextField label="Dirección" fullWidth size="small" />
-      </Grid>
-      <Grid item xs={6}>
-        <TextField label="Código Postal" fullWidth size="small" />
-      </Grid>
-      <Grid item xs={6}>
-        <TextField label="Población" fullWidth size="small" />
-      </Grid>
-      <Grid item xs={6}>
-        <TextField label="Provincia" fullWidth size="small" />
-      </Grid>
-      <Grid item xs={6}>
-        <TextField label="País" fullWidth size="small" />
-      </Grid>
-    </Grid>
+    {isEditingClient ? (
+      <>
+        {/* Campos Editables */}
+        <Typography variant="body2" sx={{ mb: 1 }}>
+          <strong>Nombre:</strong>
+        </Typography>
+        <TextField
+          label="Nombre"
+          name="nombre"
+          value={editClientData.nombre}
+          onChange={(e) => setEditClientData({ ...editClientData, nombre: e.target.value })}
+          fullWidth
+          sx={{ mb: 1 }}
+        />
+
+        <Typography variant="body2" sx={{ mb: 1 }}>
+          <strong>NIF:</strong>
+        </Typography>
+        <TextField
+          label="NIF"
+          name="nif"
+          value={editClientData.nif}
+          onChange={(e) => setEditClientData({ ...editClientData, nif: e.target.value })}
+          fullWidth
+          sx={{ mb: 1 }}
+        />
+
+        <Typography variant="body2" sx={{ mb: 1 }}>
+          <strong>Teléfono:</strong>
+        </Typography>
+        <TextField
+          label="Teléfono"
+          name="telefono"
+          value={editClientData.telefono}
+          onChange={(e) => setEditClientData({ ...editClientData, telefono: e.target.value })}
+          fullWidth
+          sx={{ mb: 1 }}
+        />
+
+        <Typography variant="body2" sx={{ mb: 1 }}>
+          <strong>Email:</strong>
+        </Typography>
+        <TextField
+          label="Email"
+          name="email"
+          value={editClientData.email}
+          onChange={(e) => setEditClientData({ ...editClientData, email: e.target.value })}
+          fullWidth
+          sx={{ mb: 1 }}
+        />
+
+        <Typography variant="body2" sx={{ mb: 1 }}>
+          <strong>Dirección:</strong>
+        </Typography>
+        <Grid container spacing={1}>
+          <Grid item xs={12}>
+            <TextField
+              label="Dirección"
+              name="direccion"
+              value={editClientData.direccion}
+              onChange={(e) => setEditClientData({ ...editClientData, direccion: e.target.value })}
+              fullWidth
+              size="small"
+              sx={{ mb: 1 }}
+            />
+          </Grid>
+          <Grid item xs={6}>
+            <TextField
+              label="Código Postal"
+              name="codigoPostal"
+              value={editClientData.codigoPostal}
+              onChange={(e) => setEditClientData({ ...editClientData, codigoPostal: e.target.value })}
+              fullWidth
+              size="small"
+              sx={{ mb: 1 }}
+            />
+          </Grid>
+          <Grid item xs={6}>
+            <TextField
+              label="Población"
+              name="poblacion"
+              value={editClientData.poblacion}
+              onChange={(e) => setEditClientData({ ...editClientData, poblacion: e.target.value })}
+              fullWidth
+              size="small"
+              sx={{ mb: 1 }}
+            />
+          </Grid>
+          <Grid item xs={6}>
+            <TextField
+              label="Provincia"
+              name="provincia"
+              value={editClientData.provincia}
+              onChange={(e) => setEditClientData({ ...editClientData, provincia: e.target.value })}
+              fullWidth
+              size="small"
+              sx={{ mb: 1 }}
+            />
+          </Grid>
+          <Grid item xs={6}>
+            <TextField
+              label="País"
+              name="pais"
+              value={editClientData.pais}
+              onChange={(e) => setEditClientData({ ...editClientData, pais: e.target.value })}
+              fullWidth
+              size="small"
+              sx={{ mb: 1 }}
+            />
+          </Grid>
+        </Grid>
+      </>
+    ) : (
+      <>
+        {/* Información Estática */}
+        <Typography variant="body2" sx={{ mb: 1 }}>
+          <strong>Nombre:</strong> {selectedContact?.nombre}
+        </Typography>
+        <Typography variant="body2" sx={{ mb: 1 }}>
+          <strong>NIF:</strong> {selectedContact?.nif}
+        </Typography>
+        <Typography variant="body2" sx={{ mb: 1 }}>
+          <strong>Teléfono:</strong>{' '}
+          <a href={`tel:${selectedContact?.telefono}`} style={{ color: '#2666CF' }}>
+            {selectedContact?.telefono}
+          </a>
+        </Typography>
+        <Typography variant="body2" sx={{ mb: 1 }}>
+          <strong>Email:</strong>{' '}
+          <a href={`mailto:${selectedContact?.email}`} style={{ color: '#2666CF' }}>
+            {selectedContact?.email}
+          </a>
+        </Typography>
+        <Typography variant="body2" sx={{ mb: 1 }}>
+          <strong>Dirección:</strong>
+        </Typography>
+        <Grid container spacing={1}>
+          <Grid item xs={12}>
+            <Typography variant="body2">{selectedContact?.direccion}</Typography>
+          </Grid>
+          <Grid item xs={6}>
+            <Typography variant="body2">{selectedContact?.codigoPostal}</Typography>
+          </Grid>
+          <Grid item xs={6}>
+            <Typography variant="body2">{selectedContact?.poblacion}</Typography>
+          </Grid>
+          <Grid item xs={6}>
+            <Typography variant="body2">{selectedContact?.provincia}</Typography>
+          </Grid>
+          <Grid item xs={6}>
+            <Typography variant="body2">{selectedContact?.pais}</Typography>
+          </Grid>
+        </Grid>
+      </>
+    )}
   </Paper>
 </Grid>
+
 
 
     <Grid item xs={12} md={6}>
@@ -1812,10 +2094,13 @@ const handleTabChange = (event, newValue) => {
           <Button
             variant="contained"
             sx={{
+              background: 'linear-gradient(90deg, #2666CF, #6A82FB)',
+              color: '#ffffff',
+              fontWeight: '500',
               textTransform: 'none',
-              bgcolor: '#2666CF',
-              color: '#fff',
-              fontWeight: 'bold',
+              borderRadius: 2,
+              boxShadow: '0 3px 6px rgba(0,0,0,0.1)',
+              minWidth: '120px',
             }}
           >
             Ver portal del cliente
