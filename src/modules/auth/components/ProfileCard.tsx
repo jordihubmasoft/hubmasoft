@@ -1,6 +1,6 @@
 // src/modules/auth/components/ProfileCard.tsx
 import React from 'react';
-import { Card, Avatar, Typography, Button, Grid } from '@mui/material';
+import { Card, Avatar, Typography, Button } from '@mui/material';
 import { useAuth } from '../context/AuthContext';
 
 interface ProfileCardProps {
@@ -30,6 +30,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ onChangePhoto, onDeleteAccoun
           mx: 'auto',
           mb: 2,
         }}
+        src={user?.avatarUrl || undefined}
       >
         {user?.name?.charAt(0).toUpperCase() || 'NA'}
       </Avatar>
