@@ -9,5 +9,6 @@ export interface LoginResponse {
   refreshToken: string;
   refreshTokenExpiryTime: string;
   agentId: string;
+  contactId: string;
   avatarUrl?: string; // Añadido para la URL del avatar
 }

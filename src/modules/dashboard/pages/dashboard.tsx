@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Box,
   Container,
@@ -97,7 +97,24 @@ const Dashboard = () => {
   const [amount, setAmount] = useState("€0,00");
   const { t } = useTranslation();
   const [chartData, setChartData] = useState(initialChartData);
-  const { agentId, token } = useAuthStore();
+  const { contactId, token, agentId } = useAuthStore();
+  useEffect(() => {
+    console.log("Contact ID:", contactId);
+    console.log("Token:", token);
+    const fetchContact = async () => {
+      if (open && contactId && token) {
+        try {
+          const response = await ContactService.getContactById(contactId, token);
+          if (response.data) {
+            setFormData(response.data);
+          }
+        } catch (error) {
+          console.error("Error al obtener el contacto:", error);
+        }
+      }
+    };
+    fetchContact();
+  }, [open, contactId, token]);
 
   // Estado para controlar la visibilidad de todos los widgets
   const [widgets, setWidgets] = useState({

@@ -5,6 +5,7 @@ import { create } from 'zustand';
 interface AuthState {
   agentId: string | null;
   token: string | null;
+  contactId: string | null;
   refreshToken: string | null;
   refreshTokenExpiryTime: string | null;
   email: string | null;
@@ -12,6 +13,7 @@ interface AuthState {
   resetPasswordToken: string | null;
   setAgentId: (agentId: string | null) => void;
   setToken: (token: string | null) => void;
+  setContactId: (contactId: string | null) => void;
   setRefreshToken: (refreshToken: string | null) => void;
   setRefreshTokenExpiryTime: (expiryTime: string | null) => void;
   setEmail: (email: string | null) => void;
@@ -23,6 +25,7 @@ interface AuthState {
 // Create the store using create from 'zustand'
 const useAuthStore = create<AuthState>((set) => ({
   agentId: null,
+  contactId: null,
   token: null,
   refreshToken: null,
   refreshTokenExpiryTime: null,
@@ -31,6 +34,7 @@ const useAuthStore = create<AuthState>((set) => ({
   resetPasswordToken: null,
 
   setAgentId: (agentId) => set({ agentId }),
+  setContactId: (contactId) => set({ contactId }),
   setToken: (token) => set({ token }),
   setRefreshToken: (refreshToken) => set({ refreshToken }),
   setRefreshTokenExpiryTime: (expiryTime) =>

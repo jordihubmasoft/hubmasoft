@@ -66,7 +66,7 @@ const Login = () => {
   const { register, data: registerData, error: registerError, loading: registerLoading } = useRegister();
   const router = useRouter();
 
-  const { setAgentId, setToken, setRefreshToken, setRefreshTokenExpiryTime } = useAuthStore();
+  const { setAgentId, setToken, setRefreshToken, setRefreshTokenExpiryTime, setContactId} = useAuthStore();
   const [email, setEmail] = useState("");
   const [recaptchaValue, setRecaptchaValue] = useState(null);
   const [password, setPassword] = useState("");
@@ -108,6 +108,7 @@ const Login = () => {
       const userData = {
         state: {
           agentId: loginData.agentId,
+          contactId: loginData.contactId,
           token: loginData.token,
           refreshToken: loginData.refreshToken,
           refreshTokenExpiryTime: loginData.refreshTokenExpiryTime,
@@ -117,6 +118,7 @@ const Login = () => {
 
       localStorage.setItem("user", JSON.stringify(userData));
       setAgentId(loginData.agentId);
+      setContactId(loginData.contactId);
       setToken(loginData.token);
       setRefreshToken(loginData.refreshToken);
       setRefreshTokenExpiryTime(loginData.refreshTokenExpiryTime);

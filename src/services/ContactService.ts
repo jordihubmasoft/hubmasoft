@@ -6,8 +6,8 @@ export default class ContactService {
   // Method to get a contact by its ID
   static async getContactById(contactId: string, token: string): Promise<CommonResponse<any>> {
     try {
-      // Ensure there are no trailing slashes in the base URL
-      const baseURL = process.env.NEXT_PUBLIC_API.replace(/\/+$/, '');
+      console.log("ContactID ", contactId);
+      const baseURL = process.env.NEXT_PUBLIC_API?.replace(/\/+$/, '');
       const url = `${baseURL}/Contact/${contactId}`;
 
       // Make the GET request to the API
@@ -30,12 +30,12 @@ export default class ContactService {
           data: resultData.data,
         };
       } else {
-        // Handle non-OK responses
-        const errorResponse = await response.json();
-        throw new Error(errorResponse.result?.errorMessage || "Error al obtener el contacto");
+        const errorText = await response.text();
+        console.error(`Error ${response.status}: ${errorText}`);
+        throw new Error(`Error ${response.status}: ${errorText}`);
       }
-    } catch (err) {
-      console.error("Error en la solicitud:", err);
+    } catch (err: any) {
+      console.error("Error en la solicitud:", err.message || err);
       throw new Error("Ocurrió un problema al obtener el contacto.");
     }
   }
