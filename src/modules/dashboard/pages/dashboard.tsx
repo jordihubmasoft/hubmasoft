@@ -37,7 +37,6 @@ import {
   Title,
   Tooltip,
   Legend,
-
   ChartDataset,
 } from "chart.js";
 import Header from "components/Header";
@@ -45,8 +44,8 @@ import Sidebar from "components/Sidebar";
 import { useTranslation } from "../../../hooks/useTranslations";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { ChartOptions } from "chart.js";
 import Fade from "@mui/material/Fade";
+import UserInfoDialog from "../components/UserInfoDialog"; 
 import Zoom from "@mui/material/Zoom";
 import useAuthStore from '../../../store/useAuthStore';
 import {
@@ -97,19 +96,23 @@ const Dashboard = () => {
   const [amount, setAmount] = useState("€0,00");
   const { t } = useTranslation();
   const [chartData, setChartData] = useState(initialChartData);
+  const [hasContact, setHasContact] = useState(false);
   const { contactId, token, agentId } = useAuthStore();
+
   useEffect(() => {
-    console.log("Contact ID:", contactId);
-    console.log("Token:", token);
     const fetchContact = async () => {
       if (open && contactId && token) {
         try {
           const response = await ContactService.getContactById(contactId, token);
           if (response.data) {
             setFormData(response.data);
+            setHasContact(true); // Contacto existente
+          } else {
+            setHasContact(false); // No hay contacto
           }
         } catch (error) {
           console.error("Error al obtener el contacto:", error);
+          setHasContact(false);
         }
       }
     };
@@ -133,9 +136,9 @@ const Dashboard = () => {
     showClientesConVentas: true,
   });
 
-  const [anchorEl, setAnchorEl] = useState(null);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
-  const handleMenuClick = (event) => {
+  const handleMenuClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
   };
 
@@ -143,42 +146,90 @@ const Dashboard = () => {
     setAnchorEl(null);
   };
 
-  const handleWidgetChange = (event) => {
+  const handleWidgetChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setWidgets({
       ...widgets,
       [event.target.name]: event.target.checked,
     });
   };
 
-  const handleYearChange = (event) => {
-    const newYear = event.target.value;
+  const handleYearChange = (event: React.ChangeEvent<{ value: unknown }>) => {
+    const newYear = event.target.value as string;
     setSelectedYear(newYear);
     updateChartData(newYear, selectedPeriod);
   };
 
-  const handlePeriodChange = (event) => {
-    const newPeriod = event.target.value;
+  const handlePeriodChange = (event: React.ChangeEvent<{ value: unknown }>) => {
+    const newPeriod = event.target.value as string;
     setSelectedPeriod(newPeriod);
     updateChartData(selectedYear, newPeriod);
   };
 
-  const updateChartData = (year, period) => {
+  const updateChartData = (year: string, period: string) => {
     let updatedData;
     let updatedAmount;
 
     if (year === "2024" && period === "15 días") {
       updatedData = {
-        /* New dataset for 2024 and last 15 days */
+        labels: ["Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio"],
+        datasets: [
+          {
+            label: "Ventas 2024",
+            data: [700, 800, 750, 900, 850, 950],
+            backgroundColor: "rgba(38, 102, 207, 0.7)",
+            borderColor: "#2666CF",
+            borderWidth: 1,
+          },
+          {
+            label: "Ventas 2023",
+            data: [650, 700, 680, 800, 750, 900],
+            backgroundColor: "rgba(26, 26, 64, 0.7)",
+            borderColor: "#1A1A40",
+            borderWidth: 1,
+          },
+        ],
       };
       updatedAmount = "€1,200.00";
     } else if (year === "2023" && period === "15 días") {
       updatedData = {
-        /* New dataset for 2023 and last 15 days */
+        labels: ["Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio"],
+        datasets: [
+          {
+            label: "Ventas 2024",
+            data: [600, 700, 650, 800, 750, 850],
+            backgroundColor: "rgba(38, 102, 207, 0.7)",
+            borderColor: "#2666CF",
+            borderWidth: 1,
+          },
+          {
+            label: "Ventas 2023",
+            data: [550, 600, 580, 700, 650, 800],
+            backgroundColor: "rgba(26, 26, 64, 0.7)",
+            borderColor: "#1A1A40",
+            borderWidth: 1,
+          },
+        ],
       };
       updatedAmount = "€900.00";
     } else {
       updatedData = {
-        /* Default dataset */
+        labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul"],
+        datasets: [
+          {
+            label: "Sales 2024",
+            data: [500, 400, 600, 700, 800, 900, 1000],
+            backgroundColor: "rgba(38, 102, 207, 0.7)",
+            borderColor: "#2666CF",
+            borderWidth: 1,
+          },
+          {
+            label: "Sales 2023",
+            data: [450, 300, 500, 600, 700, 800, 950],
+            backgroundColor: "rgba(26, 26, 64, 0.7)",
+            borderColor: "#1A1A40",
+            borderWidth: 1,
+          },
+        ],
       };
       updatedAmount = "€0,00";
     }
@@ -191,20 +242,102 @@ const Dashboard = () => {
     setOpen(false);
   };
 
-  const handleUserTypeChange = (event) => {
+  const handleUserTypeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setUserType(event.target.value);
   };
 
-  const handleFormSubmit = async (event) => {
+  // Define la interfaz para formErrors
+  interface FormErrors {
+    name?: string;
+    email?: string;
+    country?: string;
+    city?: string;
+    phone?: string;
+    userType?: string;
+    skills?: string;
+    experience?: string;
+    companyName?: string;
+    companySize?: string;
+    nif?: string;
+    commercialName?: string;
+    province?: string;
+    [key: string]: string | undefined;
+  }
+
+  // Estado del formulario para gestionar los datos
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    country: "",
+    city: "",
+    userType: '',
+    phone: "",
+    address: "",
+    postalCode: "",
+    nif: "",
+    commercialName: "",
+    province: "",
+    mobile: "",
+    website: "",
+    contactId: "",
+    userId: "",
+    skills: "",
+    experience: "",
+    companyName: "",
+    companySize: "",
+  });
+
+  // Inicializa formErrors con la interfaz FormErrors
+  const [formErrors, setFormErrors] = useState<FormErrors>({});
+
+  // Campos obligatorios
+  const requiredFields = ["name", "email", "country", "city", "phone"];
+
+  const validateForm = (): FormErrors => {
+    const errors: FormErrors = {};
+    requiredFields.forEach((field) => {
+      if (!formData[field as keyof typeof formData]) {
+        errors[field] = `${t(`dashboard.${field}`)} es requerido`;
+      }
+    });
+
+    // Validaciones adicionales según el tipo de usuario
+    if (formData.userType === 'freelancer') {
+      if (!formData.skills) {
+        errors.skills = `${t('dashboard.skills')} es requerido`;
+      }
+      if (!formData.experience) {
+        errors.experience = `${t('dashboard.experience')} es requerido`;
+      }
+    }
+
+    if (formData.userType === 'company') {
+      if (!formData.companyName) {
+        errors.companyName = `${t('dashboard.companyName')} es requerido`;
+      }
+      if (!formData.companySize) {
+        errors.companySize = `${t('dashboard.companySize')} es requerido`;
+      }
+    }
+
+    return errors;
+  };
+
+  const handleChange = (
+    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | { name?: string; value: unknown }>
+  ) => {
+    const { name, value } = event.target;
+    setFormData(prev => ({ ...prev, [name!]: value }));
+  };
+
+  const handleFormSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
   
     const formValidationErrors = validateForm();
     if (Object.keys(formValidationErrors).length > 0) {
-      setFormErrors(formValidationErrors); // Si hay errores, se establecen en el estado
+      setFormErrors(formValidationErrors);
       return;
     }
-  
-    
   
     if (!agentId) {
       console.error('UserId no disponible. El usuario no ha iniciado sesión correctamente.');
@@ -212,7 +345,7 @@ const Dashboard = () => {
     }
   
     const contactData = {
-      contactType: 1, // Tipo de contacto
+      contactType: 1, // Tipo de contacto, ajusta según sea necesario
       name: formData.name,
       address: formData.address,
       country: formData.country,
@@ -220,16 +353,37 @@ const Dashboard = () => {
       postalCode: formData.postalCode,
       email: formData.email,
       phone: formData.phone,
+      mobile: formData.mobile,
+      website: formData.website,
+      userId: agentId,
+      contactId: hasContact ? contactId : undefined, // Incluye contactId solo si es una actualización
+      skills: formData.skills,
+      experience: formData.experience,
+      companyName: formData.companyName,
+      companySize: formData.companySize,
+      nif: formData.nif,
+      commercialName: formData.commercialName,
+      province: formData.province,
+      // Agrega otros campos según sea necesario
     };
   
     try {
-      await ContactService.createContact(contactData, token, agentId); // Pasa el token y el agentId como argumentos
-      setOpen(false); // Cierra el modal o muestra un mensaje de éxito
-    } catch (error) {
-      console.error('Error creando el contacto:', error);
+      if (hasContact && contactId) {
+        // Actualizar contacto existente
+        await ContactService.updateContact(contactData, token);
+        console.log('Contacto actualizado exitosamente.');
+      } else {
+        // Crear nuevo contacto
+        await ContactService.createContact(contactData, token, agentId);
+        console.log('Contacto creado exitosamente.');
+      }
+      setOpen(false); // Cierra el modal
+    } catch (error: any) {
+      console.error(hasContact ? 'Error actualizando el contacto:' : 'Error creando el contacto:', error);
+      // Puedes mostrar un mensaje de error al usuario aquí
+      alert(hasContact ? 'Ocurrió un problema al actualizar el contacto. Por favor, inténtalo de nuevo.' : 'Ocurrió un problema al crear el contacto. Por favor, inténtalo de nuevo.');
     }
   };
-  
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -260,10 +414,10 @@ const Dashboard = () => {
     plugins: {
       legend: {
         display: true,
-        position: "top",
+        position: "top" as const,
       },
       tooltip: {
-        mode: "index",
+        mode: "index" as const,
         intersect: false,
       },
     },
@@ -292,62 +446,6 @@ const Dashboard = () => {
       },
     },
   };
-
-  // Define the interface for formErrors
-interface FormErrors {
-  name?: string;
-  email?: string;
-  country?: string;
-  city?: string;
-  phone?: string;
-  [key: string]: string | undefined;
-}
-
-// Estado del formulario para gestionar los datos
-const [formData, setFormData] = useState({
-  name: "",
-  email: "",
-  country: "",
-  city: "",
-  userType: '',
-  phone: "",
-  address: "",
-  postalCode: "",
-  nif: "",
-  commercialName: "",
-  province: "",
-  mobile: "",
-  website: "",
-});
-
-// Initialize formErrors with the FormErrors interface
-const [formErrors, setFormErrors] = useState<FormErrors>({});
-
-// Campos obligatorios
-const requiredFields = ["name", "email", "country", "city", "phone"];
-
-const validateForm = (): FormErrors => {
-  const errors: FormErrors = {};
-  requiredFields.forEach((field) => {
-    if (!formData[field]) {
-      errors[field] = `${field} es requerido`;
-    }
-  });
-  return errors;
-};
-
-
-  const handleChange = (event) => {
-    const { name, value } = event.target;
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
-  };
-
-  
-
-
 
   return (
     <Box
@@ -457,7 +555,6 @@ const validateForm = (): FormErrors => {
                       textTransform: 'none',
                       borderRadius: 2,
                       boxShadow: '0 3px 6px rgba(0,0,0,0.1)',
-                      
                     }}
                   >
                     <AddCircleOutlineIcon sx={{ fontSize: 32 }} />
@@ -1041,7 +1138,7 @@ const validateForm = (): FormErrors => {
                           >
                             <Select
                               value={selectedPeriod}
-                              onChange={handlePeriodChange}
+                              
                               sx={{
                                 minWidth: "160px",
                                 height: "40px",
@@ -1064,7 +1161,7 @@ const validateForm = (): FormErrors => {
                             </Select>
                             <Select
                               value={selectedYear}
-                              onChange={handleYearChange}
+                              
                               sx={{
                                 minWidth: "120px",
                                 height: "40px",
@@ -1081,7 +1178,7 @@ const validateForm = (): FormErrors => {
                           </Box>
                         </Box>
                         <Box sx={{ height: 400, position: "relative" }}>
-                          <Bar data={data} />
+                          <Bar data={data} options={options} />
                           <Box
                             sx={{
                               position: "absolute",
@@ -1234,10 +1331,10 @@ const validateForm = (): FormErrors => {
                                 },
                               },
                               tooltip: {
-                                mode: "index",
+                                mode: "index" as const,
                                 intersect: false,
                                 callbacks: {
-                                  label: function (tooltipItem) {
+                                  label: function (tooltipItem: any) {
                                     return ` ${tooltipItem.dataset.label}: €${tooltipItem.formattedValue}`;
                                   },
                                 },
@@ -1760,548 +1857,21 @@ const validateForm = (): FormErrors => {
             </Container>
           </Box>
         </Box>
-
-        {/* Dialog para completar información del usuario */}
-        {/* Dialog para completar información del usuario */}
-<Dialog open={open} onClose={handleClose} maxWidth="lg" fullWidth>
-  <DialogTitle sx={{ fontWeight: "700", fontFamily: "Roboto, sans-serif" }}>
-    {t("dashboard.completeYourInfo")}
-  </DialogTitle>
-  <DialogContent>
-    <DialogContentText sx={{ fontWeight: "400", fontFamily: "Roboto, sans-serif" }}>
-      {t("dashboard.completeInfoDescription")}
-    </DialogContentText>
-    <Box
-      component="form"
-      onSubmit={handleFormSubmit} // Función actualizada para la validación
-      noValidate
-      sx={{ mt: 1 }}
-    >
-      {/* Contenedor principal para Perfil y Editar perfil */}
-      <Grid container spacing={4}>
-        {/* Sección 1: Perfil */}
-        <Grid item xs={12} md={4}>
-          <Box sx={{ mb: 4 }}>
-            <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
-              Perfil
-            </Typography>
-            <Grid container direction="column" spacing={2} alignItems="center">
-              <Grid item>
-                <Avatar
-                  sx={{ width: 100, height: 100 }}
-                >
-                  {!formData.name ? 'NA' : formData.name.charAt(0).toUpperCase()}
-                </Avatar>
-              </Grid>
-              <Grid item>
-                <Typography variant="subtitle1">
-                  {formData.name || 'Nombre no disponible'}
-                </Typography>
-                <Typography variant="body2" color="textSecondary">
-                  {formData.email || 'Email no disponible'}
-                </Typography>
-              </Grid>
-              <Grid item sx={{ width: '100%' }}>
-                <Button
-                  variant="outlined"
-                  fullWidth
-                  sx={{ mb: 1 }}
-                >
-                  Cambiar foto
-                </Button>
-                <Button
-                  variant="text"
-                  color="error"
-                  fullWidth
-                >
-                  Eliminar cuenta
-                </Button>
-              </Grid>
-            </Grid>
-          </Box>
-        </Grid>
-
-        {/* Sección 2: Editar perfil */}
-        <Grid item xs={12} md={8}>
-          <Box sx={{ mb: 4 }}>
-            <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
-              Editar perfil
-            </Typography>
-            <Grid container spacing={2}>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  label={t('dashboard.name')}
-                  name="name"
-                  fullWidth
-                  variant="outlined"
-                  value={formData.name || ''}
-                  onChange={handleChange}
-                  error={!!formErrors.name}
-                  helperText={formErrors.name || ''}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  label={t('dashboard.email')}
-                  name="email"
-                  fullWidth
-                  variant="outlined"
-                  value={formData.email || ''}
-                  onChange={handleChange}
-                  error={!!formErrors.email}
-                  helperText={formErrors.email || ''}
-                />
-              </Grid>
-
-              {/* Nueva Sección: Tipo de usuario */}
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  label={t('dashboard.userType')}
-                  name="userType"
-                  fullWidth
-                  variant="outlined"
-                  select
-                  value={formData.userType || ''}
-                  onChange={handleChange}
-                  error={!!formErrors.userType}
-                  helperText={formErrors.userType || ''}
-                >
-                  <MenuItem value="">Seleccionar tipo</MenuItem>
-                  <MenuItem value="freelancer">Freelancer</MenuItem>
-                  <MenuItem value="company">Empresa</MenuItem>
-                </TextField>
-              </Grid>
-              {/* Fin de la nueva sección */}
-
-              {/* Campos comunes */}
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  label={t('dashboard.phone')}
-                  name="phone"
-                  fullWidth
-                  variant="outlined"
-                  value={formData.phone || ''}
-                  onChange={handleChange}
-                  error={!!formErrors.phone}
-                  helperText={formErrors.phone || ''}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  label={t('dashboard.mobile')}
-                  name="mobile"
-                  fullWidth
-                  variant="outlined"
-                  value={formData.mobile || ''}
-                  onChange={handleChange}
-                  error={!!formErrors.mobile}
-                  helperText={formErrors.mobile || ''}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  label={t('dashboard.website')}
-                  name="website"
-                  fullWidth
-                  variant="outlined"
-                  value={formData.website || ''}
-                  onChange={handleChange}
-                  error={!!formErrors.website}
-                  helperText={formErrors.website || ''}
-                />
-              </Grid>
-
-              {/* Campos específicos para Freelancer */}
-              {formData.userType === 'freelancer' && (
-                <>
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      label={t('dashboard.skills')}
-                      name="skills"
-                      fullWidth
-                      variant="outlined"
-                      value={''}
-                      onChange={handleChange}
-                      error={!!formErrors.skills}
-                      helperText={formErrors.skills || ''}
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      label={t('dashboard.experience')}
-                      name="experience"
-                      fullWidth
-                      variant="outlined"
-                      value={''}
-                      onChange={handleChange}
-                      error={!!formErrors.experience}
-                      helperText={formErrors.experience || ''}
-                    />
-                  </Grid>
-                </>
-              )}
-
-              {/* Campos específicos para Empresa */}
-              {formData.userType === 'company' && (
-                <>
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      label={t('dashboard.companyName')}
-                      name="companyName"
-                      fullWidth
-                      variant="outlined"
-                      value={''}
-                      onChange={handleChange}
-                      error={!!formErrors.companyName}
-                      helperText={formErrors.companyName || ''}
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      label={t('dashboard.companySize')}
-                      name="companySize"
-                      fullWidth
-                      variant="outlined"
-                      select
-                      value={''}
-                      onChange={handleChange}
-                      error={!!formErrors.companySize}
-                      helperText={formErrors.companySize || ''}
-                    >
-                      <MenuItem value="">Seleccionar tamaño</MenuItem>
-                      <MenuItem value="1-10">1-10 empleados</MenuItem>
-                      <MenuItem value="11-50">11-50 empleados</MenuItem>
-                      <MenuItem value="51-200">51-200 empleados</MenuItem>
-                      <MenuItem value="201+">201+ empleados</MenuItem>
-                    </TextField>
-                  </Grid>
-                </>
-              )}
-            </Grid>
-            <Box sx={{ mt: 2, display: 'flex', gap: 2 }}>
-              <Button
-                sx={{
-                  background: 'linear-gradient(90deg, #2666CF, #6A82FB)',
-                  color: '#ffffff',
-                  fontWeight: '500',
-                  textTransform: 'none',
-                  borderRadius: 2,
-                  boxShadow: '0 3px 6px rgba(0,0,0,0.1)',
-                  minWidth: '120px',
-                }}
-                fullWidth
-              >
-                Guardar cambios
-              </Button>
-              <Button
-                variant="outlined"
-                color="secondary"
-                fullWidth
-              >
-                Cambiar contraseña
-              </Button>
-            </Box>
-          </Box>
-        </Grid>
-      </Grid>
-
-      <Divider sx={{ my: 4 }} />
-
-      {/* Sección 3: Datos fiscales */}
-      <Box sx={{ mb: 4 }}>
-        <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
-          Datos fiscales
-        </Typography>
-        <Grid container spacing={2}>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              label={t('dashboard.nif')}
-              name="nif"
-              fullWidth
-              variant="outlined"
-              value={formData.nif || ''}
-              onChange={handleChange}
-              error={!!formErrors.nif}
-              helperText={formErrors.nif || ''}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              label={t('dashboard.commercialName')}
-              name="commercialName"
-              fullWidth
-              variant="outlined"
-              value={formData.commercialName || ''}
-              onChange={handleChange}
-              error={!!formErrors.commercialName}
-              helperText={formErrors.commercialName || ''}
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <Typography variant="subtitle1" sx={{ fontWeight: 500, mt: 2 }}>
-              Dirección fiscal:
-            </Typography>
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              label={t('dashboard.fiscalAddress')}
-              name="address"
-              fullWidth
-              variant="outlined"
-              value={formData.address || ''}
-              onChange={handleChange}
-              error={!!formErrors.address}
-              helperText={formErrors.address || ''}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              label={t('dashboard.city')}
-              name="city"
-              fullWidth
-              variant="outlined"
-              value={formData.city || ''}
-              onChange={handleChange}
-              error={!!formErrors.city}
-              helperText={formErrors.city || ''}
-            />
-          </Grid>
-          <Grid item xs={12} sm={4}>
-            <TextField
-              label={t('dashboard.province')}
-              name="province"
-              fullWidth
-              variant="outlined"
-              select
-              value={formData.province || ''}
-              onChange={handleChange}
-              error={!!formErrors.province}
-              helperText={formErrors.province || ''}
-            >
-              <MenuItem value="">Seleccionar provincia</MenuItem>
-              <MenuItem value="provincia1">Provincia 1</MenuItem>
-              <MenuItem value="provincia2">Provincia 2</MenuItem>
-              {/* Añade más opciones según sea necesario */}
-            </TextField>
-          </Grid>
-          <Grid item xs={12} sm={4}>
-            <TextField
-              label={t('dashboard.postalCode')}
-              name="postalCode"
-              fullWidth
-              variant="outlined"
-              value={formData.postalCode || ''}
-              onChange={handleChange}
-              // No agregar error y helperText para evitar duplicaciones
-            />
-          </Grid>
-          <Grid item xs={12} sm={4}>
-            <TextField
-              label={t('dashboard.country')}
-              name="country"
-              fullWidth
-              variant="outlined"
-              select
-              value={formData.country || ''}
-              onChange={handleChange}
-              error={!!formErrors.country}
-              helperText={formErrors.country || ''}
-            >
-              <MenuItem value="">Seleccionar país</MenuItem>
-              <MenuItem value="es">España</MenuItem>
-              <MenuItem value="fr">Francia</MenuItem>
-              {/* Añade más opciones según sea necesario */}
-            </TextField>
-          </Grid>
-        </Grid>
-      </Box>
-
-      <Divider sx={{ my: 4 }} />
-
-      {/* Sección 4: Datos de contacto */}
-      <Box sx={{ mb: 4 }}>
-        <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
-          Datos de contacto
-        </Typography>
-        <Grid container spacing={2}>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              label={t('dashboard.phone')}
-              name="phone"
-              fullWidth
-              variant="outlined"
-              value={formData.phone || ''}
-              onChange={handleChange}
-              error={!!formErrors.phone}
-              helperText={formErrors.phone || ''}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              label={t('dashboard.email')}
-              name="email"
-              fullWidth
-              variant="outlined"
-              value={formData.email || ''}
-              onChange={handleChange}
-              error={!!formErrors.email}
-              helperText={formErrors.email || ''}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              label={t('dashboard.mobile')}
-              name="mobile"
-              fullWidth
-              variant="outlined"
-              value={formData.mobile || ''}
-              onChange={handleChange}
-              error={!!formErrors.mobile}
-              helperText={formErrors.mobile || ''}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              label={t('dashboard.website')}
-              name="website"
-              fullWidth
-              variant="outlined"
-              value={formData.website || ''}
-              onChange={handleChange}
-              error={!!formErrors.website}
-              helperText={formErrors.website || ''}
-            />
-          </Grid>
-        </Grid>
-      </Box>
-
-      <Divider sx={{ my: 4 }} />
-
-      {/* Sección 5: Dirección de envío */}
-      <Box sx={{ mb: 4 }}>
-        <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
-          Dirección de envío
-        </Typography>
-        <Grid container spacing={2}>
-          {/* Reutilizamos los mismos campos para Dirección de envío */}
-          <Grid item xs={12} sm={6}>
-            <TextField
-              label={t('dashboard.fiscalAddress')} // Puedes cambiar la etiqueta si es necesario
-              name="address"
-              fullWidth
-              variant="outlined"
-              value={formData.address || ''}
-              onChange={handleChange}
-              // No agregar error y helperText para evitar duplicaciones
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              label={t('dashboard.city')} // Puedes cambiar la etiqueta si es necesario
-              name="city"
-              fullWidth
-              variant="outlined"
-              value={formData.city || ''}
-              onChange={handleChange}
-              // No agregar error y helperText para evitar duplicaciones
-            />
-          </Grid>
-          <Grid item xs={12} sm={4}>
-            <TextField
-              label={t('dashboard.province')} // Puedes cambiar la etiqueta si es necesario
-              name="province"
-              fullWidth
-              variant="outlined"
-              select
-              value={formData.province || ''}
-              onChange={handleChange}
-              // No agregar error y helperText para evitar duplicaciones
-            >
-              <MenuItem value="">Seleccionar provincia</MenuItem>
-              <MenuItem value="provincia1">Provincia 1</MenuItem>
-              <MenuItem value="provincia2">Provincia 2</MenuItem>
-              {/* Añade más opciones según sea necesario */}
-            </TextField>
-          </Grid>
-          <Grid item xs={12} sm={4}>
-            <TextField
-              label={t('dashboard.postalCode')} // Puedes cambiar la etiqueta si es necesario
-              name="postalCode"
-              fullWidth
-              variant="outlined"
-              value={formData.postalCode || ''}
-              onChange={handleChange}
-              // No agregar error y helperText para evitar duplicaciones
-            />
-          </Grid>
-          <Grid item xs={12} sm={4}>
-            <TextField
-              label={t('dashboard.country')} // Puedes cambiar la etiqueta si es necesario
-              name="country"
-              fullWidth
-              variant="outlined"
-              select
-              value={formData.country || ''}
-              onChange={handleChange}
-              // No agregar error y helperText para evitar duplicaciones
-            >
-              <MenuItem value="">Seleccionar país</MenuItem>
-              <MenuItem value="es">España</MenuItem>
-              <MenuItem value="fr">Francia</MenuItem>
-              {/* Añade más opciones según sea necesario */}
-            </TextField>
-          </Grid>
-        </Grid>
-        <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
-          <Button
-            variant="outlined"
-          >
-            Añadir dirección de envío
-          </Button>
-        </Box>
-      </Box>
-
-      {/* Botones de acciones del diálogo */}
-      <Box sx={{ mt: 4, display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
-        <Button
-          onClick={handleClose}
-          sx={{
-            color: "#2666CF",
-            fontWeight: "500",
-            textTransform: "none",
-            bgcolor: "#ffffff",
-            border: "1px solid #2666CF",
-            borderRadius: 2,
-          }}
-        >
-          {t("dashboard.fillOutLater")}
-        </Button>
-        <Button
-          type="submit"
-          sx={{
-            background: 'linear-gradient(90deg, #2666CF, #6A82FB)',
-            color: '#ffffff',
-            fontWeight: '500',
-            textTransform: 'none',
-            borderRadius: 2,
-            boxShadow: '0 3px 6px rgba(0,0,0,0.1)',
-            minWidth: '120px',
-          }}
-        >
-          {t("dashboard.save")}
-        </Button>
-      </Box>
-    </Box>
-  </DialogContent>
-</Dialog>
-
-
-
+{/* Dialog para completar información del usuario */}
+{/* Componente separado para completar información del usuario */}
+<UserInfoDialog
+          open={open}
+          handleClose={handleClose}
+          hasContact={hasContact}
+          formData={formData}
+          formErrors={formErrors}
+          handleChange={handleChange}
+          handleFormSubmit={handleFormSubmit} loading={false}/>
 
 </UserChecker>
 </Box>
+
 );
 };
-
 
 export default Dashboard;
