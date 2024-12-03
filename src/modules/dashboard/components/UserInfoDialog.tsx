@@ -88,6 +88,8 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
     console.log("formData recibido en UserInfoDialog:", formData);
   }, [formData]);
 
+  
+
   // Maneja la posible estructura de formData (array o objeto)
 
 

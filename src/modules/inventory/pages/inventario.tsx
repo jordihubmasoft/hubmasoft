@@ -373,12 +373,13 @@ const Inventory: React.FC = () => {
             flexGrow: 1,
             bgcolor: '#F3F4F6',
             p: 3,
-            transition: 'margin-left 0.3s ease',
-            marginLeft: isMenuOpen ? '240px' : '70px',
-            width: '100%',
+            width: isMenuOpen ? 'calc(100% - 240px)' : 'calc(100% - 70px)', // Ajustar según el estado de la barra lateral
+            ml: isMenuOpen ? '240px' : '20px', // Solo si es necesario mantener un margen izquierdo dinámico
+            transition: 'all 0.3s ease',
           }}
         >
-          <Container maxWidth="lg">
+          <Container maxWidth="xl" sx={{ px: { xs: 2, sm: 3, md: 5 }, width: '100%' }}>
+
             <Typography variant="h3" gutterBottom sx={{ color: '#1A1A40', fontWeight: '600', fontFamily: 'Roboto, sans-serif' }}>
               Inventario
             </Typography>
@@ -448,7 +449,14 @@ const Inventory: React.FC = () => {
                 <CircularProgress />
               </Box>
             ) : (
-              <TableContainer component={Paper} sx={{ borderRadius: 2, boxShadow: '0 3px 10px rgba(0, 0, 0, 0.1)' }}>
+              <TableContainer 
+                component={Paper} 
+                sx={{
+                  borderRadius: 2,
+                  boxShadow: '0 3px 10px rgba(0, 0, 0, 0.1)',
+                  width: '100%', // Asegúrate de que ocupe todo el ancho
+                  overflowX: 'auto', // Solo si necesitas scroll para contenido grande
+                }}>
                 <Table>
                   <TableHead sx={{ bgcolor: '#2666CF', '& th': { color: '#ffffff', fontWeight: '600' } }}>
                     <TableRow>
