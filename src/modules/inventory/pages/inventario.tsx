@@ -369,14 +369,18 @@ const Inventory: React.FC = () => {
         </Box>
         <Box
           component="main"
-          sx={{
-            flexGrow: 1,
-            bgcolor: '#F3F4F6',
-            p: 3,
-            width: isMenuOpen ? 'calc(100% - 240px)' : 'calc(100% - 70px)', // Ajustar según el estado de la barra lateral
-            ml: isMenuOpen ? '240px' : '20px', // Solo si es necesario mantener un margen izquierdo dinámico
-            transition: 'all 0.3s ease',
-          }}
+          
+            sx={{
+              flexGrow: 1,
+              bgcolor: '#F3F4F6',
+              p: 1, // Reduce el padding para minimizar márgenes
+              width: '100%', // Ocupa todo el ancho disponible
+              height: 'calc(100vh - 64px)', // Ajuste de altura según la barra superior (64px puede variar)
+              ml: isMenuOpen ? '220px' : '50px', // Ajuste dinámico del margen según el estado del menú
+              mr: '-20px', // Margen derecho mínimo para separación visual
+              transition: 'all 0.3s ease',
+              overflow: 'auto', // Añade scroll si el contenido excede el área visible
+            }}
         >
           <Container maxWidth="xl" sx={{ px: { xs: 2, sm: 3, md: 5 }, width: '100%' }}>
 
