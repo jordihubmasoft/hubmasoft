@@ -30,6 +30,21 @@ const Sidebar = ({ isMenuOpen, toggleMenu }) => {
   const [openPurchases, setOpenPurchases] = useState(false);
   const [openInventory, setOpenInventory] = useState(false);
   const [openAccounting, setOpenAccounting] = useState(false);
+  const [hovered, setHovered] = useState(false); // Estado para hover
+
+  const handleMouseEnter = () => {
+    if (!isMenuOpen) {
+      toggleMenu(); // Expande el menú si está cerrado
+    }
+    setHovered(true);
+  };
+
+  const handleMouseLeave = () => {
+    if (isMenuOpen) {
+      toggleMenu(); // Contrae el menú si está abierto
+    }
+    setHovered(false);
+  };
 
   const handleItemClick = (path) => {
     router.push(path);
@@ -39,21 +54,27 @@ const Sidebar = ({ isMenuOpen, toggleMenu }) => {
     openStateSetter(!isOpen);
   };
 
+  const sidebarExpanded = isMenuOpen || hovered;
+
   return (
     <Box
+    onMouseEnter={handleMouseEnter} // Expande al hacer hover
+    onMouseLeave={handleMouseLeave} // Contrae al salir del hover // Contrae al salir del hover
       sx={{
         display: 'flex',
         flexDirection: 'column',
         height: '100vh',
         bgcolor: '#F8F9FA',
         padding: '10px',
-        boxShadow: isMenuOpen ? '2px 0 5px rgba(0,0,0,0.1)' : 'none',
-        transition: 'box-shadow 0.3s ease',
+        boxShadow: sidebarExpanded ? '2px 0 5px rgba(0,0,0,0.1)' : 'none',
+        transition: 'all 0.3s ease',
+        width: sidebarExpanded ? '250px' : '70px', // Cambia el ancho dinámicamente
+        overflow: 'hidden',
       }}
     >
-      <Tooltip title={isMenuOpen ? "Close Menu" : "Open Menu"} placement="right">
+      <Tooltip title={sidebarExpanded ? "Close Menu" : "Open Menu"} placement="right">
         <Button onClick={toggleMenu} sx={{ marginBottom: '20px', padding: '8px 16px' }}>
-          {isMenuOpen ? <ChevronLeftIcon sx={{ color: '#1A73E8' }} /> : <MenuIcon sx={{ color: '#1A73E8' }} />}
+          {sidebarExpanded ? <ChevronLeftIcon sx={{ color: '#1A73E8' }} /> : <MenuIcon sx={{ color: '#1A73E8' }} />}
         </Button>
       </Tooltip>
 
@@ -98,7 +119,7 @@ const Sidebar = ({ isMenuOpen, toggleMenu }) => {
             <ListItemIcon>
               <DashboardIcon sx={{ color: '#6C757D', transition: 'color 0.2s ease', '&:hover': { color: '#1A73E8' } }} />
             </ListItemIcon>
-            {isMenuOpen && <ListItemText primary={t('sidebar.dashboard')} sx={{ color: '#343A40', fontWeight: 'bold' }} />}
+            {sidebarExpanded && <ListItemText primary={t('sidebar.dashboard')} sx={{ color: '#343A40', fontWeight: 'bold' }} />}
           </ListItem>
         </Tooltip>
 
@@ -120,7 +141,7 @@ const Sidebar = ({ isMenuOpen, toggleMenu }) => {
             <ListItemIcon>
               <BusinessCenterIcon sx={{ color: '#6C757D', transition: 'color 0.2s ease', '&:hover': { color: '#1A73E8' } }} />
             </ListItemIcon>
-            {isMenuOpen && (
+            {sidebarExpanded && (
               <>
                 <ListItemText primary={t('sidebar.contacts')} sx={{ color: '#343A40', fontWeight: 'bold' }} />
                 <IconButton
@@ -167,7 +188,7 @@ const Sidebar = ({ isMenuOpen, toggleMenu }) => {
             <ListItemIcon>
               <ShoppingCartIcon sx={{ color: '#6C757D', transition: 'color 0.2s ease', '&:hover': { color: '#1A73E8' } }} />
             </ListItemIcon>
-            {isMenuOpen && (
+            {sidebarExpanded && (
               <>
                 <ListItemText primary={t('sidebar.sales')} onClick={() => !openSales && handleItemClick('/sales/ventas')} sx={{ color: '#343A40', fontWeight: 'bold' }} />
                 {openSales ? <ExpandLess sx={{ color: '#1A73E8' }} /> : <ExpandMore sx={{ color: '#1A73E8' }} />}
@@ -175,7 +196,7 @@ const Sidebar = ({ isMenuOpen, toggleMenu }) => {
             )}
           </ListItem>
         </Tooltip>
-        <Collapse in={openSales && isMenuOpen} timeout="auto" unmountOnExit>
+        <Collapse in={openSales && sidebarExpanded} timeout="auto" unmountOnExit>
           <List component="div" disablePadding>
             {['/sales/presupuestos-ventas', '/sales/pedidos-ventas', '/sales/albaranes-ventas', '/sales/proformas-ventas', '/sales/facturas-ventas', '/sales/facturas-recurrentes-ventas'].map((path, index) => (
               <ListItem
@@ -227,7 +248,7 @@ const Sidebar = ({ isMenuOpen, toggleMenu }) => {
             <ListItemIcon>
               <InventoryIcon sx={{ color: '#6C757D', transition: 'color 0.2s ease', '&:hover': { color: '#1A73E8' } }} />
             </ListItemIcon>
-            {isMenuOpen && (
+            {sidebarExpanded && (
               <>
                 <ListItemText primary={t('sidebar.purchases')} onClick={() => !openPurchases && handleItemClick('/purchases/compras')} sx={{ color: '#343A40', fontWeight: 'bold' }} />
                 {openPurchases ? <ExpandLess sx={{ color: '#1A73E8' }} /> : <ExpandMore sx={{ color: '#1A73E8' }} />}
@@ -235,7 +256,7 @@ const Sidebar = ({ isMenuOpen, toggleMenu }) => {
             )}
           </ListItem>
         </Tooltip>
-        <Collapse in={openPurchases && isMenuOpen} timeout="auto" unmountOnExit>
+        <Collapse in={openPurchases && sidebarExpanded} timeout="auto" unmountOnExit>
           <List component="div" disablePadding>
             {['/purchases/presupuestos-compras', '/purchases/pedidos-compras', '/purchases/albaranes-compras', '/purchases/proformas-compras', '/purchases/facturas-compras', '/purchases/facturas-recurrentes-compras'].map((path, index) => (
               <ListItem
@@ -288,7 +309,7 @@ const Sidebar = ({ isMenuOpen, toggleMenu }) => {
             <ListItemIcon>
               <InventoryIcon sx={{ color: '#6C757D', transition: 'color 0.2s ease', '&:hover': { color: '#1A73E8' } }} />
             </ListItemIcon>
-            {isMenuOpen && (
+            {sidebarExpanded && (
               <>
                 <ListItemText primary={t('sidebar.inventory')} onClick={() => !openInventory && handleItemClick('/inventory/inventario')} sx={{ color: '#343A40', fontWeight: 'bold' }} />
                 {openInventory ? <ExpandLess sx={{ color: '#1A73E8' }} /> : <ExpandMore sx={{ color: '#1A73E8' }} />}
@@ -296,7 +317,7 @@ const Sidebar = ({ isMenuOpen, toggleMenu }) => {
             )}
           </ListItem>
         </Tooltip>
-        <Collapse in={openInventory && isMenuOpen} timeout="auto" unmountOnExit>
+        <Collapse in={openInventory && sidebarExpanded} timeout="auto" unmountOnExit>
           <List component="div" disablePadding>
             <ListItem
               sx={{ pl: 4, '&:hover': { bgcolor: '#E3F2FD', transform: 'scale(1.05)', transition: 'transform 0.2s ease' } }}
@@ -355,7 +376,7 @@ const Sidebar = ({ isMenuOpen, toggleMenu }) => {
             <ListItemIcon>
               <AccountBalanceIcon sx={{ color: '#6C757D', transition: 'color 0.2s ease', '&:hover': { color: '#1A73E8' } }} />
             </ListItemIcon>
-            {isMenuOpen && (
+            {sidebarExpanded && (
               <>
                 <ListItemText primary={t('sidebar.accounting')} onClick={() => !openAccounting} sx={{ color: '#343A40', fontWeight: 'bold' }} />
                 {openAccounting ? <ExpandLess sx={{ color: '#1A73E8' }} /> : <ExpandMore sx={{ color: '#1A73E8' }} />}
@@ -363,7 +384,7 @@ const Sidebar = ({ isMenuOpen, toggleMenu }) => {
             )}
           </ListItem>
         </Tooltip>
-        <Collapse in={openAccounting && isMenuOpen} timeout="auto" unmountOnExit>
+        <Collapse in={openAccounting && sidebarExpanded} timeout="auto" unmountOnExit>
           <List component="div" disablePadding>
             <ListItem
               sx={{ pl: 4, '&:hover': { bgcolor: '#E3F2FD', transform: 'scale(1.05)', transition: 'transform 0.2s ease' } }}
@@ -404,7 +425,7 @@ const Sidebar = ({ isMenuOpen, toggleMenu }) => {
             <ListItemIcon>
               <AssignmentIndIcon sx={{ color: '#6C757D', transition: 'color 0.2s ease', '&:hover': { color: '#1A73E8' } }} />
             </ListItemIcon>
-            {isMenuOpen && (
+            {sidebarExpanded && (
               <>
                 <ListItemText primary={t('sidebar.employees')} sx={{ color: '#343A40', fontWeight: 'bold' }} />
                 <IconButton
@@ -450,7 +471,7 @@ const Sidebar = ({ isMenuOpen, toggleMenu }) => {
             <ListItemIcon>
               <BusinessCenterIcon sx={{ color: '#6C757D', transition: 'color 0.2s ease', '&:hover': { color: '#1A73E8' } }} />
             </ListItemIcon>
-            {isMenuOpen && (
+            {sidebarExpanded && (
               <>
                 <ListItemText primary={t('sidebar.projects')} sx={{ color: '#343A40', fontWeight: 'bold' }} />
                 <IconButton
@@ -496,7 +517,7 @@ const Sidebar = ({ isMenuOpen, toggleMenu }) => {
             <ListItemIcon>
               <ShoppingCartIcon sx={{ color: '#6C757D', transition: 'color 0.2s ease', '&:hover': { color: '#1A73E8' } }} />
             </ListItemIcon>
-            {isMenuOpen && (
+            {sidebarExpanded && (
               <>
                 <ListItemText primary={t('sidebar.TPV')} sx={{ color: '#343A40', fontWeight: 'bold' }} />
                 <IconButton

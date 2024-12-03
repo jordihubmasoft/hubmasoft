@@ -6,11 +6,11 @@ export default class ContactService {
   // Method to get a contact by its ID
   static async getContactById(contactId: string, token: string): Promise<CommonResponse<any>> {
     try {
-      console.log("ContactID ", contactId);
       const baseURL = process.env.NEXT_PUBLIC_API?.replace(/\/+$/, '');
       const url = `${baseURL}/Contact/${contactId}`;
-
-      // Make the GET request to the API
+  
+      console.log("URL:", url);
+  
       const response = await fetch(url, {
         method: "GET",
         headers: {
@@ -18,16 +18,16 @@ export default class ContactService {
           "Authorization": `Bearer ${token}`,
         },
       });
-
-      // Check if the response is OK (status code 200-299)
+  
       if (response.ok) {
         const resultData = await response.json();
+        console.log("API Data Received:", resultData); // Verifica aquí la estructura de los datos
         return {
           result: {
             resultNumber: resultData.result.resultNumber,
             errorMessage: resultData.result.errorMessage,
           },
-          data: resultData.data,
+          data: resultData.data, // Asegúrate de que resultData.data tiene la estructura esperada
         };
       } else {
         const errorText = await response.text();
@@ -39,6 +39,7 @@ export default class ContactService {
       throw new Error("Ocurrió un problema al obtener el contacto.");
     }
   }
+  
 
   // Method to get all contacts
   static async getAllContacts(token: string): Promise<CommonResponse<any[]>> {

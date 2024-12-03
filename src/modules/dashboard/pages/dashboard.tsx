@@ -105,19 +105,48 @@ const Dashboard = () => {
         try {
           const response = await ContactService.getContactById(contactId, token);
           if (response.data) {
-            setFormData(response.data);
-            setHasContact(true); // Contacto existente
+            if (response.data && response.data.length > 0) {
+              const contactData = response.data[0];
+              setFormData({
+                name: contactData.name || '',
+                email: contactData.email || '',
+                country: contactData.country || '',
+                city: contactData.city || '',
+                userType: '', // Ajusta según corresponda
+                phone: contactData.phone || '',
+                address: contactData.address || '',
+                postalCode: contactData.postalCode || '',
+                nif: contactData.nie || '',
+                commercialName: contactData.commercialName || '',
+                province: contactData.province || '',
+                mobile: contactData.phone1 || '',
+                website: contactData.website || '',
+                contactId: contactData.id || '',
+                userId: '', // Puedes obtenerlo de otra fuente si es necesario
+                skills: '',
+                experience: '',
+                companyName: '',
+                companySize: '',
+                // Añade otros campos si es necesario
+              });
+              setHasContact(true);
+            } else {
+              setHasContact(false);
+            }
+            
+            setHasContact(true); // Contact exists
           } else {
-            setHasContact(false); // No hay contacto
+            setHasContact(false); // No contact found
           }
         } catch (error) {
-          console.error("Error al obtener el contacto:", error);
+          console.error("Error fetching contact:", error);
           setHasContact(false);
         }
       }
     };
     fetchContact();
   }, [open, contactId, token]);
+  
 
   // Estado para controlar la visibilidad de todos los widgets
   const [widgets, setWidgets] = useState({
@@ -323,12 +352,12 @@ const Dashboard = () => {
     return errors;
   };
 
-  const handleChange = (
-    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | { name?: string; value: unknown }>
-  ) => {
-    const { name, value } = event.target;
-    setFormData(prev => ({ ...prev, [name!]: value }));
+  const handleChange = (event: any) => {
+    const name = event.target.name;
+    const value = event.target.value;
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
+  
 
   const handleFormSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -488,7 +517,8 @@ const Dashboard = () => {
               maxWidth: "calc(100% - 240px)",
             }}
           >
-            <Container maxWidth="lg">
+            <Container maxWidth="xl" sx={{ px: { xs: 2, sm: 3, md: 5 }, width: '100%' }}>
+
               <Typography
                 variant="h3"
                 gutterBottom
