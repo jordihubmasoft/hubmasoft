@@ -89,7 +89,7 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
   }, [formData]);
 
   // Maneja la posible estructura de formData (array o objeto)
-  const currentFormData = Array.isArray(formData) ? formData[0] : formData;
+
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="lg" fullWidth>
@@ -130,12 +130,12 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                   <TextField
                     type="hidden"
                     name="userId"
-                    value={currentFormData.userId}
+                    value={formData.userId || ''}
                   />
                   <TextField
                     type="hidden"
                     name="contactId"
-                    value={currentFormData.contactId}
+                    value={formData.contactId || ''}
                   />
 
                   {/* Contenedor principal para Perfil y Editar perfil */}
@@ -151,15 +151,15 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                             <Avatar
                               sx={{ width: 100, height: 100 }}
                             >
-                              {!currentFormData.name ? 'NA' : currentFormData.name.charAt(0).toUpperCase()}
+                              {!formData.name ? 'NA' : formData.name.charAt(0).toUpperCase()}
                             </Avatar>
                           </Grid>
                           <Grid item>
                             <Typography variant="subtitle1">
-                              {currentFormData.name || 'Nombre no disponible'}
+                              {formData.name || 'Nombre no disponible'}
                             </Typography>
                             <Typography variant="body2" color="textSecondary">
-                              {currentFormData.email || 'Email no disponible'}
+                              {formData.email || 'Email no disponible'}
                             </Typography>
                           </Grid>
                           <Grid item sx={{ width: '100%' }}>
@@ -197,7 +197,7 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                               name="name"
                               fullWidth
                               variant="outlined"
-                              value={currentFormData.name || ''}
+                              value={formData.name || ''}
                               onChange={handleChange}
                               error={!!formErrors.name}
                               helperText={formErrors.name || ''}
@@ -209,7 +209,7 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                               name="email"
                               fullWidth
                               variant="outlined"
-                              value={currentFormData.email || ''}
+                              value={formData.email || ''}
                               onChange={handleChange}
                               error={!!formErrors.email}
                               helperText={formErrors.email || ''}
@@ -224,7 +224,7 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                               fullWidth
                               variant="outlined"
                               select
-                              value={currentFormData.userType || ''}
+                              value={formData.userType || ''}
                               onChange={handleChange}
                               error={!!formErrors.userType}
                               helperText={formErrors.userType || ''}
@@ -243,7 +243,7 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                               name="phone"
                               fullWidth
                               variant="outlined"
-                              value={currentFormData.phone || ''}
+                              value={formData.phone || ''}
                               onChange={handleChange}
                               error={!!formErrors.phone}
                               helperText={formErrors.phone || ''}
@@ -255,7 +255,7 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                               name="mobile"
                               fullWidth
                               variant="outlined"
-                              value={currentFormData.mobile || ''}
+                              value={formData.mobile || ''}
                               onChange={handleChange}
                               error={!!formErrors.mobile}
                               helperText={formErrors.mobile || ''}
@@ -267,7 +267,7 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                               name="website"
                               fullWidth
                               variant="outlined"
-                              value={currentFormData.website || ''}
+                              value={formData.website || ''}
                               onChange={handleChange}
                               error={!!formErrors.website}
                               helperText={formErrors.website || ''}
@@ -275,7 +275,7 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                           </Grid>
 
                           {/* Campos específicos para Freelancer */}
-                          {currentFormData.userType === 'freelancer' && (
+                          {formData.userType === 'freelancer' && (
                             <>
                               <Grid item xs={12} sm={6}>
                                 <TextField
@@ -283,7 +283,7 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                                   name="skills"
                                   fullWidth
                                   variant="outlined"
-                                  value={currentFormData.skills || ''}
+                                  value={formData.skills || ''}
                                   onChange={handleChange}
                                   error={!!formErrors.skills}
                                   helperText={formErrors.skills || ''}
@@ -295,7 +295,7 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                                   name="experience"
                                   fullWidth
                                   variant="outlined"
-                                  value={currentFormData.experience || ''}
+                                  value={formData.experience || ''}
                                   onChange={handleChange}
                                   error={!!formErrors.experience}
                                   helperText={formErrors.experience || ''}
@@ -305,7 +305,7 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                           )}
 
                           {/* Campos específicos para Empresa */}
-                          {currentFormData.userType === 'company' && (
+                          {formData.userType === 'company' && (
                             <>
                               <Grid item xs={12} sm={6}>
                                 <TextField
@@ -313,7 +313,7 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                                   name="companyName"
                                   fullWidth
                                   variant="outlined"
-                                  value={currentFormData.companyName || ''}
+                                  value={formData.companyName || ''}
                                   onChange={handleChange}
                                   error={!!formErrors.companyName}
                                   helperText={formErrors.companyName || ''}
@@ -326,7 +326,7 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                                   fullWidth
                                   variant="outlined"
                                   select
-                                  value={currentFormData.companySize || ''}
+                                  value={formData.companySize || ''}
                                   onChange={handleChange}
                                   error={!!formErrors.companySize}
                                   helperText={formErrors.companySize || ''}
@@ -383,7 +383,7 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                           name="nif"
                           fullWidth
                           variant="outlined"
-                          value={currentFormData.nif || ''}
+                          value={formData.nif || ''}
                           onChange={handleChange}
                           error={!!formErrors.nif}
                           helperText={formErrors.nif || ''}
@@ -395,7 +395,7 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                           name="commercialName"
                           fullWidth
                           variant="outlined"
-                          value={currentFormData.commercialName || ''}
+                          value={formData.commercialName || ''}
                           onChange={handleChange}
                           error={!!formErrors.commercialName}
                           helperText={formErrors.commercialName || ''}
@@ -412,7 +412,7 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                           name="address"
                           fullWidth
                           variant="outlined"
-                          value={currentFormData.address || ''}
+                          value={formData.address || ''}
                           onChange={handleChange}
                           error={!!formErrors.address}
                           helperText={formErrors.address || ''}
@@ -424,7 +424,7 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                           name="city"
                           fullWidth
                           variant="outlined"
-                          value={currentFormData.city || ''}
+                          value={formData.city || ''}
                           onChange={handleChange}
                           error={!!formErrors.city}
                           helperText={formErrors.city || ''}
@@ -437,7 +437,7 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                           fullWidth
                           variant="outlined"
                           select
-                          value={currentFormData.province || ''}
+                          value={formData.province || ''}
                           onChange={handleChange}
                           error={!!formErrors.province}
                           helperText={formErrors.province || ''}
@@ -454,7 +454,7 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                           name="postalCode"
                           fullWidth
                           variant="outlined"
-                          value={currentFormData.postalCode || ''}
+                          value={formData.postalCode || ''}
                           onChange={handleChange}
                           // No agregar error y helperText para evitar duplicaciones
                         />
@@ -466,7 +466,7 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                           fullWidth
                           variant="outlined"
                           select
-                          value={currentFormData.country || ''}
+                          value={formData.country || ''}
                           onChange={handleChange}
                           error={!!formErrors.country}
                           helperText={formErrors.country || ''}
@@ -494,7 +494,7 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                           name="phone"
                           fullWidth
                           variant="outlined"
-                          value={currentFormData.phone || ''}
+                          value={formData.phone || ''}
                           onChange={handleChange}
                           error={!!formErrors.phone}
                           helperText={formErrors.phone || ''}
@@ -506,7 +506,7 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                           name="email"
                           fullWidth
                           variant="outlined"
-                          value={currentFormData.email || ''}
+                          value={formData.email || ''}
                           onChange={handleChange}
                           error={!!formErrors.email}
                           helperText={formErrors.email || ''}
@@ -518,7 +518,7 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                           name="mobile"
                           fullWidth
                           variant="outlined"
-                          value={currentFormData.mobile || ''}
+                          value={formData.mobile || ''}
                           onChange={handleChange}
                           error={!!formErrors.mobile}
                           helperText={formErrors.mobile || ''}
@@ -530,7 +530,7 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                           name="website"
                           fullWidth
                           variant="outlined"
-                          value={currentFormData.website || ''}
+                          value={formData.website || ''}
                           onChange={handleChange}
                           error={!!formErrors.website}
                           helperText={formErrors.website || ''}
@@ -554,7 +554,7 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                           name="shippingAddress"
                           fullWidth
                           variant="outlined"
-                          value={currentFormData.address || ''}
+                          value={formData.address || ''}
                           onChange={handleChange}
                           // No agregar error y helperText para evitar duplicaciones
                         />
@@ -565,7 +565,7 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                           name="shippingCity"
                           fullWidth
                           variant="outlined"
-                          value={currentFormData.city || ''}
+                          value={formData.city || ''}
                           onChange={handleChange}
                           // No agregar error y helperText para evitar duplicaciones
                         />
@@ -577,7 +577,7 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                           fullWidth
                           variant="outlined"
                           select
-                          value={currentFormData.province || ''}
+                          value={formData.province || ''}
                           onChange={handleChange}
                           // No agregar error y helperText para evitar duplicaciones
                         >
@@ -593,7 +593,7 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                           name="shippingPostalCode"
                           fullWidth
                           variant="outlined"
-                          value={currentFormData.postalCode || ''}
+                          value={formData.postalCode || ''}
                           onChange={handleChange}
                           // No agregar error y helperText para evitar duplicaciones
                         />
@@ -605,7 +605,7 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                           fullWidth
                           variant="outlined"
                           select
-                          value={currentFormData.country || ''}
+                          value={formData.country || ''}
                           onChange={handleChange}
                           // No agregar error y helperText para evitar duplicaciones
                         >
@@ -664,7 +664,7 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                   <TextField
                     type="hidden"
                     name="userId"
-                    value={currentFormData.userId}
+                    value={formData.userId}
                   />
 
                   {/* Contenedor principal para Perfil y Crear perfil */}
@@ -680,15 +680,15 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                             <Avatar
                               sx={{ width: 100, height: 100 }}
                             >
-                              {!currentFormData.name ? 'NA' : currentFormData.name.charAt(0).toUpperCase()}
+                              {!formData.name ? 'NA' : formData.name.charAt(0).toUpperCase()}
                             </Avatar>
                           </Grid>
                           <Grid item>
                             <Typography variant="subtitle1">
-                              {currentFormData.name || 'Nombre no disponible'}
+                              {formData.name || 'Nombre no disponible'}
                             </Typography>
                             <Typography variant="body2" color="textSecondary">
-                              {currentFormData.email || 'Email no disponible'}
+                              {formData.email || 'Email no disponible'}
                             </Typography>
                           </Grid>
                           <Grid item sx={{ width: '100%' }}>
@@ -726,7 +726,7 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                               name="name"
                               fullWidth
                               variant="outlined"
-                              value={currentFormData.name || ''}
+                              value={formData.name || ''}
                               onChange={handleChange}
                               error={!!formErrors.name}
                               helperText={formErrors.name || ''}
@@ -738,7 +738,7 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                               name="email"
                               fullWidth
                               variant="outlined"
-                              value={currentFormData.email || ''}
+                              value={formData.email || ''}
                               onChange={handleChange}
                               error={!!formErrors.email}
                               helperText={formErrors.email || ''}
@@ -753,7 +753,7 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                               fullWidth
                               variant="outlined"
                               select
-                              value={currentFormData.userType || ''}
+                              value={formData.userType || ''}
                               onChange={handleChange}
                               error={!!formErrors.userType}
                               helperText={formErrors.userType || ''}
@@ -772,7 +772,7 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                               name="phone"
                               fullWidth
                               variant="outlined"
-                              value={currentFormData.phone || ''}
+                              value={formData.phone || ''}
                               onChange={handleChange}
                               error={!!formErrors.phone}
                               helperText={formErrors.phone || ''}
@@ -784,7 +784,7 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                               name="mobile"
                               fullWidth
                               variant="outlined"
-                              value={currentFormData.mobile || ''}
+                              value={formData.mobile || ''}
                               onChange={handleChange}
                               error={!!formErrors.mobile}
                               helperText={formErrors.mobile || ''}
@@ -796,7 +796,7 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                               name="website"
                               fullWidth
                               variant="outlined"
-                              value={currentFormData.website || ''}
+                              value={formData.website || ''}
                               onChange={handleChange}
                               error={!!formErrors.website}
                               helperText={formErrors.website || ''}
@@ -804,7 +804,7 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                           </Grid>
 
                           {/* Campos específicos para Freelancer */}
-                          {currentFormData.userType === 'freelancer' && (
+                          {formData.userType === 'freelancer' && (
                             <>
                               <Grid item xs={12} sm={6}>
                                 <TextField
@@ -812,7 +812,7 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                                   name="skills"
                                   fullWidth
                                   variant="outlined"
-                                  value={currentFormData.skills || ''}
+                                  value={formData.skills || ''}
                                   onChange={handleChange}
                                   error={!!formErrors.skills}
                                   helperText={formErrors.skills || ''}
@@ -824,7 +824,7 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                                   name="experience"
                                   fullWidth
                                   variant="outlined"
-                                  value={currentFormData.experience || ''}
+                                  value={formData.experience || ''}
                                   onChange={handleChange}
                                   error={!!formErrors.experience}
                                   helperText={formErrors.experience || ''}
@@ -834,7 +834,7 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                           )}
 
                           {/* Campos específicos para Empresa */}
-                          {currentFormData.userType === 'company' && (
+                          {formData.userType === 'company' && (
                             <>
                               <Grid item xs={12} sm={6}>
                                 <TextField
@@ -842,7 +842,7 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                                   name="companyName"
                                   fullWidth
                                   variant="outlined"
-                                  value={currentFormData.companyName || ''}
+                                  value={formData.companyName || ''}
                                   onChange={handleChange}
                                   error={!!formErrors.companyName}
                                   helperText={formErrors.companyName || ''}
@@ -855,7 +855,7 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                                   fullWidth
                                   variant="outlined"
                                   select
-                                  value={currentFormData.companySize || ''}
+                                  value={formData.companySize || ''}
                                   onChange={handleChange}
                                   error={!!formErrors.companySize}
                                   helperText={formErrors.companySize || ''}
@@ -912,7 +912,7 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                           name="nif"
                           fullWidth
                           variant="outlined"
-                          value={currentFormData.nif || ''}
+                          value={formData.nif || ''}
                           onChange={handleChange}
                           error={!!formErrors.nif}
                           helperText={formErrors.nif || ''}
@@ -924,7 +924,7 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                           name="commercialName"
                           fullWidth
                           variant="outlined"
-                          value={currentFormData.commercialName || ''}
+                          value={formData.commercialName || ''}
                           onChange={handleChange}
                           error={!!formErrors.commercialName}
                           helperText={formErrors.commercialName || ''}
@@ -941,7 +941,7 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                           name="address"
                           fullWidth
                           variant="outlined"
-                          value={currentFormData.address || ''}
+                          value={formData.address || ''}
                           onChange={handleChange}
                           error={!!formErrors.address}
                           helperText={formErrors.address || ''}
@@ -953,7 +953,7 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                           name="city"
                           fullWidth
                           variant="outlined"
-                          value={currentFormData.city || ''}
+                          value={formData.city || ''}
                           onChange={handleChange}
                           error={!!formErrors.city}
                           helperText={formErrors.city || ''}
@@ -966,7 +966,7 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                           fullWidth
                           variant="outlined"
                           select
-                          value={currentFormData.province || ''}
+                          value={formData.province || ''}
                           onChange={handleChange}
                           error={!!formErrors.province}
                           helperText={formErrors.province || ''}
@@ -983,7 +983,7 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                           name="postalCode"
                           fullWidth
                           variant="outlined"
-                          value={currentFormData.postalCode || ''}
+                          value={formData.postalCode || ''}
                           onChange={handleChange}
                           // No agregar error y helperText para evitar duplicaciones
                         />
@@ -995,7 +995,7 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                           fullWidth
                           variant="outlined"
                           select
-                          value={currentFormData.country || ''}
+                          value={formData.country || ''}
                           onChange={handleChange}
                           error={!!formErrors.country}
                           helperText={formErrors.country || ''}
@@ -1023,7 +1023,7 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                           name="phone"
                           fullWidth
                           variant="outlined"
-                          value={currentFormData.phone || ''}
+                          value={formData.phone || ''}
                           onChange={handleChange}
                           error={!!formErrors.phone}
                           helperText={formErrors.phone || ''}
@@ -1035,7 +1035,7 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                           name="email"
                           fullWidth
                           variant="outlined"
-                          value={currentFormData.email || ''}
+                          value={formData.email || ''}
                           onChange={handleChange}
                           error={!!formErrors.email}
                           helperText={formErrors.email || ''}
@@ -1047,7 +1047,7 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                           name="mobile"
                           fullWidth
                           variant="outlined"
-                          value={currentFormData.mobile || ''}
+                          value={formData.mobile || ''}
                           onChange={handleChange}
                           error={!!formErrors.mobile}
                           helperText={formErrors.mobile || ''}
@@ -1059,7 +1059,7 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                           name="website"
                           fullWidth
                           variant="outlined"
-                          value={currentFormData.website || ''}
+                          value={formData.website || ''}
                           onChange={handleChange}
                           error={!!formErrors.website}
                           helperText={formErrors.website || ''}
@@ -1083,7 +1083,7 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                           name="shippingAddress"
                           fullWidth
                           variant="outlined"
-                          value={currentFormData.address || ''}
+                          value={formData.address || ''}
                           onChange={handleChange}
                           // No agregar error y helperText para evitar duplicaciones
                         />
@@ -1094,7 +1094,7 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                           name="shippingCity"
                           fullWidth
                           variant="outlined"
-                          value={currentFormData.city || ''}
+                          value={formData.city || ''}
                           onChange={handleChange}
                           // No agregar error y helperText para evitar duplicaciones
                         />
@@ -1106,7 +1106,7 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                           fullWidth
                           variant="outlined"
                           select
-                          value={currentFormData.province || ''}
+                          value={formData.province || ''}
                           onChange={handleChange}
                           // No agregar error y helperText para evitar duplicaciones
                         >
@@ -1122,7 +1122,7 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                           name="shippingPostalCode"
                           fullWidth
                           variant="outlined"
-                          value={currentFormData.postalCode || ''}
+                          value={formData.postalCode || ''}
                           onChange={handleChange}
                           // No agregar error y helperText para evitar duplicaciones
                         />
@@ -1134,7 +1134,7 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                           fullWidth
                           variant="outlined"
                           select
-                          value={currentFormData.country || ''}
+                          value={formData.country || ''}
                           onChange={handleChange}
                           // No agregar error y helperText para evitar duplicaciones
                         >
