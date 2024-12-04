@@ -1,6 +1,11 @@
+// src/types/CommonResponse.ts
+
 export interface CommonResponse<T> {
-  result: ErrorResponse;
-  data: any;
+  result: {
+    resultNumber: number;
+    errorMessage: string;
+  };
+  data: T;
 }
 
 interface ErrorResponse {
