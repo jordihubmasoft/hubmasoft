@@ -98,54 +98,86 @@ const Dashboard = () => {
   const [chartData, setChartData] = useState(initialChartData);
   const [hasContact, setHasContact] = useState(false);
   const { contactId, token, agentId } = useAuthStore();
+  const [loading, setLoading] = useState(false);
+  const [refresh, setRefresh] = useState(false);
+
 
   useEffect(() => {
     const fetchContact = async () => {
       if (open && contactId && token) {
+        setLoading(true);
         try {
           const response = await ContactService.getContactById(contactId, token);
-          if (response.data) {
-            if (response.data && response.data.length > 0) {
-              const contactData = response.data[0];
-              setFormData({
-                name: contactData.name || '',
-                email: contactData.email || '',
-                country: contactData.country || '',
-                city: contactData.city || '',
-                userType: '', // Ajusta según corresponda
-                phone: contactData.phone || '',
-                address: contactData.address || '',
-                postalCode: contactData.postalCode || '',
-                nif: contactData.nie || '',
-                commercialName: contactData.commercialName || '',
-                province: contactData.province || '',
-                mobile: contactData.phone1 || '',
-                website: contactData.website || '',
-                contactId: contactData.id || '',
-                userId: '', // Puedes obtenerlo de otra fuente si es necesario
-                skills: '',
-                experience: '',
-                companyName: '',
-                companySize: '',
-                // Añade otros campos si es necesario
-              });
-              setHasContact(true);
-            } else {
-              setHasContact(false);
-            }
-            
-            setHasContact(true); // Contact exists
+          if (response.data && response.data.length > 0) {
+            const contactData = response.data[0];
+            setFormData({
+              name: contactData.name || '',
+              email: contactData.email || '',
+              country: contactData.country || '',
+              city: contactData.city || '',
+              userType: contactData.userType || '',
+              phone: contactData.phone || '',
+              address: contactData.address || '',
+              shippingAddress: contactData.shippingAddress || '',
+              postalCode: contactData.postalCode || '',
+              nie: contactData.nie || '',
+              commercialName: contactData.commercialName || formData.commercialName || '',
+              province: contactData.province || '',
+              mobile: contactData.phone1 || '',
+              website: contactData.website || '',
+              contactId: contactData.id || '',
+              userId: agentId || '',
+              skills: contactData.skills || '',
+              experience: contactData.experience || '',
+              companyName: contactData.companyName || '',
+              companySize: contactData.companySize || '',
+              shippingCity: contactData.shippingCity || '',
+              shippingProvince: contactData.shippingProvince || '',
+              shippingPostalCode: contactData.shippingPostalCode || '',
+              shippingCountry: contactData.shippingCountry || '',
+            });
+            setHasContact(true);
           } else {
-            setHasContact(false); // No contact found
+            setHasContact(false);
+            setFormData({
+              name: '',
+              email: '',
+              country: '',
+              city: '',
+              userType: '',
+              phone: '',
+              address: '',
+              postalCode: '',
+              nie: '',
+              commercialName: '',
+              province: '',
+              mobile: '',
+              website: '',
+              contactId: '',
+              shippingAddress: '',
+              shippingCity: '',
+              shippingProvince: '',
+              shippingPostalCode: '',
+              shippingCountry: '',
+              userId: agentId || '',
+              skills: '',
+              experience: '',
+              companyName: '',
+              companySize: '',
+            });
           }
         } catch (error) {
           console.error("Error fetching contact:", error);
           setHasContact(false);
+        } finally {
+          setLoading(false);
         }
       }
     };
     fetchContact();
-  }, [open, contactId, token]);
+  }, [open, contactId, token, agentId, refresh]);
+
+  
   
 
   // Estado para controlar la visibilidad de todos los widgets
@@ -287,7 +319,7 @@ const Dashboard = () => {
     experience?: string;
     companyName?: string;
     companySize?: string;
-    nif?: string;
+    nie?: string;
     commercialName?: string;
     province?: string;
     [key: string]: string | undefined;
@@ -303,12 +335,17 @@ const Dashboard = () => {
     phone: "",
     address: "",
     postalCode: "",
-    nif: "",
+    nie: "",
     commercialName: "",
     province: "",
     mobile: "",
+    shippingAddress: "",
+    shippingCity: "",
     website: "",
     contactId: "",
+    shippingProvince: "",
+    shippingPostalCode: "",
+    shippingCountry: "",
     userId: "",
     skills: "",
     experience: "",
@@ -357,7 +394,6 @@ const Dashboard = () => {
     const value = event.target.value;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
-  
 
   const handleFormSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -373,39 +409,60 @@ const Dashboard = () => {
       return;
     }
   
-    const contactData = {
-      contactType: 1, // Tipo de contacto, ajusta según sea necesario
-      name: formData.name,
-      address: formData.address,
-      country: formData.country,
-      city: formData.city,
-      postalCode: formData.postalCode,
-      email: formData.email,
-      phone: formData.phone,
-      mobile: formData.mobile,
-      website: formData.website,
-      userId: agentId,
-      contactId: hasContact ? contactId : undefined, // Incluye contactId solo si es una actualización
-      skills: formData.skills,
-      experience: formData.experience,
-      companyName: formData.companyName,
-      companySize: formData.companySize,
-      nif: formData.nif,
-      commercialName: formData.commercialName,
-      province: formData.province,
-      // Agrega otros campos según sea necesario
+    // Construir el objeto 'request' con los datos del formulario
+    const contactData: any = {
+      request: {
+        contactType: 1,
+        name: formData.name,
+        address: formData.address,
+        country: formData.country,
+        city: formData.city,
+        postalCode: formData.postalCode,
+        email: formData.email,
+        phone: formData.phone,
+        mobile: formData.mobile,
+        website: formData.website,
+        userId: agentId,
+        ...(hasContact && contactId ? { contactId } : {}),
+        skills: formData.skills,
+        experience: formData.experience,
+        companyName: formData.companyName,
+        companySize: formData.companySize,
+        nie: formData.nie,
+        commercialName: formData.commercialName,
+        province: formData.province,
+        shippingAddresses: [ // Cambiar a una lista
+          {
+            address: formData.shippingAddress,
+            city: formData.shippingCity,
+            province: formData.shippingProvince,
+            postalCode: formData.shippingPostalCode,
+            country: formData.shippingCountry,
+          }
+        ],
+      }
     };
   
     try {
+      let response;
       if (hasContact && contactId) {
-        // Actualizar contacto existente
-        await ContactService.updateContact(contactData, token);
+        response = await ContactService.updateContact(contactData, token);
         console.log('Contacto actualizado exitosamente.');
       } else {
-        // Crear nuevo contacto
-        await ContactService.createContact(contactData, token, agentId);
+        response = await ContactService.createContact(contactData.request, token, agentId);
         console.log('Contacto creado exitosamente.');
       }
+  
+      if (response && response.data) {
+        setFormData({
+          ...formData,
+          ...response.data,
+          commercialName: formData.commercialName, // Mantiene el valor local si el backend no lo devuelve
+        });
+        setHasContact(true);
+        setRefresh(prev => !prev); // Forzar refetch
+      }
+  
       setOpen(false); // Cierra el modal
     } catch (error: any) {
       console.error(hasContact ? 'Error actualizando el contacto:' : 'Error creando el contacto:', error);
@@ -413,6 +470,10 @@ const Dashboard = () => {
       alert(hasContact ? 'Ocurrió un problema al actualizar el contacto. Por favor, inténtalo de nuevo.' : 'Ocurrió un problema al crear el contacto. Por favor, inténtalo de nuevo.');
     }
   };
+  
+
+  
+  
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -591,8 +652,6 @@ const Dashboard = () => {
                   </IconButton>
                 </Zoom>
               </Box>
-
-              {/* Menú desplegable para la selección de widgets */}
               <Menu
                 anchorEl={anchorEl}
                 open={Boolean(anchorEl)}
@@ -697,7 +756,6 @@ const Dashboard = () => {
               </Menu>
 
               <Grid container spacing={3}>
-                {/* Aquí comenzarán los widgets seleccionables */}
                 {widgets.showVentas && (
                   <Grid item xs={12} md={3}>
                     <Zoom in timeout={500}>
@@ -1405,8 +1463,6 @@ const Dashboard = () => {
                           }}
                         />
                       </Box>
-
-                      {/* Contenedor de estadísticas y métricas adicionales */}
                       <Box
                         sx={{
                           mt: 4,
@@ -1887,16 +1943,18 @@ const Dashboard = () => {
             </Container>
           </Box>
         </Box>
-{/* Dialog para completar información del usuario */}
-{/* Componente separado para completar información del usuario */}
+
 <UserInfoDialog
-          open={open}
-          handleClose={handleClose}
-          hasContact={hasContact}
-          formData={formData}
-          formErrors={formErrors}
-          handleChange={handleChange}
-          handleFormSubmit={handleFormSubmit} loading={false}/>
+  open={open}
+  handleClose={handleClose}
+  hasContact={hasContact}
+  formData={formData}
+  formErrors={formErrors}
+  handleChange={handleChange}
+  handleFormSubmit={handleFormSubmit}
+  loading={loading} // Pasar la prop de carga
+/>
+
 
 </UserChecker>
 </Box>
