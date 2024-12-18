@@ -1,3 +1,5 @@
+// src/pages/Dashboard.tsx
+
 import { useState, useEffect } from "react";
 import {
   Box,
@@ -72,6 +74,29 @@ ChartJS.register(
   Legend
 );
 
+// **Definición de la interfaz FormErrors**
+interface FormErrors {
+  name?: string;
+  email?: string;
+  country?: string;
+  city?: string;
+  phone?: string;
+  userType?: string;
+  skills?: string;
+  experience?: string;
+  companyName?: string;
+  companySize?: string;
+  nie?: string;
+  commercialName?: string;
+  province?: string;
+  shippingAddress?: string;
+  shippingCity?: string;
+  shippingProvince?: string;
+  shippingPostalCode?: string;
+  shippingCountry?: string;
+  [key: string]: string | undefined;
+}
+
 const initialChartData = {
   labels: ["January", "February", "March", "April", "May", "June", "July"],
   datasets: [
@@ -101,82 +126,147 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(false);
   const [refresh, setRefresh] = useState(false);
 
+  // Estado del formulario para gestionar los datos
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    country: "",
+    city: "",
+    userType: "",
+    phone: "",
+    address: "",
+    postalCode: "",
+    nie: "",
+    commercialName: "",
+    province: "",
+    mobile: "",
+    shippingAddress: "",
+    shippingCity: "",
+    website: "",
+    contactId: "",
+    shippingProvince: "",
+    shippingPostalCode: "",
+    shippingCountry: "",
+    userId: "",
+    skills: "",
+    experience: "",
+    companyName: "",
+    companySize: "",
+    phone1: "", // Nuevo
+    vatIdentification: "", // Nuevo
+    salesTax: 0, // Nuevo
+    equivalenceSurcharge: 0, // Nuevo
+    shoppingTax: 0, // Nuevo
+    paymentDay: 0, // Nuevo
+    tags: "", // Nuevo
+    vatType: "", // Nuevo
+    internalReference: "", // Nuevo
+    language: "", // Nuevo
+    currency: "", // Nuevo
+    paymentMethod: "", // Nuevo
+    paymentExpirationDays: "", // Nuevo
+    paymentExpirationDay: "", // Nuevo
+    rate: "", // Nuevo
+    discount: "", // Nuevo
+    swift: "", // Nuevo
+    iban: "", // Nuevo
+    shippingAddresses: [
+      {
+        direction: "", // Nuevo
+        city: "", // Nuevo
+        postalCode: "", // Nuevo
+        province: "", // Nuevo
+        country: "" // Nuevo
+      }
+    ]
+  });
+  
+
+  // Inicializa formErrors con la interfaz FormErrors
+  const [formErrors, setFormErrors] = useState<FormErrors>({});
 
   useEffect(() => {
     const fetchContact = async () => {
-      if (open && contactId && token) {
-        setLoading(true);
-        try {
-          const response = await ContactService.getContactById(contactId, token);
-          if (response.data && response.data.length > 0) {
-            const contactData = response.data[0];
-            setFormData({
-              name: contactData.name || '',
-              email: contactData.email || '',
-              country: contactData.country || '',
-              city: contactData.city || '',
-              userType: contactData.userType || '',
-              phone: contactData.phone || '',
-              address: contactData.address || '',
-              shippingAddress: contactData.shippingAddress || '',
-              postalCode: contactData.postalCode || '',
-              nie: contactData.nie || '',
-              commercialName: contactData.commercialName || formData.commercialName || '',
-              province: contactData.province || '',
-              mobile: contactData.phone1 || '',
-              website: contactData.website || '',
-              contactId: contactData.id || '',
-              userId: agentId || '',
-              skills: contactData.skills || '',
-              experience: contactData.experience || '',
-              companyName: contactData.companyName || '',
-              companySize: contactData.companySize || '',
-              shippingCity: contactData.shippingCity || '',
-              shippingProvince: contactData.shippingProvince || '',
-              shippingPostalCode: contactData.shippingPostalCode || '',
-              shippingCountry: contactData.shippingCountry || '',
-            });
-            setHasContact(true);
-          } else {
-            setHasContact(false);
-            setFormData({
-              name: '',
-              email: '',
-              country: '',
-              city: '',
-              userType: '',
-              phone: '',
-              address: '',
-              postalCode: '',
-              nie: '',
-              commercialName: '',
-              province: '',
-              mobile: '',
-              website: '',
-              contactId: '',
-              shippingAddress: '',
-              shippingCity: '',
-              shippingProvince: '',
-              shippingPostalCode: '',
-              shippingCountry: '',
-              userId: agentId || '',
-              skills: '',
-              experience: '',
-              companyName: '',
-              companySize: '',
-            });
-          }
-        } catch (error) {
-          console.error("Error fetching contact:", error);
-          setHasContact(false);
-        } finally {
-          setLoading(false);
+      if (!open || !contactId || !token) return;
+  
+      setLoading(true);
+      try {
+        const response = await ContactService.getContactById(contactId, token);
+  
+        if (response?.data?.length > 0) {
+          const contactData = response.data[0];
+          setFormData((prev) => ({
+            ...prev,
+            name: contactData.name || '',
+            email: contactData.email || '',
+            country: contactData.country || '',
+            city: contactData.city || '',
+            userType: contactData.userType || '',
+            phone: contactData.phone || '',
+            address: contactData.address || '',
+            postalCode: contactData.postalCode || '',
+            nie: contactData.nie || '',
+            commercialName: contactData.commercialName || '',
+            province: contactData.province || '',
+            mobile: contactData.mobile || '',
+            website: contactData.website || '',
+            contactId: contactData.id || '',
+            userId: agentId || '',
+            skills: contactData.skills || '',
+            experience: contactData.experience || '',
+            companyName: contactData.companyName || '',
+            companySize: contactData.companySize || '',
+            shippingAddress: contactData.extraInformation?.shippingAddress?.[0]?.direccion || '',
+            shippingCity: contactData.extraInformation?.shippingAddress?.[0]?.poblacion || '',
+            shippingProvince: contactData.extraInformation?.shippingAddress?.[0]?.provincia || '',
+            shippingPostalCode: contactData.extraInformation?.shippingAddress?.[0]?.codigoPostal || '',
+            shippingCountry: contactData.extraInformation?.shippingAddress?.[0]?.pais || '',
+          }));
+          setHasContact(true);
+        } else {
+          resetFormData(); // Reutilizando lógica para limpiar formulario
         }
+      } catch (error) {
+        console.error('Error fetching contact:', error);
+        resetFormData();
+      } finally {
+        setLoading(false);
       }
     };
+  
+    const resetFormData = () => {
+      setFormData((prev) => ({
+        ...prev,
+        name: '',
+        email: '',
+        country: '',
+        city: '',
+        userType: '',
+        phone: '',
+        address: '',
+        postalCode: '',
+        nie: '',
+        commercialName: '',
+        province: '',
+        mobile: '',
+        website: '',
+        contactId: '',
+        shippingAddress: '',
+        shippingCity: '',
+        shippingProvince: '',
+        shippingPostalCode: '',
+        shippingCountry: '',
+        userId: agentId || '',
+        skills: '',
+        experience: '',
+        companyName: '',
+        companySize: '',
+      }));
+      setHasContact(false);
+    };
+  
     fetchContact();
   }, [open, contactId, token, agentId, refresh]);
-
   
   
 
@@ -307,55 +397,6 @@ const Dashboard = () => {
     setUserType(event.target.value);
   };
 
-  // Define la interfaz para formErrors
-  interface FormErrors {
-    name?: string;
-    email?: string;
-    country?: string;
-    city?: string;
-    phone?: string;
-    userType?: string;
-    skills?: string;
-    experience?: string;
-    companyName?: string;
-    companySize?: string;
-    nie?: string;
-    commercialName?: string;
-    province?: string;
-    [key: string]: string | undefined;
-  }
-
-  // Estado del formulario para gestionar los datos
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    country: "",
-    city: "",
-    userType: '',
-    phone: "",
-    address: "",
-    postalCode: "",
-    nie: "",
-    commercialName: "",
-    province: "",
-    mobile: "",
-    shippingAddress: "",
-    shippingCity: "",
-    website: "",
-    contactId: "",
-    shippingProvince: "",
-    shippingPostalCode: "",
-    shippingCountry: "",
-    userId: "",
-    skills: "",
-    experience: "",
-    companyName: "",
-    companySize: "",
-  });
-
-  // Inicializa formErrors con la interfaz FormErrors
-  const [formErrors, setFormErrors] = useState<FormErrors>({});
-
   // Campos obligatorios
   const requiredFields = ["name", "email", "country", "city", "phone"];
 
@@ -409,39 +450,49 @@ const Dashboard = () => {
       return;
     }
   
-    // Construir el objeto 'request' con los datos del formulario
     const contactData: any = {
-      request: {
-        contactType: 1,
-        name: formData.name,
-        address: formData.address,
-        country: formData.country,
-        city: formData.city,
-        postalCode: formData.postalCode,
-        email: formData.email,
-        phone: formData.phone,
-        mobile: formData.mobile,
-        website: formData.website,
-        userId: agentId,
-        ...(hasContact && contactId ? { contactId } : {}),
-        skills: formData.skills,
-        experience: formData.experience,
-        companyName: formData.companyName,
-        companySize: formData.companySize,
-        nie: formData.nie,
-        commercialName: formData.commercialName,
-        province: formData.province,
-        shippingAddresses: [ // Cambiar a una lista
-          {
-            address: formData.shippingAddress,
-            city: formData.shippingCity,
-            province: formData.shippingProvince,
-            postalCode: formData.shippingPostalCode,
-            country: formData.shippingCountry,
-          }
-        ],
-      }
+      userId: agentId,
+      contactId: contactId, // Usa contactId en el body
+      name: formData.name,
+      nie: formData.nie,
+      address: formData.address,
+      province: formData.province,
+      country: formData.country,
+      city: formData.city,
+      postalCode: formData.postalCode,
+      email: formData.email,
+      phone: formData.phone,
+      phone1: formData.phone1 || "",
+      website: formData.website,
+      vatIdentification: formData.vatIdentification || "",
+      salesTax: formData.salesTax || 0,
+      equivalenceSurcharge: formData.equivalenceSurcharge || 0,
+      shoppingTax: formData.shoppingTax || 0,
+      paymentDay: formData.paymentDay || 0,
+      tags: formData.tags || "",
+      vatType: formData.vatType || "",
+      internalReference: formData.internalReference || "",
+      language: formData.language || "",
+      currency: formData.currency || "",
+      paymentMethod: formData.paymentMethod || "",
+      paymentExpirationDays: formData.paymentExpirationDays || "",
+      paymentExpirationDay: formData.paymentExpirationDay || "",
+      rate: formData.rate || "",
+      discount: formData.discount || "",
+      swift: formData.swift || "",
+      iban: formData.iban || "",
+      shippingAddress: [
+        {
+          direction: formData.shippingAddress,
+          city: formData.shippingCity,
+          postalCode: formData.shippingPostalCode,
+          province: formData.shippingProvince,
+          country: formData.shippingCountry
+        }
+      ]
     };
+    
+    
   
     try {
       let response;
@@ -449,15 +500,38 @@ const Dashboard = () => {
         response = await ContactService.updateContact(contactData, token);
         console.log('Contacto actualizado exitosamente.');
       } else {
-        response = await ContactService.createContact(contactData.request, token, agentId);
+        response = await ContactService.createContact(contactData, token);
         console.log('Contacto creado exitosamente.');
       }
   
       if (response && response.data) {
+        const updatedContact = response.data;
         setFormData({
           ...formData,
-          ...response.data,
-          commercialName: formData.commercialName, // Mantiene el valor local si el backend no lo devuelve
+          name: updatedContact.name || formData.name,
+          email: updatedContact.email || formData.email,
+          country: updatedContact.country || formData.country,
+          city: updatedContact.city || formData.city,
+          userType: updatedContact.userType || formData.userType,
+          phone: updatedContact.phone || formData.phone,
+          address: updatedContact.address || formData.address,
+          shippingAddress: updatedContact.shippingAddress?.[0]?.direction || formData.shippingAddress,
+          shippingCity: updatedContact.shippingAddress?.[0]?.city || formData.shippingCity,
+          shippingProvince: updatedContact.shippingAddress?.[0]?.province || formData.shippingProvince,
+          shippingPostalCode: updatedContact.shippingAddress?.[0]?.postalCode || formData.shippingPostalCode,
+          shippingCountry: updatedContact.shippingAddress?.[0]?.country || formData.shippingCountry,
+          postalCode: updatedContact.postalCode || formData.postalCode,
+          nie: updatedContact.nie || formData.nie,
+          commercialName: updatedContact.commercialName || formData.commercialName,
+          province: updatedContact.province || formData.province,
+          mobile: updatedContact.phone1 || formData.mobile,
+          website: updatedContact.website || formData.website,
+          contactId: updatedContact.id || formData.contactId,
+          userId: updatedContact.userId || formData.userId,
+          skills: updatedContact.skills || formData.skills,
+          experience: updatedContact.experience || formData.experience,
+          companyName: updatedContact.companyName || formData.companyName,
+          companySize: updatedContact.companySize || formData.companySize,
         });
         setHasContact(true);
         setRefresh(prev => !prev); // Forzar refetch
@@ -466,13 +540,9 @@ const Dashboard = () => {
       setOpen(false); // Cierra el modal
     } catch (error: any) {
       console.error(hasContact ? 'Error actualizando el contacto:' : 'Error creando el contacto:', error);
-      // Puedes mostrar un mensaje de error al usuario aquí
       alert(hasContact ? 'Ocurrió un problema al actualizar el contacto. Por favor, inténtalo de nuevo.' : 'Ocurrió un problema al crear el contacto. Por favor, inténtalo de nuevo.');
     }
   };
-  
-
-  
   
 
   const toggleMenu = () => {
@@ -1759,27 +1829,12 @@ const Dashboard = () => {
                           />
                         </Box>
                         <Box sx={{ mt: 2, width: "100%" }}>
-                          <Typography variant="body2" sx={{ color: "#888" }}>
-                            Nivel de ventas
+                          <Typography variant="body2" sx={{ color: "#1A1A40", textAlign: "center" }}>
+                            Sin ventas registradas
                           </Typography>
-                          <Box
-                            sx={{
-                              position: "relative",
-                              height: 10,
-                              bgcolor: "#E0E0E0",
-                              borderRadius: 5,
-                              mt: 1,
-                            }}
-                          >
-                            <Box
-                              sx={{
-                                width: "20%",
-                                height: "100%",
-                                bgcolor: "#FFA726",
-                                borderRadius: 5,
-                              }}
-                            ></Box>
-                          </Box>
+                          <Typography variant="caption" sx={{ color: "#888" }}>
+                            Durante este periodo no realizaste venta de productos.
+                          </Typography>
                         </Box>
                       </Paper>
                     </Grid>
@@ -1944,22 +1999,20 @@ const Dashboard = () => {
           </Box>
         </Box>
 
-<UserInfoDialog
-  open={open}
-  handleClose={handleClose}
-  hasContact={hasContact}
-  formData={formData}
-  formErrors={formErrors}
-  handleChange={handleChange}
-  handleFormSubmit={handleFormSubmit}
-  loading={loading} // Pasar la prop de carga
-/>
+        <UserInfoDialog
+          open={open}
+          handleClose={handleClose}
+          hasContact={hasContact}
+          formData={formData}
+          formErrors={formErrors}
+          handleChange={handleChange}
+          handleFormSubmit={handleFormSubmit}
+          loading={loading} // Pasar la prop de carga
+        />
 
-
-</UserChecker>
-</Box>
-
-);
+      </UserChecker>
+    </Box>
+  );
 };
 
 export default Dashboard;

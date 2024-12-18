@@ -1,6 +1,6 @@
 // src/components/UserInfoDialog.tsx
 
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -15,7 +15,10 @@ import {
   Avatar,
   MenuItem,
   CircularProgress,
+  IconButton,
 } from "@mui/material";
+import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
+import DeleteIcon from "@mui/icons-material/Delete";
 
 // Define la interfaz para formErrors
 interface FormErrors {
@@ -43,6 +46,9 @@ interface FormErrors {
   mobile?: string;
   [key: string]: string | undefined;
 }
+
+// Define un tipo específico para los campos de dirección de envío
+type ShippingAddressField = 'direction' | 'city' | 'province' | 'postalCode' | 'country';
 
 // Define las props para el componente
 interface UserInfoDialogProps {
@@ -93,6 +99,64 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
   handleChange,
   handleFormSubmit,
 }) => {
+  // Estado para manejar múltiples direcciones de envío
+  const [shippingAddresses, setShippingAddresses] = useState<
+    Array<{
+      id: string;
+      direction: string;
+      city: string;
+      province: string;
+      postalCode: string;
+      country: string;
+    }>
+  >(
+    formData.shippingAddress
+      ? [
+          {
+            id: "initial",
+            direction: formData.shippingAddress,
+            city: formData.shippingCity,
+            province: formData.shippingProvince,
+            postalCode: formData.shippingPostalCode,
+            country: formData.shippingCountry,
+          },
+        ]
+      : []
+  );
+
+  // Función para agregar una nueva dirección de envío
+  const addShippingAddress = () => {
+    setShippingAddresses([
+      ...shippingAddresses,
+      {
+        id: new Date().getTime().toString(),
+        direction: "",
+        city: "",
+        province: "",
+        postalCode: "",
+        country: "",
+      },
+    ]);
+  };
+
+  // Función para eliminar una dirección de envío
+  const removeShippingAddress = (id: string) => {
+    setShippingAddresses(shippingAddresses.filter((address) => address.id !== id));
+  };
+
+  // Función para manejar cambios en las direcciones de envío
+  const handleShippingAddressChange = (
+    id: string,
+    field: ShippingAddressField,
+    value: string
+  ) => {
+    setShippingAddresses((prev) =>
+      prev.map((address) =>
+        address.id === id ? { ...address, [field]: value } : address
+      )
+    );
+  };
+
   // Función para renderizar campos específicos según el tipo de usuario
   const renderUserTypeFields = () => {
     if (formData.userType === 'freelancer') {
@@ -512,87 +576,96 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                 <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
                   Dirección de Envío
                 </Typography>
-                <Grid container spacing={2}>
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      label="Dirección de Envío"
-                      name="shippingAddress"
-                      fullWidth
-                      variant="outlined"
-                      value={formData.shippingAddress || ''}
-                      onChange={handleChange}
-                      error={!!formErrors.shippingAddress}
-                      helperText={formErrors.shippingAddress || ''}
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      label="Ciudad de Envío"
-                      name="shippingCity"
-                      fullWidth
-                      variant="outlined"
-                      value={formData.shippingCity || ''}
-                      onChange={handleChange}
-                      error={!!formErrors.shippingCity}
-                      helperText={formErrors.shippingCity || ''}
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={4}>
-                    <TextField
-                      label="Provincia de Envío"
-                      name="shippingProvince"
-                      fullWidth
-                      variant="outlined"
-                      select
-                      value={formData.shippingProvince || ''}
-                      onChange={handleChange}
-                      error={!!formErrors.shippingProvince}
-                      helperText={formErrors.shippingProvince || ''}
-                    >
-                      <MenuItem value="">Selecciona Provincia</MenuItem>
-                      <MenuItem value="provincia1">Provincia 1</MenuItem>
-                      <MenuItem value="provincia2">Provincia 2</MenuItem>
-                      {/* Añade más opciones según sea necesario */}
-                    </TextField>
-                  </Grid>
-                  <Grid item xs={12} sm={4}>
-                    <TextField
-                      label="Código Postal de Envío"
-                      name="shippingPostalCode"
-                      fullWidth
-                      variant="outlined"
-                      value={formData.shippingPostalCode || ''}
-                      onChange={handleChange}
-                      error={!!formErrors.shippingPostalCode}
-                      helperText={formErrors.shippingPostalCode || ''}
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={4}>
-                    <TextField
-                      label="País de Envío"
-                      name="shippingCountry"
-                      fullWidth
-                      variant="outlined"
-                      select
-                      value={formData.shippingCountry || ''}
-                      onChange={handleChange}
-                      error={!!formErrors.shippingCountry}
-                      helperText={formErrors.shippingCountry || ''}
-                    >
-                      <MenuItem value="">Selecciona País</MenuItem>
-                      <MenuItem value="es">España</MenuItem>
-                      <MenuItem value="fr">Francia</MenuItem>
-                      {/* Añade más opciones según sea necesario */}
-                    </TextField>
-                  </Grid>
-                </Grid>
-                <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
+                {shippingAddresses.map((address, index) => (
+                  <Box key={address.id} sx={{ mb: 2, border: '1px solid #E0E0E0', borderRadius: 2, p: 2 }}>
+                    <Grid container spacing={2}>
+                      <Grid item xs={12} sm={6}>
+                        <TextField
+                          label="Dirección de Envío"
+                          name="shippingAddress"
+                          fullWidth
+                          variant="outlined"
+                          value={address.direction}
+                          onChange={(e) => handleShippingAddressChange(address.id, 'direction', e.target.value)}
+                          error={!!formErrors.shippingAddress}
+                          helperText={formErrors.shippingAddress || ''}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6}>
+                        <TextField
+                          label="Ciudad de Envío"
+                          name="shippingCity"
+                          fullWidth
+                          variant="outlined"
+                          value={address.city}
+                          onChange={(e) => handleShippingAddressChange(address.id, 'city', e.target.value)}
+                          error={!!formErrors.shippingCity}
+                          helperText={formErrors.shippingCity || ''}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={4}>
+                        <TextField
+                          label="Provincia de Envío"
+                          name="shippingProvince"
+                          fullWidth
+                          variant="outlined"
+                          select
+                          value={address.province}
+                          onChange={(e) => handleShippingAddressChange(address.id, 'province', e.target.value)}
+                          error={!!formErrors.shippingProvince}
+                          helperText={formErrors.shippingProvince || ''}
+                        >
+                          <MenuItem value="">Selecciona Provincia</MenuItem>
+                          <MenuItem value="provincia1">Provincia 1</MenuItem>
+                          <MenuItem value="provincia2">Provincia 2</MenuItem>
+                          {/* Añade más opciones según sea necesario */}
+                        </TextField>
+                      </Grid>
+                      <Grid item xs={12} sm={4}>
+                        <TextField
+                          label="Código Postal de Envío"
+                          name="shippingPostalCode"
+                          fullWidth
+                          variant="outlined"
+                          value={address.postalCode}
+                          onChange={(e) => handleShippingAddressChange(address.id, 'postalCode', e.target.value)}
+                          error={!!formErrors.shippingPostalCode}
+                          helperText={formErrors.shippingPostalCode || ''}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={4}>
+                        <TextField
+                          label="País de Envío"
+                          name="shippingCountry"
+                          fullWidth
+                          variant="outlined"
+                          select
+                          value={address.country}
+                          onChange={(e) => handleShippingAddressChange(address.id, 'country', e.target.value)}
+                          error={!!formErrors.shippingCountry}
+                          helperText={formErrors.shippingCountry || ''}
+                        >
+                          <MenuItem value="">Selecciona País</MenuItem>
+                          <MenuItem value="es">España</MenuItem>
+                          <MenuItem value="fr">Francia</MenuItem>
+                          {/* Añade más opciones según sea necesario */}
+                        </TextField>
+                      </Grid>
+                    </Grid>
+                    {shippingAddresses.length > 1 && (
+                      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
+                        <IconButton color="error" onClick={() => removeShippingAddress(address.id)}>
+                          <DeleteIcon />
+                        </IconButton>
+                      </Box>
+                    )}
+                  </Box>
+                ))}
+                <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
                   <Button
                     variant="outlined"
-                    onClick={() => {
-                      // Implementar funcionalidad para añadir una dirección de envío adicional
-                      // Por ejemplo, abrir otro formulario o añadir campos dinámicamente
-                    }}
+                    startIcon={<AddCircleOutlineIcon />}
+                    onClick={addShippingAddress}
                   >
                     Añadir Dirección de Envío
                   </Button>

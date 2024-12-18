@@ -1,58 +1,15 @@
-// src/services/ContactService.ts
-
 import { CommonResponse } from "../types/CommonResponse";
-import { Contact } from "../types/Contact";
-import { LinkedContact } from "../types/LinkedCobtsct"; // Asegúrate de importar la interfaz LinkedContact
+import { LinkedContact } from "../types/LinkedCobtsct";
 
-export default class ContactService {
-  // Método para obtener un contacto por su ID
-  static async getContactById(contactId: string, token: string): Promise<CommonResponse<Contact[]>> {
+export default class LinkedContactsService {
+  // Método para obtener un contacto vinculado por su ContactId
+  static async getByContactId(contactId: string, token: string): Promise<CommonResponse<LinkedContact[]>> {
     try {
       const baseURL = process.env.NEXT_PUBLIC_API?.replace(/\/+$/, '');
       if (!baseURL) {
         throw new Error("Base URL no está definido en las variables de entorno.");
       }
-      const url = `${baseURL}/Contact/${contactId}`;
-
-      console.log("URL:", url);
-
-      const response = await fetch(url, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
-        },
-      });
-
-      if (response.ok) {
-        const resultData = await response.json();
-        console.log("API Data Received:", resultData);
-        return {
-          result: {
-            resultNumber: resultData.result.resultNumber,
-            errorMessage: resultData.result.errorMessage,
-          },
-          data: resultData.data as Contact[], // Ahora es un arreglo de Contact
-        };
-      } else {
-        const errorText = await response.text();
-        console.error(`Error ${response.status}: ${errorText}`);
-        throw new Error(`Error ${response.status}: ${errorText}`);
-      }
-    } catch (err: any) {
-      console.error("Error en la solicitud:", err.message || err);
-      throw new Error("Ocurrió un problema al obtener el contacto.");
-    }
-  }
-
-  // Método para obtener todos los contactos
-  static async getAllContacts(token: string): Promise<CommonResponse<Contact[]>> {
-    try {
-      const baseURL = process.env.NEXT_PUBLIC_API?.replace(/\/+$/, '');
-      if (!baseURL) {
-        throw new Error("Base URL no está definido en las variables de entorno.");
-      }
-      const url = `${baseURL}/Contact/All`;
+      const url = `${baseURL}/LinkedContact/${contactId}`;
 
       const response = await fetch(url, {
         method: "GET",
@@ -69,26 +26,31 @@ export default class ContactService {
             resultNumber: resultData.result.resultNumber,
             errorMessage: resultData.result.errorMessage,
           },
-          data: resultData.data as Contact[],
+          data: resultData.data as LinkedContact[],
         };
       } else {
         const errorResponse = await response.json();
-        throw new Error(errorResponse.result?.errorMessage || "Error al obtener los contactos");
+        throw new Error(errorResponse.result?.errorMessage || `Error al obtener el contacto vinculado`);
       }
     } catch (err: any) {
       console.error("Error en la solicitud:", err.message || err);
-      throw new Error("Ocurrió un problema al obtener los contactos.");
+      throw new Error("Ocurrió un problema al obtener el contacto vinculado.");
     }
   }
 
-  // Método para crear un nuevo contacto
-  static async createContact(contactData: Omit<Contact, 'id'>, token: string): Promise<CommonResponse<Contact>> {
+  // Método para agregar un contacto vinculado
+  static async addLinkedContact(ownerContactId: string, linkedContactId: string, token: string): Promise<CommonResponse<LinkedContact>> {
     try {
       const baseURL = process.env.NEXT_PUBLIC_API?.replace(/\/+$/, '');
       if (!baseURL) {
         throw new Error("Base URL no está definido en las variables de entorno.");
       }
-      const url = `${baseURL}/Contact`;
+      const url = `${baseURL}/LinkedContact`;
+
+      const body = {
+        ownerContactId,
+        LinekdContactId: linkedContactId,
+      };
 
       const response = await fetch(url, {
         method: "POST",
@@ -96,7 +58,7 @@ export default class ContactService {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`,
         },
-        body: JSON.stringify(contactData),
+        body: JSON.stringify(body),
       });
 
       if (response.ok) {
@@ -106,26 +68,26 @@ export default class ContactService {
             resultNumber: resultData.result.resultNumber,
             errorMessage: resultData.result.errorMessage,
           },
-          data: resultData.data as Contact,
+          data: resultData.data as LinkedContact,
         };
       } else {
         const errorResponse = await response.json();
-        throw new Error(errorResponse.result?.errorMessage || "Error al crear el contacto");
+        throw new Error(errorResponse.result?.errorMessage || `Error al agregar el contacto vinculado`);
       }
     } catch (err: any) {
       console.error("Error en la solicitud:", err.message || err);
-      throw new Error("Ocurrió un problema al crear el contacto.");
+      throw new Error("Ocurrió un problema al agregar el contacto vinculado.");
     }
   }
 
-  // Método para actualizar un contacto existente
-  static async updateContact(contactData: Partial<Contact> & { contactId: string }, token: string): Promise<CommonResponse<Contact>> {
+  // Método para aprobar un contacto vinculado
+  static async approveLinkedContact(ownerContactId: string, contactId: string, token: string): Promise<CommonResponse<LinkedContact>> {
     try {
       const baseURL = process.env.NEXT_PUBLIC_API?.replace(/\/+$/, '');
       if (!baseURL) {
         throw new Error("Base URL no está definido en las variables de entorno.");
       }
-      const url = `${baseURL}/Contact`; // Asegúrate de que el endpoint es correcto
+      const url = `${baseURL}/LinkedContact/approve?ownerContactId=${ownerContactId}&contactId=${contactId}`;
 
       const response = await fetch(url, {
         method: "PUT",
@@ -133,7 +95,6 @@ export default class ContactService {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`,
         },
-        body: JSON.stringify(contactData), // Asegúrate de que contactData está correctamente estructurado
       });
 
       if (response.ok) {
@@ -143,21 +104,52 @@ export default class ContactService {
             resultNumber: resultData.result.resultNumber,
             errorMessage: resultData.result.errorMessage,
           },
-          data: resultData.data as Contact,
+          data: resultData.data as LinkedContact,
         };
       } else {
-        let errorResponse;
-        try {
-          errorResponse = await response.json();
-        } catch (jsonError) {
-          console.error("Error al parsear la respuesta de error:", jsonError);
-          throw new Error(`Error ${response.status}: ${response.statusText}`);
-        }
-        throw new Error(errorResponse.result?.errorMessage || `Error ${response.status}: ${response.statusText}`);
+        const errorResponse = await response.json();
+        throw new Error(errorResponse.result?.errorMessage || `Error al aprobar el contacto vinculado`);
       }
     } catch (err: any) {
       console.error("Error en la solicitud:", err.message || err);
-      throw new Error("Ocurrió un problema al actualizar el contacto.");
+      throw new Error("Ocurrió un problema al aprobar el contacto vinculado.");
+    }
+  }
+
+  // Método para eliminar un contacto vinculado
+  static async deleteLinkedContact(ownerContactId: string, contactId: string, token: string): Promise<CommonResponse<null>> {
+    try {
+      const baseURL = process.env.NEXT_PUBLIC_API?.replace(/\/+$/, '');
+      if (!baseURL) {
+        throw new Error("Base URL no está definido en las variables de entorno.");
+      }
+      const url = `${baseURL}/LinkedContact?ownerContactId=${ownerContactId}&contactId=${contactId}`;
+
+      const response = await fetch(url, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const resultData = await response.json();
+        return {
+          result: {
+            resultNumber: resultData.result.resultNumber,
+            errorMessage: resultData.result.errorMessage,
+          },
+          data: null,
+        };
+      } else {
+        const errorResponse = await response.json();
+        throw new Error(errorResponse.result?.errorMessage || `Error al eliminar el contacto vinculado`);
+      }
+    } catch (err: any) {
+      console.error("Error en la solicitud:", err.message || err);
+      throw new Error("Ocurrió un problema al eliminar el contacto vinculado.");
     }
   }
 }
+
