@@ -1,50 +1,70 @@
+// pages/contacts/index.tsx
 import { useState, useEffect } from 'react';
 import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-} from 'chart.js';
-
-// Registrar las escalas y componentes
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend
-);
-import {
-  Box, Container, Typography, Button, TextField, IconButton, Paper, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, InputAdornment,
-  MenuItem, FormControl, Select, InputLabel, TableCell, TableRow, TableBody, Table, TableContainer, TableHead, Checkbox, FormControlLabel, Menu, MenuItem as DropdownMenuItem, Grid, FormHelperText,
+  Box,
+  Container,
+  Typography,
+  Button,
+  TextField,
+  IconButton,
+  Paper,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  InputAdornment,
+  MenuItem,
+  FormControl,
+  Select,
+  InputLabel,
+  Checkbox,
+  FormControlLabel,
+  Menu,
+  Grid,
   List,
   ListItem,
   ListItemText,
+  Tabs,
   Tab,
-  Tabs
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  ListItemButton,
 } from '@mui/material';
 import Header from '../../../components/Header';
 import Sidebar from '../../../components/Sidebar';
 import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/Add';
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
+import ImportExportIcon from '@mui/icons-material/ImportExport';
+import PortalIcon from '@mui/icons-material/Language';
+import ViewColumnIcon from '@mui/icons-material/ViewColumn';
 import { Drawer } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import EmailIcon from '@mui/icons-material/Email';
 import PhoneIcon from '@mui/icons-material/Phone';
 import LanguageIcon from '@mui/icons-material/Language';
 import MapIcon from '@mui/icons-material/Map';
-import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
 import DeleteIcon from '@mui/icons-material/Delete';
-import ImportExportIcon from '@mui/icons-material/ImportExport';
 import { useRouter } from 'next/router';
-import PortalIcon from '@mui/icons-material/Language';
-import ViewColumnIcon from '@mui/icons-material/ViewColumn';
 import { Bar } from 'react-chartjs-2';
+import ContactTable from '../components/contactTable';
+import ContactForm from '../components/contactForm'; // Asegúrate de tener este componente
+
+// Importar ContactService y tipos adicionales
+import ContactService from '../../../services/ContactService';
+import { Contact, ShippingAddress } from '../../../types/Contact';
+import { LinkedContact } from '../../../types/LinkedCobtsct';
+import { CommonResponse } from '../../../types/CommonResponse';
+import useAuthStore from '../../../store/useAuthStore';
+// Añadir esta línea:
+import LinkedContactsService from '../../../services/LinkedContactsService';
+
 // Datos de ejemplo para los gráficos de ventas y compras
 const salesData = {
   labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
@@ -66,14 +86,6 @@ const purchasesData = {
       backgroundColor: '#F44336',
     },
   ],
-};
-
-const drawerStyles = {
-  zIndex: 1300,
-  width: 500,
-  p: 2,
-  maxHeight: '100%',
-  overflowY: 'auto', // Hacer el Drawer scrolleable
 };
 
 const allColumns = [
@@ -140,7 +152,7 @@ const initialFormData = {
   referenciaInterna: '',
   comercialAsignado: '',
   tipoIVA: [],
-  informacionAdicional: ''
+  informacionAdicional: '',
 };
 
 const contactsData = [
@@ -176,7 +188,7 @@ const contactsData = [
     referenciaInterna: 'REF001',
     comercialAsignado: 'Luis Gómez',
     tipoIVA: ['IVA 1'],
-    informacionAdicional: 'Cliente con historial impecable.'
+    informacionAdicional: 'Cliente con historial impecable.',
   },
   {
     id: 2,
@@ -210,592 +222,26 @@ const contactsData = [
     referenciaInterna: 'REF002',
     comercialAsignado: 'Carlos Martínez',
     tipoIVA: ['IVA 2'],
-    informacionAdicional: 'Proveedor puntual y confiable.'
-  }
+    informacionAdicional: 'Proveedor puntual y confiable.',
+  },
 ];
 
-const ContactForm = ({ open, handleClose, contact, handleSave }) => {
-  const [formData, setFormData] = useState(contact || initialFormData);
-  const [shippingAddresses, setShippingAddresses] = useState([{ direccion: '', poblacion: '', codigoPostal: '', provincia: '', pais: '' }]);
-
-
-  const [errors, setErrors] = useState({
-    nombre: false,
-    nif: false,
-    direccion: false,
-    pais: false,
-    codigoPostal: false,
-    provincia: false,
-  });
-  
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: e.target.multiple ? [...value] : value,
-    });
-  };
-
-  const addShippingAddress = () => {
-    setShippingAddresses([...shippingAddresses, { direccion: '', poblacion: '', codigoPostal: '', provincia: '', pais: '' }]);
-  };
-
-  const handleShippingChange = (index, e) => {
-    const updatedAddresses = [...shippingAddresses];
-    updatedAddresses[index][e.target.name] = e.target.value;
-    setShippingAddresses(updatedAddresses);
-  };
-
-  const validateForm = () => {
-    const newErrors = {
-      nombre: !formData.nombre,
-      nif: !formData.nif,
-      direccion: !formData.direccion,
-      codigoPostal: !formData.codigoPostal,
-      pais: !formData.pais,
-      provincia: !formData.provincia,
-    };
-  
-    setErrors(newErrors);
-  
-    // Si algún campo tiene un error, devolvemos false
-    return !Object.values(newErrors).some((error) => error);
-  };
-  
-
-  const handleSubmit = () => {
-    if (validateForm()) {
-      handleSave(formData);
-      handleClose();
-    }
-  };
-
-  return (
-    <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
-      <DialogTitle sx={{ fontWeight: '700', fontFamily: 'Roboto, sans-serif' }}>
-        {contact ? 'Editar Contacto' : 'Agregar Contacto'}
-      </DialogTitle>
-      
-      <DialogContent>
-        <DialogContentText sx={{ fontWeight: '400', fontFamily: 'Roboto, sans-serif' }}>
-          {contact ? 'Edita la información del contacto' : 'Introduce la información del nuevo contacto'}
-        </DialogContentText>
-  
-        {/* Información: Datos Fiscales */}
-        <Typography variant="h6" sx={{ mt: 3 }}>Información: Datos Fiscales</Typography>
-        <Grid container spacing={2}>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              margin="dense"
-              label="Nombre"
-              name="nombre"
-              fullWidth
-              variant="outlined"
-              value={formData.nombre}
-              onChange={handleChange}
-              required
-              error={errors.nombre}
-              helperText={errors.nombre ? "Este campo es obligatorio" : ""}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              margin="dense"
-              label="Nombre Comercial"
-              name="nombreComercial"
-              fullWidth
-              variant="outlined"
-              value={formData.nombreComercial}
-              onChange={handleChange}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              margin="dense"
-              label="NIF"
-              name="nif"
-              fullWidth
-              variant="outlined"
-              value={formData.nif}
-              onChange={handleChange}
-              required
-              error={errors.nif}
-              helperText={errors.nif ? "Este campo es obligatorio" : ""}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              margin="dense"
-              label="Dirección"
-              name="direccion"
-              fullWidth
-              variant="outlined"
-              value={formData.direccion}
-              onChange={handleChange}
-              required
-              error={errors.direccion}
-              helperText={errors.direccion ? "Este campo es obligatorio" : ""}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              margin="dense"
-              label="Código Postal"
-              name="codigoPostal"
-              fullWidth
-              variant="outlined"
-              value={formData.codigoPostal}
-              onChange={handleChange}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              margin="dense"
-              label="Población"
-              name="poblacion"
-              fullWidth
-              variant="outlined"
-              value={formData.poblacion}
-              onChange={handleChange}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <FormControl fullWidth error={errors.provincia}>
-              <InputLabel>Provincia</InputLabel>
-              <Select
-                name="provincia"
-                value={formData.provincia}
-                onChange={handleChange}
-                required
-              >
-                <MenuItem value="Predeterminada">Predeterminada</MenuItem>
-              </Select>
-              {errors.provincia && <FormHelperText>Este campo es obligatorio</FormHelperText>}
-            </FormControl>
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <FormControl fullWidth error={errors.pais}>
-              <InputLabel>País</InputLabel>
-              <Select
-                name="pais"
-                value={formData.pais}
-                onChange={handleChange}
-                required
-              >
-                <MenuItem value="Predeterminada">Predeterminada</MenuItem>
-              </Select>
-              {errors.pais && <FormHelperText>Este campo es obligatorio</FormHelperText>}
-            </FormControl>
-          </Grid>
-        </Grid>
-  
-        {/* Información de Contacto (Empresa) */}
-        <Typography variant="h6" sx={{ mt: 3 }}>Información de Contacto (Empresa)</Typography>
-        <Grid container spacing={2}>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              margin="dense"
-              label="Email"
-              name="email"
-              fullWidth
-              variant="outlined"
-              value={formData.email}
-              onChange={handleChange}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              margin="dense"
-              label="Teléfono"
-              name="telefono"
-              fullWidth
-              variant="outlined"
-              value={formData.telefono}
-              onChange={handleChange}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              margin="dense"
-              label="Móvil"
-              name="movil"
-              fullWidth
-              variant="outlined"
-              value={formData.movil}
-              onChange={handleChange}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              margin="dense"
-              label="Sitio Web"
-              name="sitioWeb"
-              fullWidth
-              variant="outlined"
-              value={formData.sitioWeb}
-              onChange={handleChange}
-            />
-          </Grid>
-        </Grid>
-  
-        {/* Temas de IVA */}
-        <Typography variant="h6" sx={{ mt: 3 }}>Temas de IVA</Typography>
-        <Grid container spacing={2}>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              margin="dense"
-              label="Identificación VAT"
-              name="identificacionVAT"
-              fullWidth
-              variant="outlined"
-              value={formData.identificacionVAT}
-              onChange={handleChange}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <FormControl fullWidth margin="dense">
-              <InputLabel>Tipo de IVA</InputLabel>
-              <Select
-                name="tipoIVA"
-                value={formData.tipoIVA}
-                onChange={handleChange}
-                multiple
-                required
-              >
-                <MenuItem value="IVA 1">IVA 1</MenuItem>
-                <MenuItem value="IVA 2">IVA 2</MenuItem>
-              </Select>
-              <FormHelperText>Selecciona al menos un tipo de IVA.</FormHelperText>
-            </FormControl>
-          </Grid>
-        </Grid>
-  
-        {/* Dirección de Envío */}
-        <Typography variant="h6" sx={{ mt: 3 }}>Dirección de Envío</Typography>
-        {shippingAddresses.map((address, index) => (
-          <Grid container spacing={2} key={index}>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                label="Dirección"
-                name="direccion"
-                value={address.direccion}
-                onChange={(e) => handleShippingChange(index, e)}
-                fullWidth
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                label="Población"
-                name="poblacion"
-                value={address.poblacion}
-                onChange={(e) => handleShippingChange(index, e)}
-                fullWidth
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                label="Código Postal"
-                name="codigoPostal"
-                value={address.codigoPostal}
-                onChange={(e) => handleShippingChange(index, e)}
-                fullWidth
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <FormControl fullWidth>
-                <InputLabel>Provincia</InputLabel>
-                <Select
-                  name="provincia"
-                  value={address.provincia}
-                  onChange={(e) => handleShippingChange(index, e)}
-                >
-                  <MenuItem value="Predeterminada">Predeterminada</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <FormControl fullWidth>
-                <InputLabel>País</InputLabel>
-                <Select
-                  name="pais"
-                  value={address.pais}
-                  onChange={(e) => handleShippingChange(index, e)}
-                >
-                  <MenuItem value="Predeterminada">Predeterminada</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-          </Grid>
-        ))}
-        <Button onClick={addShippingAddress} variant="contained" startIcon={<AddIcon />}>
-          Agregar Dirección
-        </Button>
-  
-        {/* Cosas Internas */}
-        <Typography variant="h6" sx={{ mt: 3 }}>Cosas Internas</Typography>
-        <Grid container spacing={2}>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              margin="dense"
-              label="Tags"
-              name="tags"
-              fullWidth
-              variant="outlined"
-              value={formData.tags}
-              onChange={handleChange}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              margin="dense"
-              label="Referencia Interna"
-              name="referenciaInterna"
-              fullWidth
-              variant="outlined"
-              value={formData.referenciaInterna}
-              onChange={handleChange}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <FormControl fullWidth>
-              <InputLabel>Comercial Asignado</InputLabel>
-              <Select
-                name="comercialAsignado"
-                value={formData.comercialAsignado}
-                onChange={handleChange}
-              >
-                {/* Aquí podrías incluir los valores de comerciales */}
-              </Select>
-            </FormControl>
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <FormControl fullWidth>
-              <InputLabel>Tipo de Contacto</InputLabel>
-              <Select
-                name="tipoContacto"
-                value={formData.tipoContacto}
-                onChange={handleChange}
-              >
-                <MenuItem value="Cliente">Cliente</MenuItem>
-                <MenuItem value="Proveedor">Proveedor</MenuItem>
-                <MenuItem value="Lead">Lead</MenuItem>
-                <MenuItem value="Deudor">Deudor</MenuItem>
-                <MenuItem value="Acreedor">Acreedor</MenuItem>
-              </Select>
-            </FormControl>
-          </Grid>
-        </Grid>
-  
-        {/* Preferencias */}
-        <Typography variant="h6" sx={{ mt: 3 }}>Preferencias</Typography>
-        <Grid container spacing={2}>
-          <Grid item xs={12} sm={6}>
-            <FormControl fullWidth>
-              <InputLabel>Idioma</InputLabel>
-              <Select
-                name="idioma"
-                value={formData.idioma}
-                onChange={handleChange}
-              >
-                <MenuItem value="Predeterminada">Predeterminada</MenuItem>
-              </Select>
-            </FormControl>
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <FormControl fullWidth>
-              <InputLabel>Moneda</InputLabel>
-              <Select
-                name="moneda"
-                value={formData.moneda}
-                onChange={handleChange}
-              >
-                <MenuItem value="Predeterminada">Predeterminada</MenuItem>
-              </Select>
-            </FormControl>
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              margin="dense"
-              label="Días de Vencimiento"
-              name="diasVencimiento"
-              fullWidth
-              variant="outlined"
-              value={formData.diasVencimiento}
-              onChange={handleChange}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              margin="dense"
-              label="Día de Vencimiento"
-              name="diaVencimiento"
-              fullWidth
-              variant="outlined"
-              value={formData.diaVencimiento}
-              onChange={handleChange}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <FormControl fullWidth>
-              <InputLabel>Forma de Pago</InputLabel>
-              <Select
-                name="formaPago"
-                value={formData.formaPago}
-                onChange={handleChange}
-              >
-                <MenuItem value="Predeterminada">Predeterminada</MenuItem>
-              </Select>
-            </FormControl>
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              margin="dense"
-              label="Tarifa"
-              name="tarifa"
-              fullWidth
-              variant="outlined"
-              value={formData.tarifa}
-              onChange={handleChange}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              margin="dense"
-              label="Descuento"
-              name="descuento"
-              fullWidth
-              variant="outlined"
-              value={formData.descuento}
-              onChange={handleChange}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              margin="dense"
-              label="Cuenta Compras"
-              name="cuentaCompras"
-              fullWidth
-              variant="outlined"
-              value={formData.cuentaCompras}
-              onChange={handleChange}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              margin="dense"
-              label="Cuenta Pagos"
-              name="cuentaPagos"
-              fullWidth
-              variant="outlined"
-              value={formData.cuentaPagos}
-              onChange={handleChange}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              margin="dense"
-              label="Swift"
-              name="swift"
-              fullWidth
-              variant="outlined"
-              value={formData.swift}
-              onChange={handleChange}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              margin="dense"
-              label="IBAN"
-              name="iban"
-              fullWidth
-              variant="outlined"
-              value={formData.iban}
-              onChange={handleChange}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              margin="dense"
-              label="Ref. Mandato (SEPA)"
-              name="refMandato"
-              fullWidth
-              variant="outlined"
-              value={formData.refMandato}
-              onChange={handleChange}
-            />
-          </Grid>
-        </Grid>
-  
-        {/* Información Adicional */}
-        <Typography variant="h6" sx={{ mt: 3 }}>Información Adicional</Typography>
-        <TextField
-          margin="dense"
-          label="Información Adicional"
-          name="informacionAdicional"
-          fullWidth
-          variant="outlined"
-          multiline
-          rows={4}
-          value={formData.informacionAdicional}
-          onChange={handleChange}
-        />
-      </DialogContent>
-  
-      <DialogActions>
-        <Button
-          onClick={handleClose}
-          sx={{
-            color: '#2666CF',
-            fontWeight: '500',
-            textTransform: 'none',
-            bgcolor: '#ffffff',
-            border: '1px solid #2666CF',
-            borderRadius: 2,
-          }}
-        >
-          Cancelar
-        </Button>
-        <Button
-          onClick={handleSubmit}
-          sx={{
-            color: '#ffffff',
-            fontWeight: '500',
-            textTransform: 'none',
-            bgcolor: '#2666CF',
-            borderRadius: 2,
-          }}
-        >
-          Guardar
-        </Button>
-      </DialogActions>
-    </Dialog>
-  );
-}  
-
-const allPeople = [
-  { id: 1, name: 'Juan Pérez' },
-  { id: 2, name: 'María González' },
-  { id: 3, name: 'Carlos López' },
-  { id: 4, name: 'Ana Fernández' },
-  { id: 5, name: 'Luis Gómez' },
-  { id: 6, name: 'Carmen Sánchez' }
-];
 const Contacts = () => {
   const [open, setOpen] = useState(false);
-  const [selectedContact, setSelectedContact] = useState(null);
+  const [selectedContact, setSelectedContact] = useState<any>(null);
   const [contacts, setContacts] = useState(contactsData);
   const [isMenuOpen, setIsMenuOpen] = useState(true);
   const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
-  const [password, setPassword] = useState(''); 
+  const [password, setPassword] = useState('');
   const [isPasswordEnabled, setIsPasswordEnabled] = useState(false);
   const [visibleColumns, setVisibleColumns] = useState(allColumns.map((col) => col.id));
-  const [anchorEl, setAnchorEl] = useState(null);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filteredPeople, setFilteredPeople] = useState(allPeople);
-  const [filter, setFilter] = useState('todos'); // Estado para manejar el filtro seleccionado
-  const [isDrawerExpanded, setIsDrawerExpanded] = useState(false); // Nuevo estado para manejar la expansión del Drawer
+  const [filteredPeople, setFilteredPeople] = useState(contactsData);
+  const [filter, setFilter] = useState('todos');
+  const [isDrawerExpanded, setIsDrawerExpanded] = useState(false);
   const [selectedTab, setSelectedTab] = useState(0);
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState(selectedContact);
@@ -811,36 +257,50 @@ const Contacts = () => {
     provincia: selectedContact?.provincia || '',
     pais: selectedContact?.pais || '',
   });
+  const [linkedContacts, setLinkedContacts] = useState<LinkedContact[]>([]); // <--- Añadido
+  const token = useAuthStore((state) => state.token); 
+  const ownerContactId = useAuthStore((state) => state.contactId);
 
-
-
-const handleTabChange = (event, newValue) => {
-  setSelectedTab(newValue);
-};
-
-
-
-
-  // Función para filtrar las personas al buscar
-  const handleSearch = (event) => {
-    const searchTerm = event.target.value.toLowerCase();
-    setSearchTerm(searchTerm);
-    setFilteredPeople(allPeople.filter(person => person.name.toLowerCase().includes(searchTerm)));
+  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+    setSelectedTab(newValue);
   };
 
-  // Función para abrir el diálogo
+  const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const term = event.target.value.toLowerCase();
+    setSearchTerm(term);
+    setFilteredPeople(
+      contacts.filter(
+        (contact) =>
+          contact.nombre.toLowerCase().includes(term) ||
+          contact.tipoContacto.toLowerCase().includes(term)
+      )
+    );
+  };
+
   const handleOpenDialog = () => {
     setIsDialogOpen(true);
   };
 
-  // Función para cerrar el diálogo
   const handleCloseDialog = () => {
     setIsDialogOpen(false);
   };
+  useEffect(() => {
+    const fetchLinkedContacts = async () => {
+      if (selectedContact?.id && token) {
+        try {
+          const response = await LinkedContactsService.getByContactId(selectedContact.id.toString(), token);
+          setLinkedContacts(response.data || []);
+        } catch (error) {
+          console.error('Error al obtener contactos vinculados:', error);
+        }
+      }
+    };
 
+    fetchLinkedContacts();
+  }, [selectedContact, token]); // <--- Añadido
 
   useEffect(() => {
-    const savedColumns = JSON.parse(localStorage.getItem('visibleColumns')) || allColumns.map((col) => col.id);
+    const savedColumns = JSON.parse(localStorage.getItem('visibleColumns') || '[]') || allColumns.map((col) => col.id);
     setVisibleColumns(savedColumns);
   }, []);
 
@@ -866,13 +326,11 @@ const handleTabChange = (event, newValue) => {
         provincia: selectedContact.provincia || '',
         pais: selectedContact.pais || '',
       });
-      setIsEditingClient(false); // Salir del modo edición al cambiar de contacto
+      setIsEditingClient(false);
     }
   }, [selectedContact]);
-  
-  
 
-  const handleOpen = (contact = null) => {
+  const handleOpen = (contact: any = null) => {
     setSelectedContact(contact);
     setOpen(true);
   };
@@ -881,33 +339,114 @@ const handleTabChange = (event, newValue) => {
     setOpen(false);
     setSelectedContact(null);
   };
-  const handleOpenDrawer = (contact) => {
+
+  const handleLinkContact = async (personId: number) => {
+    if (!selectedContact?.id) return;
+    try {
+      const response = await LinkedContactsService.addLinkedContact(
+        selectedContact.id.toString(),
+        personId.toString(),
+        token
+      );
+      if (response.data) {
+        setLinkedContacts((prev) => [...prev, response.data]);
+      }
+    } catch (error) {
+      console.error('Error al vincular contacto:', error);
+    }
+  };
+  
+  const handleUnlinkContact = async (linkedContactId: string) => {
+    if (!selectedContact?.id) return;
+    try {
+      await LinkedContactsService.deleteLinkedContact(selectedContact.id.toString(), linkedContactId, token);
+      setLinkedContacts((prev) => prev.filter((lc) => lc.LinekdContactId !== linkedContactId));
+    } catch (error) {
+      console.error('Error al eliminar contacto vinculado:', error);
+    }
+  };
+
+  const handleOpenDrawer = (contact: any) => {
     setSelectedContact(contact);
     setEditData(contact);
     setIsDrawerOpen(true);
   };
-  
 
-  const handleSave = (contact) => {
-    if (selectedContact) {
-      setContacts(contacts.map((c) => (c.id === contact.id ? contact : c)));
-      setSelectedContact(contact);
-    } else {
-      contact.id = contacts.length + 1;
-      setContacts([...contacts, contact]);
+  const handleSave = async (contact: Contact) => {
+    if (!token || !ownerContactId) {
+      console.error('No hay token o ownerContactId disponible');
+      return;
+    }
+  
+    try {
+      let response: CommonResponse<Contact>;
+      if (contact.id) {
+        response = await ContactService.updateContact({ ...contact, contactId: contact.id.toString() }, token);
+        // Transformar y actualizar tu estado...
+      } else {
+        // **Aquí agregas el userId al contacto antes de crearlo**
+        
+  
+        response = await ContactService.createContact(contact, token);
+        // Luego transformas, actualizas tu estado y vinculas el contacto...
+        const newContact = transformServiceContactToLocal(response.data);
+        setContacts((prev) => [...prev, newContact]);
+        setSelectedContact(newContact);
+  
+        await LinkedContactsService.addLinkedContact(ownerContactId, response.data.id.toString(), token);
+      }
+    } catch (error) {
+      console.error('Error al guardar el contacto:', error);
     }
   };
   
+  
+  // Función para transformar de un Contact del servicio a tu formato interno
+  function transformServiceContactToLocal(serviceContact: Contact) {
+    return {
+      id: Number(serviceContact.id),
+      nombre: serviceContact.name,
+      nombreComercial: serviceContact.commercialName,
+      nif: serviceContact.nie,
+      direccion: serviceContact.address,
+      poblacion: serviceContact.city,
+      codigoPostal: serviceContact.postalCode,
+      provincia: serviceContact.province,
+      pais: serviceContact.country,
+      email: serviceContact.email,
+      telefono: serviceContact.phone,
+      movil: serviceContact.mobile,
+      sitioWeb: serviceContact.website,
+      identificacionVAT: serviceContact.extraInformation?.vatType || '',
+      tags: '',
+      tipoContacto: serviceContact.userType,
+      idioma: serviceContact.extraInformation?.language || '',
+      moneda: serviceContact.extraInformation?.currency || '',
+      formaPago: serviceContact.extraInformation?.paymentMethod || '',
+      diasVencimiento: serviceContact.extraInformation?.paymentExpirationDays || '',
+      diaVencimiento: serviceContact.extraInformation?.paymentExpirationDay || '',
+      tarifa: serviceContact.extraInformation?.rate || '',
+      descuento: serviceContact.extraInformation?.discount || '',
+      cuentaCompras: '',
+      cuentaPagos: '',
+      swift: serviceContact.extraInformation?.swift || '',
+      iban: serviceContact.extraInformation?.iban || '',
+      refMandato: '',
+      referenciaInterna: serviceContact.extraInformation?.internalReference || '',
+      comercialAsignado: '',
+      tipoIVA: serviceContact.extraInformation?.vatType ? [serviceContact.extraInformation.vatType] : [],
+      informacionAdicional: '',
+    };
+  }
+  
 
-  const handleColumnToggle = (column) => {
+  const handleColumnToggle = (column: string) => {
     setVisibleColumns((prev) =>
-      prev.includes(column)
-        ? prev.filter((col) => col !== column)
-        : [...prev, column]
+      prev.includes(column) ? prev.filter((col) => col !== column) : [...prev, column]
     );
   };
 
-  const handleMenuOpen = (event) => {
+  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
   };
 
@@ -917,36 +456,35 @@ const handleTabChange = (event, newValue) => {
 
   const getFilteredContacts = () => {
     return contacts.filter((contact) => {
-      const matchesSearchTerm = contact.nombre.toLowerCase().includes(searchTerm.toLowerCase()) || 
-        contact.tipoContacto.toLowerCase().includes(searchTerm.toLowerCase());
-  
+      const matchesSearchTerm =
+        contact.nombre.toLowerCase().includes(searchTerm) ||
+        contact.tipoContacto.toLowerCase().includes(searchTerm);
+
       if (filter === 'todos') return matchesSearchTerm;
       if (filter === 'clientes') return matchesSearchTerm && contact.tipoContacto === 'Cliente';
       if (filter === 'proveedores') return matchesSearchTerm && contact.tipoContacto === 'Proveedor';
-  
+
       return false;
     });
   };
-  
-  
 
   const router = useRouter();
 
   const handlePortalClick = () => {
     if (isPasswordEnabled) {
-      // Si la contraseña está activada, redirigir al inicio de sesión
-      window.open('/contacts/portal-login'); // Redirige a una página de inicio de sesión
+      window.open('/contacts/portal-login');
     } else {
-      // Si la contraseña no está activada, redirigir directamente al portal del cliente
       window.open('/contacts/portal-clientes', '_blank');
     }
   };
-  
-  
 
- 
+  const handleEdit = (contact: any) => {
+    handleOpen(contact);
+  };
 
-
+  const handleDelete = (contactId: number) => {
+    setContacts(contacts.filter((c) => c.id !== contactId));
+  };
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', bgcolor: '#F3F4F6' }}>
@@ -986,13 +524,15 @@ const handleTabChange = (event, newValue) => {
             <Typography variant="h3" gutterBottom sx={{ color: '#1A1A40', fontWeight: '600' }}>
               Contactos
             </Typography>
-  
+
             {/* Campo de búsqueda */}
             <Box sx={{ mb: 3 }}>
               <TextField
                 variant="outlined"
                 placeholder="Buscar..."
                 fullWidth
+                value={searchTerm}
+                onChange={handleSearch}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
@@ -1002,7 +542,7 @@ const handleTabChange = (event, newValue) => {
                 }}
               />
             </Box>
-  
+
             {/* Contenedor para filtros y botones de acción */}
             <Box
               sx={{
@@ -1045,7 +585,7 @@ const handleTabChange = (event, newValue) => {
                   PROVEEDORES
                 </Button>
               </Box>
-  
+
               {/* Botones de acción alineados a la derecha */}
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
                 <Button
@@ -1089,7 +629,7 @@ const handleTabChange = (event, newValue) => {
                 >
                   Portal
                 </Button>
-  
+
                 <IconButton
                   sx={{
                     bgcolor: '#FFA500',
@@ -1119,7 +659,7 @@ const handleTabChange = (event, newValue) => {
                   }}
                 >
                   {allColumns.map((column) => (
-                    <DropdownMenuItem key={column.id}>
+                    <MenuItem key={column.id}>
                       <FormControlLabel
                         control={
                           <Checkbox
@@ -1129,1255 +669,1163 @@ const handleTabChange = (event, newValue) => {
                         }
                         label={column.label}
                       />
-                    </DropdownMenuItem>
+                    </MenuItem>
                   ))}
                 </Menu>
               </Box>
             </Box>
-  
-            {/* Tabla combinada de Contactos */}
-            <Typography variant="h4" sx={{ mb: 3, color: '#2666CF', fontWeight: '600' }}>Contactos</Typography>
-            <TableContainer component={Paper} sx={{ borderRadius: 2, boxShadow: '0 3px 10px rgba(0, 0, 0, 0.1)' }}>
-              <Table sx={{ minWidth: '100%' }}>
-                <TableHead sx={{ bgcolor: '#2666CF', '& th': { color: '#ffffff', fontWeight: '600' } }}>
-                  <TableRow>
-                    {allColumns.map((column) =>
-                      visibleColumns.includes(column.id) ? <TableCell key={column.id}>{column.label}</TableCell> : null
-                    )}
-                    <TableCell>Acciones</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {getFilteredContacts().map((contact) => (
-                    <TableRow
-                      key={contact.id}
-                      sx={{ '&:hover': { bgcolor: '#F1F1F1', cursor: 'pointer' } }}
-                      onClick={() => handleOpenDrawer(contact)}
+
+            {/* Tabla de Contactos */}
+            <Typography variant="h4" sx={{ mb: 3, color: '#2666CF', fontWeight: '600' }}>
+              Contactos
+            </Typography>
+            <ContactTable
+              contacts={getFilteredContacts()}
+              visibleColumns={visibleColumns}
+              allColumns={allColumns}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+              onRowClick={handleOpenDrawer}
+            />
+
+            {/* Drawer */}
+            <Drawer
+              anchor="right"
+              open={isDrawerOpen}
+              onClose={() => setIsDrawerOpen(false)}
+              sx={{
+                zIndex: 1300,
+                width: isDrawerExpanded ? '1300px' : '500px',
+                transition: 'width 0.3s ease',
+                marginTop: '64px',
+                height: 'calc(100% - 64px)',
+              }}
+              PaperProps={{
+                style: {
+                  width: isDrawerExpanded ? '1300px' : '500px',
+                  transition: 'width 0.3s ease',
+                },
+              }}
+            >
+              {!isDrawerExpanded ? (
+                // **Contenido No Expandido**
+                <Box sx={{ p: 2, overflowY: 'auto', height: '100%' }}>
+                  {/* Nombre, tipo de contacto y botón "Más" */}
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                    <Box
+                      sx={{
+                        bgcolor: '#F44336',
+                        borderRadius: '50%',
+                        width: 40,
+                        height: 40,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: '#fff',
+                        mr: 2,
+                      }}
                     >
-                      {visibleColumns.map((column) => (
-                      <TableCell
-                        key={column}
+                      {selectedContact?.nombre?.[0]}
+                      {selectedContact?.nombre?.split(' ')[1]?.[0]}
+                    </Box>
+                    <Box sx={{ flexGrow: 1 }}>
+                      <Typography variant="h6" sx={{ margin: 0, fontWeight: 'bold' }}>
+                        {selectedContact?.nombre}
+                      </Typography>
+                      <Typography variant="body2" sx={{ color: '#8A8A8A' }}>
+                        {selectedContact?.tipoContacto}
+                      </Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', justifyContent: 'flex-end', p: 2 }}>
+                      <Button
+                        startIcon={<ArrowForwardIcon />}
+                        onClick={() => setIsDrawerExpanded(true)}
                         sx={{
-                          ...(column === 'tipoContacto' && {
-                            bgcolor: contact[column] === 'Cliente' ? '#d4edda' : '#fff3cd', // Verde suave para Cliente, amarillo suave para Proveedor
-                            color: contact[column] === 'Cliente' ? '#155724' : '#856404',  // Texto verde oscuro o marrón
-                            fontWeight: 'bold',
-                            borderRadius: '4px',  
-                          }),
+                          background: 'linear-gradient(90deg, #2666CF, #6A82FB)',
+                          color: '#ffffff',
+                          fontWeight: '500',
+                          textTransform: 'none',
+                          borderRadius: 2,
+                          boxShadow: '0 3px 6px rgba(0,0,0,0.1)',
+                          minWidth: '120px',
                         }}
                       >
-                        {contact[column]}
-                      </TableCell>
-))}
+                        Más
+                      </Button>
+                    </Box>
+                  </Box>
 
-                      <TableCell>
-                        <IconButton onClick={(e) => { e.stopPropagation(); handleOpen(contact); }} sx={{ color: '#1A1A40' }}>
-                          <EditIcon />
-                        </IconButton>
-                        <IconButton onClick={(e) => { e.stopPropagation(); setContacts(contacts.filter((c) => c.id !== contact.id)); }} sx={{ color: '#B00020' }}>
+                  {/* Opciones de contacto */}
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
+                    <IconButton>
+                      <EmailIcon />
+                    </IconButton>
+                    <IconButton>
+                      <PhoneIcon />
+                    </IconButton>
+                    <IconButton>
+                      <LanguageIcon />
+                    </IconButton>
+                    <IconButton>
+                      <MapIcon />
+                    </IconButton>
+                    <IconButton>
+                      <MoreVertIcon />
+                    </IconButton>
+                  </Box>
+
+                  {/* Información de Contacto */}
+                  <Box sx={{ mb: 3 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                      <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                        Información de Contacto
+                      </Typography>
+                      {isEditing ? (
+                        <Box>
+                          <Button
+                            variant="text"
+                            onClick={() => {
+                              setSelectedContact(editData);
+                              setIsEditing(false);
+                            }}
+                            sx={{ textTransform: 'none', color: '#2666CF', mr: 1 }}
+                          >
+                            Guardar
+                          </Button>
+                          <Button
+                            variant="text"
+                            onClick={() => {
+                              setEditData(selectedContact);
+                              setIsEditing(false);
+                            }}
+                            sx={{ textTransform: 'none', color: '#B00020' }}
+                          >
+                            Cancelar
+                          </Button>
+                        </Box>
+                      ) : (
+                        <Button
+                          variant="text"
+                          startIcon={<EditIcon />}
+                          onClick={() => setIsEditing(true)}
+                          sx={{ textTransform: 'none', color: '#2666CF' }}
+                        >
+                          Editar
+                        </Button>
+                      )}
+                    </Box>
+                    {isEditing ? (
+                      <>
+                        <TextField
+                          label="Nombre"
+                          value={editData.nombre}
+                          onChange={(e) => setEditData({ ...editData, nombre: e.target.value })}
+                          fullWidth
+                          sx={{ mb: 1 }}
+                        />
+                        <TextField
+                          label="Nif"
+                          value={editData.nif}
+                          onChange={(e) => setEditData({ ...editData, nif: e.target.value })}
+                          fullWidth
+                          sx={{ mb: 1 }}
+                        />
+                        <TextField
+                          label="Dirección"
+                          value={editData.direccion}
+                          onChange={(e) => setEditData({ ...editData, direccion: e.target.value })}
+                          fullWidth
+                          sx={{ mb: 1 }}
+                        />
+                        <TextField
+                          label="Teléfono"
+                          value={editData.telefono}
+                          onChange={(e) => setEditData({ ...editData, telefono: e.target.value })}
+                          fullWidth
+                          sx={{ mb: 1 }}
+                        />
+                        <TextField
+                          label="Email"
+                          value={editData.email}
+                          onChange={(e) => setEditData({ ...editData, email: e.target.value })}
+                          fullWidth
+                          sx={{ mb: 1 }}
+                        />
+                      </>
+                    ) : (
+                      <>
+                        <Typography variant="body2">
+                          <strong>Nombre:</strong> {selectedContact?.nombre}
+                        </Typography>
+                        <Typography variant="body2">
+                          <strong>Nif:</strong> {selectedContact?.nif}
+                        </Typography>
+                        <Typography variant="body2">
+                          <strong>Dirección:</strong> {selectedContact?.direccion}
+                        </Typography>
+                        <Typography variant="body2">
+                          <strong>Teléfono:</strong>{' '}
+                          <a href={`tel:${selectedContact?.telefono}`} style={{ color: '#2666CF' }}>
+                            {selectedContact?.telefono}
+                          </a>
+                        </Typography>
+                        <Typography variant="body2">
+                          <strong>Email:</strong>{' '}
+                          <a href={`mailto:${selectedContact?.email}`} style={{ color: '#2666CF' }}>
+                            {selectedContact?.email}
+                          </a>
+                        </Typography>
+                      </>
+                    )}
+                  </Box>
+
+                  {/* Botones de creación rápida */}
+                  <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
+                    <Button variant="outlined" sx={{ textTransform: 'none' }}>
+                      Nuevo Presupuesto
+                    </Button>
+                    <Button variant="outlined" sx={{ textTransform: 'none' }}>
+                      Nuevo Pedido
+                    </Button>
+                    <Button variant="outlined" sx={{ textTransform: 'none' }}>
+                      Nuevo Albarán
+                    </Button>
+                    <Button variant="outlined" sx={{ textTransform: 'none' }}>
+                      Nueva Factura
+                    </Button>
+                    <Button variant="outlined" sx={{ textTransform: 'none' }}>
+                      Añadir Nota
+                    </Button>
+                  </Box>
+
+                  {/* Sección para crear nuevos elementos */}
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
+                    <Button variant="outlined" sx={{ textTransform: 'none' }}>
+                      Nota
+                    </Button>
+                    <Button variant="outlined" sx={{ textTransform: 'none' }}>
+                      Presupuesto
+                    </Button>
+                    <Button variant="outlined" sx={{ textTransform: 'none' }}>
+                      Factura
+                    </Button>
+                    <Button variant="outlined" sx={{ textTransform: 'none' }} onClick={handlePortalClick}>
+                      Portal Cliente
+                    </Button>
+                  </Box>
+
+                  {/* Botón Añadir contraseña */}
+                  <Button
+                    variant="outlined"
+                    sx={{ textTransform: 'none', mb: 3 }}
+                    onClick={() => setIsPasswordDialogOpen(true)}
+                  >
+                    Añadir Contraseña
+                  </Button>
+
+                  {/* Sección de relaciones */}
+                  <Typography variant="body1" sx={{ fontWeight: 'bold', mb: 2 }}>
+                    Relaciones
+                  </Typography>
+                  <Button
+                    variant="outlined"
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'flex-start',
+                      textTransform: 'none',
+                      width: '100%',
+                      mb: 3,
+                    }}
+                    startIcon={<AddIcon />}
+                    onClick={handleOpenDialog}
+                  >
+                    Relacionar persona
+                  </Button>
+                  <List>
+                    {linkedContacts.map((lc) => (
+                      <ListItem key={lc.LinekdContactId}>
+                        <ListItemText primary={`Contacto ID: ${lc.LinekdContactId}`} />
+                        <IconButton onClick={() => handleUnlinkContact(lc.LinekdContactId)}>
                           <DeleteIcon />
                         </IconButton>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
+                      </ListItem>
+                    ))}
+                  </List>
 
-  
-            <Drawer
-  anchor="right"
-  open={isDrawerOpen}
-  onClose={() => setIsDrawerOpen(false)}
-  sx={{
-    zIndex: 1300,
-    width: isDrawerExpanded ? '1300px' : '500px', // Ancho dinámico
-    transition: 'width 0.3s ease',
-    marginTop: '64px', // Evita superposición con el Header
-    height: 'calc(100% - 64px)', // Ajusta la altura para no ocupar espacio del Header
-  }}
-  PaperProps={{
-    style: {
-      width: isDrawerExpanded ? '1300px' : '500px', // Control dinámico del tamaño
-      transition: 'width 0.3s ease',
-    },
-  }}
->
-{!isDrawerExpanded ? (
-    // **Contenido No Expandido**
-    <Box sx={{ p: 2, overflowY: 'auto', height: '100%' }}>
-      {/* Nombre, tipo de contacto y botón "Más" */}
-      <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-        <Box
-          sx={{
-            bgcolor: '#F44336',
-            borderRadius: '50%',
-            width: 40,
-            height: 40,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#fff',
-            mr: 2,
-          }}
-        >
-          {selectedContact?.nombre?.[0]}
-          {selectedContact?.nombre?.split(' ')[1]?.[0]} {/* Iniciales del contacto */}
-        </Box>
-        <Box sx={{ flexGrow: 1 }}>
-          <Typography variant="h6" sx={{ margin: 0, fontWeight: 'bold' }}>
-            {selectedContact?.nombre}
-          </Typography>
-          <Typography variant="body2" sx={{ color: '#8A8A8A' }}>
-            {selectedContact?.tipoContacto}
-          </Typography>
-        </Box>
-        <Box sx={{ display: 'flex', justifyContent: 'flex-end', p: 2 }}>
-          <Button
-            startIcon={<ArrowForwardIcon />}
-            onClick={() => setIsDrawerExpanded(true)} // Expande el Drawer
-            sx={{
-              background: 'linear-gradient(90deg, #2666CF, #6A82FB)',
-              color: '#ffffff',
-              fontWeight: '500',
-              textTransform: 'none',
-              borderRadius: 2,
-              boxShadow: '0 3px 6px rgba(0,0,0,0.1)',
-              minWidth: '120px',
-            }}
-          >
-            Más
-          </Button>
-        </Box>
-      </Box>
+                  {/* Gráfico de Ventas */}
+                  <Box sx={{ mb: 2 }}>
+                    <Typography variant="body1" sx={{ fontWeight: 'bold', mb: 1 }}>
+                      Ventas
+                    </Typography>
+                    <Box
+                      sx={{
+                        bgcolor: '#FFFFFF',
+                        p: 1,
+                        borderRadius: 1,
+                        boxShadow: 1,
+                        mb: 1,
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        flexWrap: 'wrap',
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', flexDirection: 'column', flex: '1 1 30%' }}>
+                        <Typography variant="body2" sx={{ color: '#4A4A4A', fontSize: '0.875rem' }}>
+                          Ventas
+                        </Typography>
+                        <Typography variant="body1" sx={{ fontWeight: 'bold', color: '#000000', fontSize: '1rem' }}>
+                          27.682,56 €
+                        </Typography>
+                        <Button
+                          variant="text"
+                          sx={{
+                            p: 0,
+                            mt: 0.5,
+                            textTransform: 'none',
+                            color: '#2666CF',
+                            display: 'flex',
+                            alignItems: 'center',
+                            fontSize: '0.75rem',
+                          }}
+                          endIcon={<ArrowForwardIcon sx={{ fontSize: '1rem' }} />}
+                          onClick={() => {}}
+                        >
+                          8 facturas
+                        </Button>
+                      </Box>
 
-      {/* Opciones de contacto */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-        <IconButton>
-          <EmailIcon />
-        </IconButton>
-        <IconButton>
-          <PhoneIcon />
-        </IconButton>
-        <IconButton>
-          <LanguageIcon />
-        </IconButton>
-        <IconButton>
-          <MapIcon />
-        </IconButton>
-        <IconButton>
-          <MoreVertIcon />
-        </IconButton>
-      </Box>
+                      <Box sx={{ display: 'flex', flexDirection: 'column', flex: '1 1 30%', textAlign: 'center' }}>
+                        <Typography variant="body2" sx={{ color: '#B0B0B0', fontSize: '0.75rem' }}>
+                          Promedio/venta
+                        </Typography>
+                        <Typography variant="body1" sx={{ fontWeight: 'medium', color: '#000000', fontSize: '0.875rem' }}>
+                          3.460,32 €
+                        </Typography>
+                      </Box>
 
-      {/* Información de Contacto */}
-      <Box sx={{ mb: 3 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-          <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-            Información de Contacto
-          </Typography>
-          {isEditing ? (
-            <Box>
-              <Button
-                variant="text"
-                onClick={() => {
-                  setSelectedContact(editData);
-                  setIsEditing(false);
-                }}
-                sx={{ textTransform: 'none', color: '#2666CF', mr: 1 }}
-              >
-                Guardar
-              </Button>
-              <Button
-                variant="text"
-                onClick={() => {
-                  setEditData(selectedContact);
-                  setIsEditing(false);
-                }}
-                sx={{ textTransform: 'none', color: '#B00020' }}
-              >
-                Cancelar
-              </Button>
-            </Box>
-          ) : (
-            <Button
-              variant="text"
-              startIcon={<EditIcon />}
-              onClick={() => setIsEditing(true)}
-              sx={{ textTransform: 'none', color: '#2666CF' }}
-            >
-              Editar
-            </Button>
-          )}
-        </Box>
-        {isEditing ? (
-          <>
-            <TextField
-              label="Nombre"
-              value={editData.nombre}
-              onChange={(e) => setEditData({ ...editData, nombre: e.target.value })}
-              fullWidth
-              sx={{ mb: 1 }}
-            />
-            <TextField
-              label="Nif"
-              value={editData.nif}
-              onChange={(e) => setEditData({ ...editData, nif: e.target.value })}
-              fullWidth
-              sx={{ mb: 1 }}
-            />
-            <TextField
-              label="Dirección"
-              value={editData.direccion}
-              onChange={(e) => setEditData({ ...editData, direccion: e.target.value })}
-              fullWidth
-              sx={{ mb: 1 }}
-            />
-            <TextField
-              label="Teléfono"
-              value={editData.telefono}
-              onChange={(e) => setEditData({ ...editData, telefono: e.target.value })}
-              fullWidth
-              sx={{ mb: 1 }}
-            />
-            <TextField
-              label="Email"
-              value={editData.email}
-              onChange={(e) => setEditData({ ...editData, email: e.target.value })}
-              fullWidth
-              sx={{ mb: 1 }}
-            />
-          </>
-        ) : (
-          <>
-            <Typography variant="body2">
-              <strong>Nombre:</strong> {selectedContact?.nombre}
-            </Typography>
-            <Typography variant="body2">
-              <strong>Nif:</strong> {selectedContact?.nif}
-            </Typography>
-            <Typography variant="body2">
-              <strong>Dirección:</strong> {selectedContact?.direccion}
-            </Typography>
-            <Typography variant="body2">
-              <strong>Teléfono:</strong> {selectedContact?.telefono}
-            </Typography>
-            <Typography variant="body2">
-              <strong>Email:</strong> {selectedContact?.email}
-            </Typography>
-          </>
-        )}
-      </Box>
+                      <Box sx={{ display: 'flex', flexDirection: 'column', flex: '1 1 30%', textAlign: 'right' }}>
+                        <Typography variant="body2" sx={{ color: '#B0B0B0', fontSize: '0.75rem' }}>
+                          Frec. media
+                        </Typography>
+                        <Typography variant="body1" sx={{ fontWeight: 'medium', color: '#000000', fontSize: '0.875rem' }}>
+                          0 días
+                        </Typography>
 
+                        <Typography variant="body2" sx={{ color: '#B0B0B0', fontSize: '0.75rem', mt: 1 }}>
+                          Pend. cobro
+                        </Typography>
+                        <Typography variant="body1" sx={{ fontWeight: 'medium', color: '#000000', fontSize: '0.875rem' }}>
+                          2.514,87 €
+                        </Typography>
+                      </Box>
+                    </Box>
 
-      {/* Botones de creación rápida */}
-      <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
-        <Button variant="outlined" sx={{ textTransform: 'none' }}>Nuevo Presupuesto</Button>
-        <Button variant="outlined" sx={{ textTransform: 'none' }}>Nuevo Pedido</Button>
-        <Button variant="outlined" sx={{ textTransform: 'none' }}>Nuevo Albarán</Button>
-        <Button variant="outlined" sx={{ textTransform: 'none' }}>Nueva Factura</Button>
-        <Button variant="outlined" sx={{ textTransform: 'none' }}>Añadir Nota</Button>
-      </Box>
+                    <Bar
+                      data={salesData}
+                      options={{
+                        responsive: true,
+                        plugins: {
+                          legend: {
+                            display: false,
+                          },
+                        },
+                      }}
+                    />
+                  </Box>
 
-      {/* Sección para crear nuevos elementos */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-        <Button variant="outlined" sx={{ textTransform: 'none' }}>
-          Nota
-        </Button>
-        <Button variant="outlined" sx={{ textTransform: 'none' }}>
-          Presupuesto
-        </Button>
-        <Button variant="outlined" sx={{ textTransform: 'none' }}>
-          Factura
-        </Button>
-        <Button variant="outlined" sx={{ textTransform: 'none' }} onClick={handlePortalClick}>
-          Portal Cliente
-        </Button>
-      </Box>
+                  {/* Gráfico de Compras */}
+                  <Box sx={{ mb: 2 }}>
+                    <Typography variant="body1" sx={{ fontWeight: 'bold', mb: 1 }}>
+                      Compras
+                    </Typography>
+                    <Box
+                      sx={{
+                        bgcolor: '#FFFFFF',
+                        p: 1,
+                        borderRadius: 1,
+                        boxShadow: 1,
+                        mb: 1,
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        flexWrap: 'wrap',
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', flexDirection: 'column', flex: '1 1 30%' }}>
+                        <Typography variant="body2" sx={{ color: '#4A4A4A', fontSize: '0.875rem' }}>
+                          Compras
+                        </Typography>
+                        <Typography variant="body1" sx={{ fontWeight: 'bold', color: '#000000', fontSize: '1rem' }}>
+                          15.234,89 €
+                        </Typography>
+                        <Button
+                          variant="text"
+                          sx={{
+                            p: 0,
+                            mt: 0.5,
+                            textTransform: 'none',
+                            color: '#2666CF',
+                            display: 'flex',
+                            alignItems: 'center',
+                            fontSize: '0.75rem',
+                          }}
+                          endIcon={<ArrowForwardIcon sx={{ fontSize: '1rem' }} />}
+                          onClick={() => {}}
+                        >
+                          5 pedidos
+                        </Button>
+                      </Box>
 
-      {/* Botón Añadir contraseña */}
-      <Button variant="outlined" sx={{ textTransform: 'none', mb: 3 }} onClick={() => setIsPasswordDialogOpen(true)}>
-        Añadir Contraseña
-      </Button>
+                      <Box sx={{ display: 'flex', flexDirection: 'column', flex: '1 1 30%', textAlign: 'center' }}>
+                        <Typography variant="body2" sx={{ color: '#B0B0B0', fontSize: '0.75rem' }}>
+                          Promedio/compra
+                        </Typography>
+                        <Typography variant="body1" sx={{ fontWeight: 'medium', color: '#000000', fontSize: '0.875rem' }}>
+                          3.046,78 €
+                        </Typography>
+                      </Box>
 
-      {/* Sección de relaciones */}
-      <Typography variant="body1" sx={{ fontWeight: 'bold', mb: 2 }}>
-        Relaciones
-      </Typography>
-      <Button
-        variant="outlined"
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'flex-start',
-          textTransform: 'none',
-          width: '100%',
-          mb: 3,
-        }}
-        startIcon={<AddIcon />}
-        onClick={handleOpenDialog} // Abrir el diálogo al hacer clic
-      >
-        Relacionar persona
-      </Button>
+                      <Box sx={{ display: 'flex', flexDirection: 'column', flex: '1 1 30%', textAlign: 'right' }}>
+                        <Typography variant="body2" sx={{ color: '#B0B0B0', fontSize: '0.75rem' }}>
+                          Frec. media
+                        </Typography>
+                        <Typography variant="body1" sx={{ fontWeight: 'medium', color: '#000000', fontSize: '0.875rem' }}>
+                          5 días
+                        </Typography>
 
-      {/* Gráfico de Ventas */}
-      <Box sx={{ mb: 2 }}>
-        <Typography variant="body1" sx={{ fontWeight: 'bold', mb: 1 }}>
-          Ventas
-        </Typography>
-        {/* Nueva Sección de Información */}
-        <Box
-          sx={{
-            bgcolor: '#FFFFFF',
-            p: 1,
-            borderRadius: 1,
-            boxShadow: 1,
-            mb: 1,
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            flexWrap: 'wrap',
-          }}
-        >
-          {/* Dato Principal y Enlace */}
-          <Box sx={{ display: 'flex', flexDirection: 'column', flex: '1 1 30%' }}>
-            <Typography
-              variant="body2"
-              sx={{ color: '#4A4A4A', fontSize: '0.875rem' }}
-            >
-              Ventas
-            </Typography>
-            <Typography
-              variant="body1"
-              sx={{ fontWeight: 'bold', color: '#000000', fontSize: '1rem' }}
-            >
-              27.682,56 €
-            </Typography>
-            <Button
-              variant="text"
-              sx={{
-                p: 0,
-                mt: 0.5,
-                textTransform: 'none',
-                color: '#2666CF',
-                display: 'flex',
-                alignItems: 'center',
-                fontSize: '0.75rem',
-              }}
-              endIcon={<ArrowForwardIcon sx={{ fontSize: '1rem' }} />}
-              onClick={() => {
-                // Función al hacer clic en "8 facturas"
-              }}
-            >
-              8 facturas
-            </Button>
-          </Box>
+                        <Typography variant="body2" sx={{ color: '#B0B0B0', fontSize: '0.75rem', mt: 1 }}>
+                          Pend. pago
+                        </Typography>
+                        <Typography variant="body1" sx={{ fontWeight: 'medium', color: '#000000', fontSize: '0.875rem' }}>
+                          1.200,50 €
+                        </Typography>
+                      </Box>
+                    </Box>
 
-          {/* Promedio por Venta */}
-          <Box sx={{ display: 'flex', flexDirection: 'column', flex: '1 1 30%', textAlign: 'center' }}>
-            <Typography
-              variant="body2"
-              sx={{ color: '#B0B0B0', fontSize: '0.75rem' }}
-            >
-              Promedio/venta
-            </Typography>
-            <Typography
-              variant="body1"
-              sx={{ fontWeight: 'medium', color: '#000000', fontSize: '0.875rem' }}
-            >
-              3.460,32 €
-            </Typography>
-          </Box>
+                    <Bar
+                      data={purchasesData}
+                      options={{
+                        responsive: true,
+                        plugins: {
+                          legend: {
+                            display: false,
+                          },
+                        },
+                      }}
+                    />
+                  </Box>
+                </Box>
+              ) : (
+                // **Contenido Expandido**
+                <Box sx={{ p: 3, overflowY: 'auto', height: '100%', bgcolor: '#F9F9F9' }}>
+                  {/* Cabecera */}
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+                    <Typography variant="h5" sx={{ fontWeight: 'bold', flexGrow: 1, color: '#333' }}>
+                      {selectedContact?.nombre || 'Félix Martínez Giménez'}
+                    </Typography>
+                    <Button
+                      startIcon={<ArrowForwardIcon />}
+                      onClick={() => setIsDrawerExpanded(false)}
+                      sx={{
+                        background: 'linear-gradient(90deg, #2666CF, #6A82FB)',
+                        color: '#ffffff',
+                        fontWeight: '500',
+                        textTransform: 'none',
+                        borderRadius: 2,
+                        boxShadow: '0 3px 6px rgba(0,0,0,0.1)',
+                        minWidth: '120px',
+                      }}
+                    >
+                      Menos
+                    </Button>
+                  </Box>
 
-          {/* Frecuencia Media y Pendiente de Cobro */}
-          <Box sx={{ display: 'flex', flexDirection: 'column', flex: '1 1 30%', textAlign: 'right' }}>
-            <Typography
-              variant="body2"
-              sx={{ color: '#B0B0B0', fontSize: '0.75rem' }}
-            >
-              Frec. media
-            </Typography>
-            <Typography
-              variant="body1"
-              sx={{ fontWeight: 'medium', color: '#000000', fontSize: '0.875rem' }}
-            >
-              0 días
-            </Typography>
+                  {/* Pestañas de Navegación */}
+                  <Tabs
+                    value={selectedTab}
+                    onChange={handleTabChange}
+                    sx={{
+                      mb: 3,
+                      '.MuiTabs-indicator': {
+                        bgcolor: '#2666CF',
+                      },
+                      '.MuiTab-root': {
+                        textTransform: 'none',
+                        fontWeight: 'bold',
+                        color: '#666',
+                        '&.Mui-selected': {
+                          color: '#2666CF',
+                        },
+                      },
+                    }}
+                  >
+                    <Tab label="Resumen" />
+                    <Tab label="Facturas" />
+                    <Tab label="Albaranes" />
+                    <Tab label="Pedidos" />
+                    <Tab label="Pagos" />
+                    <Tab label="Notas" />
+                  </Tabs>
 
-            <Typography
-              variant="body2"
-              sx={{ color: '#B0B0B0', fontSize: '0.75rem', mt: 1 }}
-            >
-              Pend. cobro
-            </Typography>
-            <Typography
-              variant="body1"
-              sx={{ fontWeight: 'medium', color: '#000000', fontSize: '0.875rem' }}
-            >
-              2.514,87 €
-            </Typography>
-          </Box>
-        </Box>
+                  {/* Contenido de las pestañas */}
+                  {selectedTab === 0 && (
+                    <Grid container spacing={3}>
+                      {/* Información del Cliente */}
+                      <Grid item xs={12} md={3}>
+                        <Paper
+                          sx={{
+                            p: 2,
+                            borderRadius: 2,
+                            boxShadow: '0 3px 6px rgba(0, 0, 0, 0.1)',
+                            height: '100%',
+                          }}
+                        >
+                          {/* Encabezado con el botón "Editar" */}
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                            <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: '#2666CF' }}>
+                              Información del Cliente
+                            </Typography>
+                            {isEditingClient ? (
+                              <Box>
+                                <Button
+                                  variant="text"
+                                  onClick={() => {
+                                    handleSave({ ...selectedContact, ...editClientData });
+                                    setIsEditingClient(false);
+                                  }}
+                                  sx={{ textTransform: 'none', color: '#2666CF', mr: 1 }}
+                                >
+                                  Guardar
+                                </Button>
+                                <Button
+                                  variant="text"
+                                  onClick={() => {
+                                    setEditClientData({
+                                      nombre: selectedContact.nombre || '',
+                                      nif: selectedContact.nif || '',
+                                      telefono: selectedContact.telefono || '',
+                                      email: selectedContact.email || '',
+                                      direccion: selectedContact.direccion || '',
+                                      codigoPostal: selectedContact.codigoPostal || '',
+                                      poblacion: selectedContact.poblacion || '',
+                                      provincia: selectedContact.provincia || '',
+                                      pais: selectedContact.pais || '',
+                                    });
+                                    setIsEditingClient(false);
+                                  }}
+                                  sx={{ textTransform: 'none', color: '#B00020' }}
+                                >
+                                  Cancelar
+                                </Button>
+                              </Box>
+                            ) : (
+                              <Button
+                                variant="text"
+                                startIcon={<EditIcon />}
+                                onClick={() => setIsEditingClient(true)}
+                                sx={{ textTransform: 'none', color: '#2666CF' }}
+                              >
+                                Editar
+                              </Button>
+                            )}
+                          </Box>
 
-        <Bar
-          data={salesData}
-          options={{
-            responsive: true,
-            plugins: {
-              legend: {
-                display: false,
-              },
-            },
-          }}
-        />
-      </Box>
+                          {isEditingClient ? (
+                            <>
+                              {/* Campos Editables */}
+                              <TextField
+                                label="Nombre"
+                                name="nombre"
+                                value={editClientData.nombre}
+                                onChange={(e) => setEditClientData({ ...editClientData, nombre: e.target.value })}
+                                fullWidth
+                                sx={{ mb: 1 }}
+                              />
 
-      {/* Gráfico de Compras */}
-      <Box sx={{ mb: 2 }}>
-        <Typography variant="body1" sx={{ fontWeight: 'bold', mb: 1 }}>
-          Compras
-        </Typography>
-        {/* Nueva Sección de Información */}
-        <Box
-          sx={{
-            bgcolor: '#FFFFFF',
-            p: 1,
-            borderRadius: 1,
-            boxShadow: 1,
-            mb: 1,
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            flexWrap: 'wrap',
-          }}
-        >
-          {/* Dato Principal y Enlace */}
-          <Box sx={{ display: 'flex', flexDirection: 'column', flex: '1 1 30%' }}>
-            <Typography
-              variant="body2"
-              sx={{ color: '#4A4A4A', fontSize: '0.875rem' }}
-            >
-              Compras
-            </Typography>
-            <Typography
-              variant="body1"
-              sx={{ fontWeight: 'bold', color: '#000000', fontSize: '1rem' }}
-            >
-              15.234,89 €
-            </Typography>
-            <Button
-              variant="text"
-              sx={{
-                p: 0,
-                mt: 0.5,
-                textTransform: 'none',
-                color: '#2666CF',
-                display: 'flex',
-                alignItems: 'center',
-                fontSize: '0.75rem',
-              }}
-              endIcon={<ArrowForwardIcon sx={{ fontSize: '1rem' }} />}
-              onClick={() => {
-                // Función al hacer clic en "5 pedidos"
-              }}
-            >
-              5 pedidos
-            </Button>
-          </Box>
+                              <TextField
+                                label="NIF"
+                                name="nif"
+                                value={editClientData.nif}
+                                onChange={(e) => setEditClientData({ ...editClientData, nif: e.target.value })}
+                                fullWidth
+                                sx={{ mb: 1 }}
+                              />
 
-          {/* Promedio por Compra */}
-          <Box sx={{ display: 'flex', flexDirection: 'column', flex: '1 1 30%', textAlign: 'center' }}>
-            <Typography
-              variant="body2"
-              sx={{ color: '#B0B0B0', fontSize: '0.75rem' }}
-            >
-              Promedio/compra
-            </Typography>
-            <Typography
-              variant="body1"
-              sx={{ fontWeight: 'medium', color: '#000000', fontSize: '0.875rem' }}
-            >
-              3.046,78 €
-            </Typography>
-          </Box>
+                              <TextField
+                                label="Teléfono"
+                                name="telefono"
+                                value={editClientData.telefono}
+                                onChange={(e) => setEditClientData({ ...editClientData, telefono: e.target.value })}
+                                fullWidth
+                                sx={{ mb: 1 }}
+                              />
 
-          {/* Frecuencia Media y Pendiente de Pago */}
-          <Box sx={{ display: 'flex', flexDirection: 'column', flex: '1 1 30%', textAlign: 'right' }}>
-            <Typography
-              variant="body2"
-              sx={{ color: '#B0B0B0', fontSize: '0.75rem' }}
-            >
-              Frec. media
-            </Typography>
-            <Typography
-              variant="body1"
-              sx={{ fontWeight: 'medium', color: '#000000', fontSize: '0.875rem' }}
-            >
-              5 días
-            </Typography>
+                              <TextField
+                                label="Email"
+                                name="email"
+                                value={editClientData.email}
+                                onChange={(e) => setEditClientData({ ...editClientData, email: e.target.value })}
+                                fullWidth
+                                sx={{ mb: 1 }}
+                              />
 
-            <Typography
-              variant="body2"
-              sx={{ color: '#B0B0B0', fontSize: '0.75rem', mt: 1 }}
-            >
-              Pend. pago
-            </Typography>
-            <Typography
-              variant="body1"
-              sx={{ fontWeight: 'medium', color: '#000000', fontSize: '0.875rem' }}
-            >
-              1.200,50 €
-            </Typography>
-          </Box>
-        </Box>
+                              <Typography variant="body2" sx={{ mb: 1 }}>
+                                <strong>Dirección:</strong>
+                              </Typography>
+                              <Grid container spacing={1}>
+                                <Grid item xs={12}>
+                                  <TextField
+                                    label="Dirección"
+                                    name="direccion"
+                                    value={editClientData.direccion}
+                                    onChange={(e) => setEditClientData({ ...editClientData, direccion: e.target.value })}
+                                    fullWidth
+                                    size="small"
+                                    sx={{ mb: 1 }}
+                                  />
+                                </Grid>
+                                <Grid item xs={6}>
+                                  <TextField
+                                    label="Código Postal"
+                                    name="codigoPostal"
+                                    value={editClientData.codigoPostal}
+                                    onChange={(e) => setEditClientData({ ...editClientData, codigoPostal: e.target.value })}
+                                    fullWidth
+                                    size="small"
+                                    sx={{ mb: 1 }}
+                                  />
+                                </Grid>
+                                <Grid item xs={6}>
+                                  <TextField
+                                    label="Población"
+                                    name="poblacion"
+                                    value={editClientData.poblacion}
+                                    onChange={(e) => setEditClientData({ ...editClientData, poblacion: e.target.value })}
+                                    fullWidth
+                                    size="small"
+                                    sx={{ mb: 1 }}
+                                  />
+                                </Grid>
+                                <Grid item xs={6}>
+                                  <TextField
+                                    label="Provincia"
+                                    name="provincia"
+                                    value={editClientData.provincia}
+                                    onChange={(e) => setEditClientData({ ...editClientData, provincia: e.target.value })}
+                                    fullWidth
+                                    size="small"
+                                    sx={{ mb: 1 }}
+                                  />
+                                </Grid>
+                                <Grid item xs={6}>
+                                  <TextField
+                                    label="País"
+                                    name="pais"
+                                    value={editClientData.pais}
+                                    onChange={(e) => setEditClientData({ ...editClientData, pais: e.target.value })}
+                                    fullWidth
+                                    size="small"
+                                    sx={{ mb: 1 }}
+                                  />
+                                </Grid>
+                              </Grid>
+                            </>
+                          ) : (
+                            <>
+                              {/* Información Estática */}
+                              <Typography variant="body2" sx={{ mb: 1 }}>
+                                <strong>Nombre:</strong> {selectedContact?.nombre}
+                              </Typography>
+                              <Typography variant="body2" sx={{ mb: 1 }}>
+                                <strong>NIF:</strong> {selectedContact?.nif}
+                              </Typography>
+                              <Typography variant="body2" sx={{ mb: 1 }}>
+                                <strong>Teléfono:</strong>{' '}
+                                <a href={`tel:${selectedContact?.telefono}`} style={{ color: '#2666CF' }}>
+                                  {selectedContact?.telefono}
+                                </a>
+                              </Typography>
+                              <Typography variant="body2" sx={{ mb: 1 }}>
+                                <strong>Email:</strong>{' '}
+                                <a href={`mailto:${selectedContact?.email}`} style={{ color: '#2666CF' }}>
+                                  {selectedContact?.email}
+                                </a>
+                              </Typography>
+                              <Typography variant="body2" sx={{ mb: 1 }}>
+                                <strong>Dirección:</strong>
+                              </Typography>
+                              <Grid container spacing={1}>
+                                <Grid item xs={12}>
+                                  <Typography variant="body2">{selectedContact?.direccion}</Typography>
+                                </Grid>
+                                <Grid item xs={6}>
+                                  <Typography variant="body2">{selectedContact?.codigoPostal}</Typography>
+                                </Grid>
+                                <Grid item xs={6}>
+                                  <Typography variant="body2">{selectedContact?.poblacion}</Typography>
+                                </Grid>
+                                <Grid item xs={6}>
+                                  <Typography variant="body2">{selectedContact?.provincia}</Typography>
+                                </Grid>
+                                <Grid item xs={6}>
+                                  <Typography variant="body2">{selectedContact?.pais}</Typography>
+                                </Grid>
+                              </Grid>
+                            </>
+                          )}
+                        </Paper>
+                      </Grid>
 
-        <Bar
-          data={purchasesData}
-          options={{
-            responsive: true,
-            plugins: {
-              legend: {
-                display: false,
-              },
-            },
-          }}
-        />
-      </Box>
-    </Box>
+                      <Grid item xs={12} md={6}>
+                        <Paper
+                          sx={{
+                            p: 3,
+                            borderRadius: 3,
+                            boxShadow: '0 4px 8px rgba(0, 0, 0, 0.15)',
+                            height: '400px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                          }}
+                        >
+                          <Box
+                            sx={{
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                              mb: 3,
+                            }}
+                          >
+                            <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#1F4B99' }}>
+                              Gráfico de Ventas
+                            </Typography>
+                            <TextField
+                              select
+                              size="small"
+                              defaultValue="2024"
+                              sx={{
+                                width: 100,
+                                '& .MuiOutlinedInput-root': {
+                                  borderRadius: 3,
+                                },
+                              }}
+                            >
+                              <MenuItem value="2024">2024</MenuItem>
+                              <MenuItem value="2023">2023</MenuItem>
+                              <MenuItem value="2022">2022</MenuItem>
+                            </TextField>
+                          </Box>
+                          <Bar
+                            data={{
+                              labels: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio'],
+                              datasets: [
+                                {
+                                  label: 'Cobradas',
+                                  data: [2000, 4000, 10000, 5000, 7000, 6000, 8000],
+                                  backgroundColor: '#003366',
+                                  borderRadius: 5,
+                                  borderWidth: 1,
+                                },
+                                {
+                                  label: 'Pendientes',
+                                  data: [1000, 2000, 3000, 2000, 3000, 2500, 3000],
+                                  backgroundColor: '#2666CF',
+                                  borderRadius: 5,
+                                  borderWidth: 1,
+                                },
+                                {
+                                  label: 'Vencidas',
+                                  data: [500, 1000, 1500, 1000, 2000, 1500, 1000],
+                                  backgroundColor: '#DC3545',
+                                  borderRadius: 5,
+                                  borderWidth: 1,
+                                },
+                              ],
+                            }}
+                            options={{
+                              responsive: true,
+                              plugins: {
+                                legend: {
+                                  position: 'bottom',
+                                  labels: {
+                                    usePointStyle: true,
+                                    color: '#333',
+                                    font: {
+                                      size: 13,
+                                    },
+                                  },
+                                },
+                                tooltip: {
+                                  callbacks: {
+                                    label: (context) => `${context.raw} €`,
+                                  },
+                                  backgroundColor: '#1F4B99',
+                                  titleColor: '#FFF',
+                                  bodyColor: '#FFF',
+                                  cornerRadius: 5,
+                                },
+                              },
+                              scales: {
+                                x: {
+                                  grid: {
+                                    drawOnChartArea: false,
+                                    drawTicks: true,
+                                    color: '#e0e0e0',
+                                  },
+                                  ticks: {
+                                    color: '#555',
+                                    font: {
+                                      size: 12,
+                                    },
+                                  },
+                                },
+                                y: {
+                                  grid: {
+                                    color: '#e0e0e0',
+                                  },
+                                  ticks: {
+                                    color: '#555',
+                                    font: {
+                                      size: 12,
+                                    },
+                                    callback: (value: number) => `${value} €`,
+                                  },
+                                },
+                              },
+                              maintainAspectRatio: false,
+                              layout: {
+                                padding: {
+                                  top: 20,
+                                  bottom: 10,
+                                },
+                              },
+                            }}
+                          />
+                        </Paper>
+                      </Grid>
 
+                      {/* Resumen Financiero */}
+                      <Grid item xs={12} md={3}>
+                        <Paper sx={{ p: 2, borderRadius: 2, boxShadow: '0 3px 6px rgba(0, 0, 0, 0.1)' }}>
+                          <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 2, color: '#2666CF' }}>
+                            Resumen Financiero
+                          </Typography>
+                          <Typography variant="body2" sx={{ mb: 1 }}>
+                            <strong>Total por vencer:</strong>{' '}
+                            <span style={{ color: '#2666CF', fontWeight: 'bold' }}>1.345,98 €</span>
+                          </Typography>
+                          <Typography variant="body2" sx={{ mb: 1, color: '#B00020', fontWeight: 'bold' }}>
+                            <strong>Total vencido por cobrar:</strong> 998,76 €
+                          </Typography>
+                          <Typography variant="body2" sx={{ mb: 1 }}>
+                            <strong>Total cobrado:</strong> 24.986,34 €
+                          </Typography>
+                          <Typography variant="body2">
+                            <strong>Total vendido:</strong> 27.331,08 €
+                          </Typography>
+                        </Paper>
+                      </Grid>
 
-  ) : (
-    <Box sx={{ p: 3, overflowY: 'auto', height: '100%', bgcolor: '#F9F9F9' }}>
-    {/* Cabecera */}
-    <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-      <Typography variant="h5" sx={{ fontWeight: 'bold', flexGrow: 1, color: '#333' }}>
-        {selectedContact?.nombre || 'Félix Martínez Giménez'}
-      </Typography>
-      <Button
-        startIcon={<ArrowForwardIcon />}
-        onClick={() => setIsDrawerExpanded(false)}
-        sx={{
-          background: 'linear-gradient(90deg, #2666CF, #6A82FB)',
-          color: '#ffffff',
-          fontWeight: '500',
-          textTransform: 'none',
-          borderRadius: 2,
-          boxShadow: '0 3px 6px rgba(0,0,0,0.1)',
-          minWidth: '120px',
-        }}
-      >
-        Menos
-      </Button>
-    </Box>
-  
-    {/* Pestañas de Navegación */}
-    <Tabs
-      value={selectedTab}
-      onChange={handleTabChange}
-      sx={{
-        mb: 3,
-        '.MuiTabs-indicator': {
-          bgcolor: '#2666CF',
-        },
-        '.MuiTab-root': {
-          textTransform: 'none',
-          fontWeight: 'bold',
-          color: '#666',
-          '&.Mui-selected': {
-            color: '#2666CF',
-          },
-        },
-      }}
-    >
-      <Tab label="Resumen" />
-      <Tab label="Facturas" />
-      <Tab label="Albaranes" />
-      <Tab label="Pedidos" />
-      <Tab label="Pagos" />
-      <Tab label="Notas" />
-    </Tabs>
-  
-    {/* Contenido del Resumen */}
-{selectedTab === 0 && (
-  <Grid container spacing={3}>
-    {/* Información del Cliente */}
-    <Grid item xs={12} md={3}>
-  <Paper
-    sx={{
-      p: 2,
-      borderRadius: 2,
-      boxShadow: '0 3px 6px rgba(0, 0, 0, 0.1)',
-      height: '100%',
-    }}
-  >
-    {/* Encabezado con el botón "Editar" */}
-    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-      <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: '#2666CF' }}>
-        Información del Cliente
-      </Typography>
-      {isEditingClient ? (
-        <Box>
-          <Button
-            variant="text"
-            onClick={() => {
-              // Guardar los cambios
-              handleSave({ ...selectedContact, ...editClientData });
-              setIsEditingClient(false);
-            }}
-            sx={{ textTransform: 'none', color: '#2666CF', mr: 1 }}
-          >
-            Guardar
-          </Button>
-          <Button
-            variant="text"
-            onClick={() => {
-              // Cancelar los cambios
-              setEditClientData({
-                nombre: selectedContact.nombre || '',
-                nif: selectedContact.nif || '',
-                telefono: selectedContact.telefono || '',
-                email: selectedContact.email || '',
-                direccion: selectedContact.direccion || '',
-                codigoPostal: selectedContact.codigoPostal || '',
-                poblacion: selectedContact.poblacion || '',
-                provincia: selectedContact.provincia || '',
-                pais: selectedContact.pais || '',
-              });
-              setIsEditingClient(false);
-            }}
-            sx={{ textTransform: 'none', color: '#B00020' }}
-          >
-            Cancelar
-          </Button>
-        </Box>
-      ) : (
-        <Button
-          variant="text"
-          startIcon={<EditIcon />}
-          onClick={() => setIsEditingClient(true)}
-          sx={{ textTransform: 'none', color: '#2666CF' }}
-        >
-          Editar
-        </Button>
-      )}
-    </Box>
+                      {/* Portal del Cliente */}
+                      <Grid item xs={12} md={6}>
+                        <Paper sx={{ p: 2, borderRadius: 2, boxShadow: '0 3px 6px rgba(0, 0, 0, 0.1)' }}>
+                          <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 2, color: '#2666CF' }}>
+                            Portal Cliente
+                          </Typography>
+                          <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+                            <Button
+                              variant="outlined"
+                              sx={{
+                                textTransform: 'none',
+                                borderColor: '#2666CF',
+                                color: '#2666CF',
+                                fontWeight: 'bold',
+                              }}
+                            >
+                              Establecer contraseña del portal
+                            </Button>
+                            <Button
+                              variant="contained"
+                              sx={{
+                                background: 'linear-gradient(90deg, #2666CF, #6A82FB)',
+                                color: '#ffffff',
+                                fontWeight: '500',
+                                textTransform: 'none',
+                                borderRadius: 2,
+                                boxShadow: '0 3px 6px rgba(0,0,0,0.1)',
+                                minWidth: '120px',
+                              }}
+                            >
+                              Ver portal del cliente
+                            </Button>
+                          </Box>
+                        </Paper>
+                      </Grid>
 
-    {isEditingClient ? (
-      <>
-        {/* Campos Editables */}
-        <Typography variant="body2" sx={{ mb: 1 }}>
-          <strong>Nombre:</strong>
-        </Typography>
-        <TextField
-          label="Nombre"
-          name="nombre"
-          value={editClientData.nombre}
-          onChange={(e) => setEditClientData({ ...editClientData, nombre: e.target.value })}
-          fullWidth
-          sx={{ mb: 1 }}
-        />
+                      {/* Notas */}
+                      <Grid item xs={12} md={6}>
+                        <Paper
+                          sx={{
+                            p: 2,
+                            borderRadius: 2,
+                            boxShadow: '0 3px 6px rgba(0, 0, 0, 0.1)',
+                            bgcolor: '#FFF8DC',
+                          }}
+                        >
+                          <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 2, color: '#856404' }}>
+                            Notas
+                          </Typography>
+                          <Typography variant="body2" sx={{ mb: 1 }}>
+                            21/09/2024: Entregar los pedidos antes de las 13h que cierran el muelle de carga.
+                          </Typography>
+                          <Button
+                            startIcon={<AddIcon />}
+                            sx={{
+                              mt: 1,
+                              textTransform: 'none',
+                              color: '#856404',
+                              fontWeight: 'bold',
+                            }}
+                          >
+                            + Añadir nota
+                          </Button>
+                        </Paper>
+                      </Grid>
+                    </Grid>
+                  )}
 
-        <Typography variant="body2" sx={{ mb: 1 }}>
-          <strong>NIF:</strong>
-        </Typography>
-        <TextField
-          label="NIF"
-          name="nif"
-          value={editClientData.nif}
-          onChange={(e) => setEditClientData({ ...editClientData, nif: e.target.value })}
-          fullWidth
-          sx={{ mb: 1 }}
-        />
+                  {/* **Contenido de Otras Pestañas** */}
+                  {selectedTab === 1 && (
+                    <Grid container spacing={3}>
+                      <Grid item xs={12}>
+                        <Paper sx={{ p: 3, borderRadius: 3, boxShadow: '0 4px 8px rgba(0, 0, 0, 0.15)' }}>
+                          <Typography variant="h5" sx={{ mb: 3, fontWeight: 'bold', color: '#2666CF' }}>
+                            Facturas
+                          </Typography>
+                          <TableContainer sx={{ maxHeight: 400 }}>
+                            <Table stickyHeader>
+                              <TableHead sx={{ bgcolor: '#003366' }}>
+                                <TableRow>
+                                  <TableCell sx={{ color: '#fff', fontWeight: 'bold' }}>Número de Factura</TableCell>
+                                  <TableCell sx={{ color: '#fff', fontWeight: 'bold' }}>Fecha</TableCell>
+                                  <TableCell sx={{ color: '#fff', fontWeight: 'bold' }}>Cliente</TableCell>
+                                  <TableCell sx={{ color: '#fff', fontWeight: 'bold' }}>Total</TableCell>
+                                  <TableCell sx={{ color: '#fff', fontWeight: 'bold' }}>Estado</TableCell>
+                                </TableRow>
+                              </TableHead>
+                              <TableBody>
+                                {/* Aquí agregarías dinámicamente las filas de facturas */}
+                                <TableRow>
+                                  <TableCell>FA-2023-001</TableCell>
+                                  <TableCell>01/01/2023</TableCell>
+                                  <TableCell>Cliente A</TableCell>
+                                  <TableCell>1,200.00 €</TableCell>
+                                  <TableCell sx={{ color: '#28A745', fontWeight: 'bold' }}>Pagada</TableCell>
+                                </TableRow>
+                              </TableBody>
+                            </Table>
+                          </TableContainer>
+                        </Paper>
+                      </Grid>
+                    </Grid>
+                  )}
+                  {selectedTab === 2 && (
+                    <Grid container spacing={3}>
+                      <Grid item xs={12}>
+                        <Paper sx={{ p: 3, borderRadius: 3, boxShadow: '0 4px 8px rgba(0, 0, 0, 0.15)' }}>
+                          <Typography variant="h5" sx={{ mb: 3, fontWeight: 'bold', color: '#2666CF' }}>
+                            Albaranes
+                          </Typography>
+                          <TableContainer sx={{ maxHeight: 400 }}>
+                            <Table stickyHeader>
+                              <TableHead sx={{ bgcolor: '#003366' }}>
+                                <TableRow>
+                                  <TableCell sx={{ color: '#fff', fontWeight: 'bold' }}>Número de Albarán</TableCell>
+                                  <TableCell sx={{ color: '#fff', fontWeight: 'bold' }}>Fecha</TableCell>
+                                  <TableCell sx={{ color: '#fff', fontWeight: 'bold' }}>Cliente</TableCell>
+                                  <TableCell sx={{ color: '#fff', fontWeight: 'bold' }}>Estado</TableCell>
+                                </TableRow>
+                              </TableHead>
+                              <TableBody>
+                                {/* Aquí agregarías dinámicamente las filas de albaranes */}
+                                <TableRow>
+                                  <TableCell>AL-2023-001</TableCell>
+                                  <TableCell>02/01/2023</TableCell>
+                                  <TableCell>Cliente B</TableCell>
+                                  <TableCell sx={{ color: '#FFC107', fontWeight: 'bold' }}>Pendiente</TableCell>
+                                </TableRow>
+                              </TableBody>
+                            </Table>
+                          </TableContainer>
+                        </Paper>
+                      </Grid>
+                    </Grid>
+                  )}
+                  {selectedTab === 3 && (
+                    <Grid container spacing={3}>
+                      <Grid item xs={12}>
+                        <Paper sx={{ p: 3, borderRadius: 3, boxShadow: '0 4px 8px rgba(0, 0, 0, 0.15)' }}>
+                          <Typography variant="h5" sx={{ mb: 3, fontWeight: 'bold', color: '#2666CF' }}>
+                            Pedidos
+                          </Typography>
+                          <TableContainer sx={{ maxHeight: 400 }}>
+                            <Table stickyHeader>
+                              <TableHead sx={{ bgcolor: '#003366' }}>
+                                <TableRow>
+                                  <TableCell sx={{ color: '#fff', fontWeight: 'bold' }}>Número de Pedido</TableCell>
+                                  <TableCell sx={{ color: '#fff', fontWeight: 'bold' }}>Fecha</TableCell>
+                                  <TableCell sx={{ color: '#fff', fontWeight: 'bold' }}>Cliente</TableCell>
+                                  <TableCell sx={{ color: '#fff', fontWeight: 'bold' }}>Total</TableCell>
+                                  <TableCell sx={{ color: '#fff', fontWeight: 'bold' }}>Estado</TableCell>
+                                </TableRow>
+                              </TableHead>
+                              <TableBody>
+                                {/* Aquí agregarías dinámicamente las filas de pedidos */}
+                                <TableRow>
+                                  <TableCell>PE-2023-001</TableCell>
+                                  <TableCell>03/01/2023</TableCell>
+                                  <TableCell>Cliente C</TableCell>
+                                  <TableCell>2,500.00 €</TableCell>
+                                  <TableCell sx={{ color: '#DC3545', fontWeight: 'bold' }}>Cancelado</TableCell>
+                                </TableRow>
+                              </TableBody>
+                            </Table>
+                          </TableContainer>
+                        </Paper>
+                      </Grid>
+                    </Grid>
+                  )}
+                  {selectedTab === 4 && (
+                    <Grid container spacing={3}>
+                      <Grid item xs={12}>
+                        <Paper sx={{ p: 3, borderRadius: 3, boxShadow: '0 4px 8px rgba(0, 0, 0, 0.15)' }}>
+                          <Typography variant="h5" sx={{ mb: 3, fontWeight: 'bold', color: '#2666CF' }}>
+                            Pagos
+                          </Typography>
+                          <TableContainer sx={{ maxHeight: 400 }}>
+                            <Table stickyHeader>
+                              <TableHead sx={{ bgcolor: '#003366' }}>
+                                <TableRow>
+                                  <TableCell sx={{ color: '#fff', fontWeight: 'bold' }}>Fecha de Pago</TableCell>
+                                  <TableCell sx={{ color: '#fff', fontWeight: 'bold' }}>Nombre Cliente</TableCell>
+                                  <TableCell sx={{ color: '#fff', fontWeight: 'bold' }}>Número de Factura</TableCell>
+                                  <TableCell sx={{ color: '#fff', fontWeight: 'bold' }}>Total Pagado</TableCell>
+                                </TableRow>
+                              </TableHead>
+                              <TableBody>
+                                {/* Aquí agregarías dinámicamente las filas de pagos */}
+                                <TableRow>
+                                  <TableCell>04/01/2023</TableCell>
+                                  <TableCell>Cliente D</TableCell>
+                                  <TableCell>FA-2023-002</TableCell>
+                                  <TableCell>1,800.00 €</TableCell>
+                                </TableRow>
+                              </TableBody>
+                            </Table>
+                          </TableContainer>
+                        </Paper>
+                      </Grid>
+                    </Grid>
+                  )}
+                  {selectedTab === 5 && (
+                    <Grid container spacing={3}>
+                      <Grid item xs={12}>
+                        <Paper
+                          sx={{
+                            p: 3,
+                            borderRadius: 3,
+                            boxShadow: '0 4px 8px rgba(0, 0, 0, 0.15)',
+                            bgcolor: '#FFF8DC',
+                          }}
+                        >
+                          <Typography variant="h5" sx={{ mb: 3, fontWeight: 'bold', color: '#856404' }}>
+                            Notas
+                          </Typography>
+                          <Grid container spacing={2}>
+                            {/* Ejemplo de notas */}
+                            <Grid item xs={12} sm={6} md={4}>
+                              <Paper
+                                sx={{
+                                  p: 2,
+                                  bgcolor: '#FFF8DC',
+                                  borderRadius: 2,
+                                  boxShadow: '0 3px 6px rgba(0, 0, 0, 0.1)',
+                                  position: 'relative',
+                                }}
+                              >
+                                <Typography variant="body1" sx={{ fontWeight: 'bold', mb: 1 }}>
+                                  Nota Importante
+                                </Typography>
+                                <Typography variant="body2" sx={{ color: '#856404' }}>
+                                  Revisar el envío del pedido antes del cierre.
+                                </Typography>
+                                <Button
+                                  size="small"
+                                  sx={{
+                                    position: 'absolute',
+                                    bottom: 8,
+                                    right: 8,
+                                    textTransform: 'none',
+                                    color: '#856404',
+                                    fontWeight: 'bold',
+                                  }}
+                                >
+                                  Leer más
+                                </Button>
+                              </Paper>
+                            </Grid>
+                          </Grid>
+                        </Paper>
+                      </Grid>
+                    </Grid>
+                  )}
+                </Box>
+              )}
+            </Drawer>
 
-        <Typography variant="body2" sx={{ mb: 1 }}>
-          <strong>Teléfono:</strong>
-        </Typography>
-        <TextField
-          label="Teléfono"
-          name="telefono"
-          value={editClientData.telefono}
-          onChange={(e) => setEditClientData({ ...editClientData, telefono: e.target.value })}
-          fullWidth
-          sx={{ mb: 1 }}
-        />
+            {/* Diálogo para Añadir Contraseña */}
+            <Dialog open={isPasswordDialogOpen} onClose={() => setIsPasswordDialogOpen(false)}>
+              <DialogTitle>Añadir Contraseña</DialogTitle>
+              <DialogContent>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={isPasswordEnabled}
+                      onChange={(e) => setIsPasswordEnabled(e.target.checked)}
+                    />
+                  }
+                  label="Activar contraseña para este cliente"
+                />
+                {isPasswordEnabled && (
+                  <TextField
+                    label="Contraseña"
+                    type="password"
+                    fullWidth
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    margin="normal"
+                    variant="outlined"
+                  />
+                )}
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={() => setIsPasswordDialogOpen(false)} color="primary">
+                  Cancelar
+                </Button>
+                <Button
+                  onClick={() => {
+                    // Lógica para guardar la contraseña
+                    setIsPasswordDialogOpen(false);
+                  }}
+                  color="primary"
+                >
+                  Guardar
+                </Button>
+              </DialogActions>
+            </Dialog>
 
-        <Typography variant="body2" sx={{ mb: 1 }}>
-          <strong>Email:</strong>
-        </Typography>
-        <TextField
-          label="Email"
-          name="email"
-          value={editClientData.email}
-          onChange={(e) => setEditClientData({ ...editClientData, email: e.target.value })}
-          fullWidth
-          sx={{ mb: 1 }}
-        />
-
-        <Typography variant="body2" sx={{ mb: 1 }}>
-          <strong>Dirección:</strong>
-        </Typography>
-        <Grid container spacing={1}>
-          <Grid item xs={12}>
-            <TextField
-              label="Dirección"
-              name="direccion"
-              value={editClientData.direccion}
-              onChange={(e) => setEditClientData({ ...editClientData, direccion: e.target.value })}
-              fullWidth
-              size="small"
-              sx={{ mb: 1 }}
-            />
-          </Grid>
-          <Grid item xs={6}>
-            <TextField
-              label="Código Postal"
-              name="codigoPostal"
-              value={editClientData.codigoPostal}
-              onChange={(e) => setEditClientData({ ...editClientData, codigoPostal: e.target.value })}
-              fullWidth
-              size="small"
-              sx={{ mb: 1 }}
-            />
-          </Grid>
-          <Grid item xs={6}>
-            <TextField
-              label="Población"
-              name="poblacion"
-              value={editClientData.poblacion}
-              onChange={(e) => setEditClientData({ ...editClientData, poblacion: e.target.value })}
-              fullWidth
-              size="small"
-              sx={{ mb: 1 }}
-            />
-          </Grid>
-          <Grid item xs={6}>
-            <TextField
-              label="Provincia"
-              name="provincia"
-              value={editClientData.provincia}
-              onChange={(e) => setEditClientData({ ...editClientData, provincia: e.target.value })}
-              fullWidth
-              size="small"
-              sx={{ mb: 1 }}
-            />
-          </Grid>
-          <Grid item xs={6}>
-            <TextField
-              label="País"
-              name="pais"
-              value={editClientData.pais}
-              onChange={(e) => setEditClientData({ ...editClientData, pais: e.target.value })}
-              fullWidth
-              size="small"
-              sx={{ mb: 1 }}
-            />
-          </Grid>
-        </Grid>
-      </>
-    ) : (
-      <>
-        {/* Información Estática */}
-        <Typography variant="body2" sx={{ mb: 1 }}>
-          <strong>Nombre:</strong> {selectedContact?.nombre}
-        </Typography>
-        <Typography variant="body2" sx={{ mb: 1 }}>
-          <strong>NIF:</strong> {selectedContact?.nif}
-        </Typography>
-        <Typography variant="body2" sx={{ mb: 1 }}>
-          <strong>Teléfono:</strong>{' '}
-          <a href={`tel:${selectedContact?.telefono}`} style={{ color: '#2666CF' }}>
-            {selectedContact?.telefono}
-          </a>
-        </Typography>
-        <Typography variant="body2" sx={{ mb: 1 }}>
-          <strong>Email:</strong>{' '}
-          <a href={`mailto:${selectedContact?.email}`} style={{ color: '#2666CF' }}>
-            {selectedContact?.email}
-          </a>
-        </Typography>
-        <Typography variant="body2" sx={{ mb: 1 }}>
-          <strong>Dirección:</strong>
-        </Typography>
-        <Grid container spacing={1}>
-          <Grid item xs={12}>
-            <Typography variant="body2">{selectedContact?.direccion}</Typography>
-          </Grid>
-          <Grid item xs={6}>
-            <Typography variant="body2">{selectedContact?.codigoPostal}</Typography>
-          </Grid>
-          <Grid item xs={6}>
-            <Typography variant="body2">{selectedContact?.poblacion}</Typography>
-          </Grid>
-          <Grid item xs={6}>
-            <Typography variant="body2">{selectedContact?.provincia}</Typography>
-          </Grid>
-          <Grid item xs={6}>
-            <Typography variant="body2">{selectedContact?.pais}</Typography>
-          </Grid>
-        </Grid>
-      </>
-    )}
-  </Paper>
-</Grid>
-
-
-
-    <Grid item xs={12} md={6}>
-  <Paper
-    sx={{
-      p: 3,
-          borderRadius: 3,
-          boxShadow: '0 4px 8px rgba(0, 0, 0, 0.15)',
-          height: '400px', // Establece una altura fija para el contenedor
-          display: 'flex',
-          flexDirection: 'column',
-    }}
-  >
-    <Box
-      sx={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        mb: 3,
-      }}
-    >
-      <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#1F4B99' }}>
-        Gráfico de Ventas
-      </Typography>
-      <TextField
-        select
-        size="small"
-        defaultValue="2024"
-        sx={{
-          width: 100,
-          '& .MuiOutlinedInput-root': {
-            borderRadius: 3,
-          },
-        }}
-      >
-        <MenuItem value="2024">2024</MenuItem>
-        <MenuItem value="2023">2023</MenuItem>
-        <MenuItem value="2022">2022</MenuItem>
-      </TextField>
-    </Box>
-    <Bar
-      data={{
-        labels: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio'],
-        datasets: [
-          {
-            label: 'Cobradas',
-            data: [2000, 4000, 10000, 5000, 7000, 6000, 8000],
-            backgroundColor: '#003366',
-            borderRadius: 5,
-            borderWidth: 1,
-          },
-          {
-            label: 'Pendientes',
-            data: [1000, 2000, 3000, 2000, 3000, 2500, 3000],
-            backgroundColor: '#2666CF',
-            borderRadius: 5,
-            borderWidth: 1,
-          },
-          {
-            label: 'Vencidas',
-            data: [500, 1000, 1500, 1000, 2000, 1500, 1000],
-            backgroundColor: '#DC3545',
-            borderRadius: 5,
-            borderWidth: 1,
-          },
-        ],
-      }}
-      options={{
-        responsive: true,
-        plugins: {
-          legend: {
-            position: 'bottom',
-            labels: {
-              usePointStyle: true,
-              color: '#333',
-              font: {
-                size: 13,
-              },
-            },
-          },
-          tooltip: {
-            callbacks: {
-              label: (context) => `${context.raw} €`,
-            },
-            backgroundColor: '#1F4B99',
-            titleColor: '#FFF',
-            bodyColor: '#FFF',
-            cornerRadius: 5,
-          },
-        },
-        scales: {
-          x: {
-            grid: {
-              drawOnChartArea: false, // No líneas en el área
-              drawTicks: true,
-              color: '#e0e0e0',
-            },
-            ticks: {
-              color: '#555',
-              font: {
-                size: 12,
-              },
-            },
-          },
-          y: {
-            grid: {
-              color: '#e0e0e0',
-            },
-            ticks: {
-              color: '#555',
-              font: {
-                size: 12,
-              },
-              callback: (value) => `${value} €`,
-            },
-          },
-        },
-        maintainAspectRatio: false,
-        layout: {
-          padding: {
-            top: 20,
-            bottom: 10,
-          },
-        },
-      }}
-    />
-  </Paper>
-</Grid>
-
-
-
-    {/* Resumen Financiero */}
-    <Grid item xs={12} md={3}>
-      <Paper sx={{ p: 2, borderRadius: 2, boxShadow: '0 3px 6px rgba(0, 0, 0, 0.1)' }}>
-        <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 2, color: '#2666CF' }}>
-          Resumen Financiero
-        </Typography>
-        <Typography variant="body2" sx={{ mb: 1 }}>
-          <strong>Total por vencer:</strong>{' '}
-          <span style={{ color: '#2666CF', fontWeight: 'bold' }}>1.345,98 €</span>
-        </Typography>
-        <Typography variant="body2" sx={{ mb: 1, color: '#B00020', fontWeight: 'bold' }}>
-          <strong>Total vencido por cobrar:</strong> 998,76 €
-        </Typography>
-        <Typography variant="body2" sx={{ mb: 1 }}>
-          <strong>Total cobrado:</strong> 24.986,34 €
-        </Typography>
-        <Typography variant="body2">
-          <strong>Total vendido:</strong> 27.331,08 €
-        </Typography>
-      </Paper>
-    </Grid>
-
-    {/* Portal del Cliente */}
-    <Grid item xs={12} md={6}>
-      <Paper sx={{ p: 2, borderRadius: 2, boxShadow: '0 3px 6px rgba(0, 0, 0, 0.1)' }}>
-        <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 2, color: '#2666CF' }}>
-          Portal Cliente
-        </Typography>
-        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-          <Button
-            variant="outlined"
-            sx={{
-              textTransform: 'none',
-              borderColor: '#2666CF',
-              color: '#2666CF',
-              fontWeight: 'bold',
-            }}
-          >
-            Establecer contraseña del portal
-          </Button>
-          <Button
-            variant="contained"
-            sx={{
-              background: 'linear-gradient(90deg, #2666CF, #6A82FB)',
-              color: '#ffffff',
-              fontWeight: '500',
-              textTransform: 'none',
-              borderRadius: 2,
-              boxShadow: '0 3px 6px rgba(0,0,0,0.1)',
-              minWidth: '120px',
-            }}
-          >
-            Ver portal del cliente
-          </Button>
-        </Box>
-      </Paper>
-    </Grid>
-
-    {/* Notas */}
-    <Grid item xs={12} md={6}>
-      <Paper
-        sx={{
-          p: 2,
-          borderRadius: 2,
-          boxShadow: '0 3px 6px rgba(0, 0, 0, 0.1)',
-          bgcolor: '#FFF8DC',
-        }}
-      >
-        <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 2, color: '#856404' }}>
-          Notas
-        </Typography>
-        <Typography variant="body2" sx={{ mb: 1 }}>
-          21/09/2024: Entregar los pedidos antes de las 13h que cierran el muelle de carga.
-        </Typography>
-        <Button
-          startIcon={<AddIcon />}
-          sx={{
-            mt: 1,
-            textTransform: 'none',
-            color: '#856404',
-            fontWeight: 'bold',
-          }}
-        >
-          + Añadir nota
-        </Button>
-      </Paper>
-    </Grid>
-  </Grid>
-)}
-
-
-  {/* **Contenido de Otras Pestañas** */}
-  {selectedTab === 1 && (
-  <Grid container spacing={3}>
-    <Grid item xs={12}>
-      <Paper sx={{ p: 3, borderRadius: 3, boxShadow: '0 4px 8px rgba(0, 0, 0, 0.15)' }}>
-        <Typography variant="h5" sx={{ mb: 3, fontWeight: 'bold', color: '#2666CF' }}>
-          Facturas
-        </Typography>
-        <TableContainer sx={{ maxHeight: 400 }}>
-          <Table stickyHeader>
-            <TableHead sx={{ bgcolor: '#003366' }}>
-              <TableRow>
-                <TableCell sx={{ color: '#fff', fontWeight: 'bold' }}>Número de Factura</TableCell>
-                <TableCell sx={{ color: '#fff', fontWeight: 'bold' }}>Fecha</TableCell>
-                <TableCell sx={{ color: '#fff', fontWeight: 'bold' }}>Cliente</TableCell>
-                <TableCell sx={{ color: '#fff', fontWeight: 'bold' }}>Total</TableCell>
-                <TableCell sx={{ color: '#fff', fontWeight: 'bold' }}>Estado</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {/* Aquí agregarías dinámicamente las filas de facturas */}
-              <TableRow>
-                <TableCell>FA-2023-001</TableCell>
-                <TableCell>01/01/2023</TableCell>
-                <TableCell>Cliente A</TableCell>
-                <TableCell>1,200.00 €</TableCell>
-                <TableCell sx={{ color: '#28A745', fontWeight: 'bold' }}>Pagada</TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </Paper>
-    </Grid>
-  </Grid>
-)}
-{selectedTab === 2 && (
-  <Grid container spacing={3}>
-    <Grid item xs={12}>
-      <Paper sx={{ p: 3, borderRadius: 3, boxShadow: '0 4px 8px rgba(0, 0, 0, 0.15)' }}>
-        <Typography variant="h5" sx={{ mb: 3, fontWeight: 'bold', color: '#2666CF' }}>
-          Albaranes
-        </Typography>
-        <TableContainer sx={{ maxHeight: 400 }}>
-          <Table stickyHeader>
-            <TableHead sx={{ bgcolor: '#003366' }}>
-              <TableRow>
-                <TableCell sx={{ color: '#fff', fontWeight: 'bold' }}>Número de Albarán</TableCell>
-                <TableCell sx={{ color: '#fff', fontWeight: 'bold' }}>Fecha</TableCell>
-                <TableCell sx={{ color: '#fff', fontWeight: 'bold' }}>Cliente</TableCell>
-                <TableCell sx={{ color: '#fff', fontWeight: 'bold' }}>Estado</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {/* Aquí agregarías dinámicamente las filas de albaranes */}
-              <TableRow>
-                <TableCell>AL-2023-001</TableCell>
-                <TableCell>02/01/2023</TableCell>
-                <TableCell>Cliente B</TableCell>
-                <TableCell sx={{ color: '#FFC107', fontWeight: 'bold' }}>Pendiente</TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </Paper>
-    </Grid>
-  </Grid>
-)}
-{selectedTab === 3 && (
-  <Grid container spacing={3}>
-    <Grid item xs={12}>
-      <Paper sx={{ p: 3, borderRadius: 3, boxShadow: '0 4px 8px rgba(0, 0, 0, 0.15)' }}>
-        <Typography variant="h5" sx={{ mb: 3, fontWeight: 'bold', color: '#2666CF' }}>
-          Pedidos
-        </Typography>
-        <TableContainer sx={{ maxHeight: 400 }}>
-          <Table stickyHeader>
-            <TableHead sx={{ bgcolor: '#003366' }}>
-              <TableRow>
-                <TableCell sx={{ color: '#fff', fontWeight: 'bold' }}>Número de Pedido</TableCell>
-                <TableCell sx={{ color: '#fff', fontWeight: 'bold' }}>Fecha</TableCell>
-                <TableCell sx={{ color: '#fff', fontWeight: 'bold' }}>Cliente</TableCell>
-                <TableCell sx={{ color: '#fff', fontWeight: 'bold' }}>Total</TableCell>
-                <TableCell sx={{ color: '#fff', fontWeight: 'bold' }}>Estado</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {/* Aquí agregarías dinámicamente las filas de pedidos */}
-              <TableRow>
-                <TableCell>PE-2023-001</TableCell>
-                <TableCell>03/01/2023</TableCell>
-                <TableCell>Cliente C</TableCell>
-                <TableCell>2,500.00 €</TableCell>
-                <TableCell sx={{ color: '#DC3545', fontWeight: 'bold' }}>Cancelado</TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </Paper>
-    </Grid>
-  </Grid>
-)}
-{selectedTab === 4 && (
-  <Grid container spacing={3}>
-    <Grid item xs={12}>
-      <Paper sx={{ p: 3, borderRadius: 3, boxShadow: '0 4px 8px rgba(0, 0, 0, 0.15)' }}>
-        <Typography variant="h5" sx={{ mb: 3, fontWeight: 'bold', color: '#2666CF' }}>
-          Pagos
-        </Typography>
-        <TableContainer sx={{ maxHeight: 400 }}>
-          <Table stickyHeader>
-            <TableHead sx={{ bgcolor: '#003366' }}>
-              <TableRow>
-                <TableCell sx={{ color: '#fff', fontWeight: 'bold' }}>Fecha de Pago</TableCell>
-                <TableCell sx={{ color: '#fff', fontWeight: 'bold' }}>Nombre Cliente</TableCell>
-                <TableCell sx={{ color: '#fff', fontWeight: 'bold' }}>Número de Factura</TableCell>
-                <TableCell sx={{ color: '#fff', fontWeight: 'bold' }}>Total Pagado</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {/* Aquí agregarías dinámicamente las filas de pagos */}
-              <TableRow>
-                <TableCell>04/01/2023</TableCell>
-                <TableCell>Cliente D</TableCell>
-                <TableCell>FA-2023-002</TableCell>
-                <TableCell>1,800.00 €</TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </Paper>
-    </Grid>
-  </Grid>
-)}
-{selectedTab === 5 && (
-  <Grid container spacing={3}>
-    <Grid item xs={12}>
-      <Paper
-        sx={{
-          p: 3,
-          borderRadius: 3,
-          boxShadow: '0 4px 8px rgba(0, 0, 0, 0.15)',
-          bgcolor: '#FFF8DC',
-        }}
-      >
-        <Typography variant="h5" sx={{ mb: 3, fontWeight: 'bold', color: '#856404' }}>
-          Notas
-        </Typography>
-        <Grid container spacing={2}>
-          {/* Ejemplo de notas en estilo posit */}
-          <Grid item xs={12} sm={6} md={4}>
-            <Paper
-              sx={{
-                p: 2,
-                bgcolor: '#FFF8DC',
-                borderRadius: 2,
-                boxShadow: '0 3px 6px rgba(0, 0, 0, 0.1)',
-                position: 'relative',
-              }}
-            >
-              <Typography variant="body1" sx={{ fontWeight: 'bold', mb: 1 }}>
-                Nota Importante
-              </Typography>
-              <Typography variant="body2" sx={{ color: '#856404' }}>
-                Revisar el envío del pedido antes del cierre.
-              </Typography>
-              <Button
-                size="small"
-                sx={{
-                  position: 'absolute',
-                  bottom: 8,
-                  right: 8,
-                  textTransform: 'none',
-                  color: '#856404',
-                  fontWeight: 'bold',
-                }}
-              >
-                Leer más
-              </Button>
-            </Paper>
-          </Grid>
-        </Grid>
-      </Paper>
-    </Grid>
-  </Grid>
-)}
-
-
-  {/* Diálogo para Añadir Contraseña */}
-  <Dialog open={isPasswordDialogOpen} onClose={() => setIsPasswordDialogOpen(false)}>
-    <DialogTitle>Añadir Contraseña</DialogTitle>
-    <DialogContent>
-      <FormControlLabel
-        control={
-          <Checkbox
-            checked={isPasswordEnabled}
-            onChange={(e) => setIsPasswordEnabled(e.target.checked)}
-          />
-        }
-        label="Activar contraseña para este cliente"
-      />
-      {isPasswordEnabled && (
-        <TextField
-          label="Contraseña"
-          type="password"
-          fullWidth
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          margin="normal"
-          variant="outlined"
-        />
-      )}
-    </DialogContent>
-    <DialogActions>
-      <Button onClick={() => setIsPasswordDialogOpen(false)} color="primary">
-        Cancelar
-      </Button>
-      <Button
-        onClick={() => {
-          // Lógica para guardar la contraseña
-          setIsPasswordDialogOpen(false);
-        }}
-        color="primary"
-      >
-        Guardar
-      </Button>
-    </DialogActions>
-  </Dialog>
-</Box>
-  )}
-</Drawer>
-  
-
-
-
-
-            {/* Dialogo de Relacionar Persona */}
+            {/* Diálogo de Relacionar Persona */}
             <Dialog open={isDialogOpen} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
               <DialogTitle>Relacionar persona</DialogTitle>
               <DialogContent>
@@ -2390,24 +1838,25 @@ const handleTabChange = (event, newValue) => {
                   sx={{ mb: 2 }}
                 />
                 <List>
-                  {filteredPeople.map(person => (
-                    <ListItem key={person.id}>
-                      <ListItemText primary={person.name} />
+                  {filteredPeople.map((person) => (
+                    <ListItem key={person.id} disableGutters>
+                      <ListItemButton onClick={() => handleLinkContact(person.id)}>
+                        <ListItemText primary={person.nombre} secondary={person.tipoContacto} />
+                      </ListItemButton>
                     </ListItem>
                   ))}
                 </List>
               </DialogContent>
             </Dialog>
 
-            {/* Agrega el ContactForm aquí */}
+            {/* ContactForm */}
             <ContactForm open={open} handleClose={handleClose} contact={selectedContact} handleSave={handleSave} />
-
-  
           </Container>
         </Box>
+        
       </Box>
     </Box>
   );
-}
+};
 
 export default Contacts;

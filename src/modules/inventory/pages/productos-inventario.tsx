@@ -27,6 +27,8 @@ import {
   Divider,
   Fade,
   MenuItem,
+  ToggleButton,
+  ToggleButtonGroup,
 } from '@mui/material';
 import SaveIcon from '@mui/icons-material/Save';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -141,34 +143,39 @@ const ProductFormPage = ({ product, handleBack, handleSave }) => {
           </Typography>
           <Divider sx={{ mb: 2 }} />
           <Grid container spacing={3}>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                label="Referencia"
-                name="referencia"
-                variant="outlined"
-                fullWidth
-                value={formData.referencia}
-                onChange={handleChange}
-                sx={{ borderRadius: 2 }}
-              />
+            {/* Columna de Nombre y Referencia */}
+            <Grid item xs={12} sm={4} container direction="column" spacing={3}>
+              <Grid item>
+                <TextField
+                  label="Nombre Producto"
+                  name="nombre"
+                  variant="outlined"
+                  fullWidth
+                  value={formData.nombre}
+                  onChange={handleChange}
+                  sx={{ borderRadius: 2 }}
+                />
+              </Grid>
+              <Grid item>
+                <TextField
+                  label="Referencia"
+                  name="referencia"
+                  variant="outlined"
+                  fullWidth
+                  value={formData.referencia}
+                  onChange={handleChange}
+                  sx={{ borderRadius: 2 }}
+                />
+              </Grid>
             </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                label="Nombre del Producto"
-                name="nombre"
-                variant="outlined"
-                fullWidth
-                value={formData.nombre}
-                onChange={handleChange}
-                sx={{ borderRadius: 2 }}
-              />
-            </Grid>
-            <Grid item xs={12}>
+
+            {/* Columna de Descripción */}
+            <Grid item xs={12} sm={8}>
               <TextField
                 label="Descripción"
                 name="descripcion"
                 multiline
-                rows={4}
+                rows={6} 
                 variant="outlined"
                 fullWidth
                 value={formData.descripcion}
@@ -176,106 +183,9 @@ const ProductFormPage = ({ product, handleBack, handleSave }) => {
                 sx={{ borderRadius: 2 }}
               />
             </Grid>
-          </Grid>
-        </CardContent>
-      </Card>
 
-      <Card elevation={3} sx={{ mb: 4 }}>
-        <CardContent>
-          <Typography variant="h6" gutterBottom sx={{ fontWeight: '600' }}>
-            Detalles de Ventas
-          </Typography>
-          <Divider sx={{ mb: 2 }} />
-          <Grid container spacing={3}>
-            <Grid item xs={12} sm={6}>
-              <FormControl fullWidth variant="outlined">
-                <InputLabel>Familia</InputLabel>
-                <Select
-                  name="familia"
-                  value={formData.familia}
-                  onChange={handleChange}
-                  label="Familia"
-                  sx={{ borderRadius: 2 }}
-                >
-                  <MenuItem value="Familia 1">Familia 1</MenuItem>
-                  <MenuItem value="Familia 2">Familia 2</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <FormControl fullWidth variant="outlined">
-                <InputLabel>Sub-familia</InputLabel>
-                <Select
-                  name="subFamilia"
-                  value={formData.subFamilia}
-                  onChange={handleChange}
-                  label="Sub-familia"
-                  sx={{ borderRadius: 2 }}
-                >
-                  <MenuItem value="Sub-familia 1">Sub-familia 1</MenuItem>
-                  <MenuItem value="Sub-familia 2">Sub-familia 2</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <FormControl fullWidth variant="outlined">
-                <InputLabel>Unidad de Medida</InputLabel>
-                <Select
-                  name="unidadMedida"
-                  value={formData.unidadMedida}
-                  onChange={handleChange}
-                  label="Unidad de Medida"
-                  sx={{ borderRadius: 2 }}
-                >
-                  <MenuItem value="Kg">Kg</MenuItem>
-                  <MenuItem value="Litros">Litros</MenuItem>
-                  <MenuItem value="Unidades">Unidades</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                label="Precio"
-                name="precio"
-                variant="outlined"
-                fullWidth
-                value={formData.precio}
-                onChange={handleChange}
-                InputProps={{
-                  startAdornment: <InputAdornment position="start">€</InputAdornment>,
-                }}
-                sx={{ borderRadius: 2 }}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                label="IVA"
-                name="iva"
-                variant="outlined"
-                fullWidth
-                value={formData.iva}
-                onChange={handleChange}
-                InputProps={{
-                  endAdornment: <InputAdornment position="end">%</InputAdornment>,
-                }}
-                sx={{ borderRadius: 2 }}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                label="Descuento"
-                name="descuento"
-                variant="outlined"
-                fullWidth
-                value={formData.descuento}
-                onChange={handleChange}
-                InputProps={{
-                  endAdornment: <InputAdornment position="end">%</InputAdornment>,
-                }}
-                sx={{ borderRadius: 2 }}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
+            {/* Fila para Código de Barras, Código de Fabricación, y Peso */}
+            <Grid item xs={12} sm={4}>
               <TextField
                 label="Código de Barras"
                 name="codigoBarras"
@@ -286,7 +196,439 @@ const ProductFormPage = ({ product, handleBack, handleSave }) => {
                 sx={{ borderRadius: 2 }}
               />
             </Grid>
+            <Grid item xs={12} sm={4}>
+              <TextField
+                label="Código de Fabricación"
+                name="codigoFabricacion"
+                variant="outlined"
+                fullWidth
+                value={formData.codigoFabricacion}
+                onChange={handleChange}
+                sx={{ borderRadius: 2 }}
+              />
+            </Grid>
+            <Grid item xs={12} sm={4}>
+              <TextField
+                label="Peso en Kg"
+                name="peso"
+                variant="outlined"
+                fullWidth
+                value={formData.peso}
+                onChange={handleChange}
+                sx={{ borderRadius: 2 }}
+              />
+            </Grid>
           </Grid>
+        </CardContent>
+      </Card>
+      <Card elevation={3} sx={{ mb: 4 }}> 
+      <CardContent>
+      {/* Sección familia */}
+      <Typography variant="h6" gutterBottom sx={{ fontWeight: '600' }}>
+        Categorías
+      </Typography>
+      <Divider sx={{ mb: 2 }} />
+      <Grid container spacing={3}>
+        {/* Campo Almacén Predeterminado */}
+        <Grid item xs={12} sm={6}>
+          <FormControl fullWidth variant="outlined" sx={{ borderRadius: 2 }}>
+            <InputLabel id="almacen-predeterminado-label">Familia</InputLabel>
+            <Select
+              labelId="familias"
+              id="familia"
+              name="familia"
+              value={formData.almacenPredeterminado}
+              onChange={handleChange}
+              label="Familia"
+            >
+              {/* Iterar sobre la lista de almacenes para crear los MenuItems */}
+              
+            </Select>
+          </FormControl>
+        </Grid>
+
+        {/* Campo Cantidad */}
+        <Grid item xs={12} sm={6}>
+          <TextField
+            label="Sub-familias"
+            name="cantidad"
+            variant="outlined"
+            fullWidth
+            type="number"
+            value={formData.cantidad}
+            onChange={handleChange}
+            InputProps={{
+              inputProps: { min: 0 },
+            }}
+            sx={{ borderRadius: 2 }}
+          />
+        </Grid>
+      </Grid>
+    </CardContent>
+      </Card>
+
+      <Card elevation={3} sx={{ mb: 4 }}>
+        <CardContent>
+          <Typography variant="h6" gutterBottom sx={{ fontWeight: '600' }}>
+            Ventas
+          </Typography>
+          <Divider sx={{ mb: 2 }} />
+          <Grid container spacing={3}>
+            {/* Fila con cuatro campos: Nombre tarifa, Subtotal, Impuestos, Total */}
+            <Grid item xs={12} sm={3}>
+              <TextField
+                label="Nombre tarifa"
+                name="nombreTarifa"
+                variant="outlined"
+                fullWidth
+                value={formData.nombreTarifa}
+                onChange={handleChange}
+                sx={{ borderRadius: 2 }}
+              />
+            </Grid>
+            <Grid item xs={12} sm={3}>
+              <TextField
+                label="Subtotal"
+                name="subtotal"
+                variant="outlined"
+                fullWidth
+                value={formData.subtotal}
+                onChange={handleChange}
+                InputProps={{
+                  startAdornment: <InputAdornment position="start">€</InputAdornment>,
+                }}
+                sx={{ borderRadius: 2 }}
+              />
+            </Grid>
+            <Grid item xs={12} sm={3}>
+              <TextField
+                label="Impuestos (IVA 21%)"
+                name="impuestos"
+                variant="outlined"
+                fullWidth
+                value={formData.impuestos}
+                onChange={handleChange}
+                InputProps={{
+                  startAdornment: <InputAdornment position="start">€</InputAdornment>,
+                }}
+                sx={{ borderRadius: 2 }}
+              />
+            </Grid>
+            <Grid item xs={12} sm={3}>
+              <TextField
+                label="Total"
+                name="total"
+                variant="outlined"
+                fullWidth
+                value={formData.total}
+                onChange={handleChange}
+                InputProps={{
+                  startAdornment: <InputAdornment position="start">€</InputAdornment>,
+                }}
+                sx={{ borderRadius: 2 }}
+              />
+            </Grid>
+
+            {/* Campos adicionales */}
+            <Grid item xs={12}>
+              <FormControl fullWidth variant="outlined">
+                <InputLabel>Tarifas</InputLabel>
+                <Select
+                  name="tarifas"
+                  value={formData.tarifas}
+                  onChange={handleChange}
+                  label="Tarifas"
+                  sx={{ borderRadius: 2 }}
+                >
+                  <MenuItem value="Tarifa 1">Tarifa 1</MenuItem>
+                  <MenuItem value="Tarifa 2">Tarifa 2</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+
+            <Grid item xs={12}>
+              <FormControl fullWidth variant="outlined">
+                <InputLabel>Precio recomendado</InputLabel>
+                <Select
+                  name="Precio"
+                  value={formData.tarifas}
+                  onChange={handleChange}
+                  label="Precio"
+                  sx={{ borderRadius: 2 }}
+                >
+                  <MenuItem value="Precio 1">Tarifa 1</MenuItem>
+                  <MenuItem value="Precio 2">Tarifa 2</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+          </Grid>
+        </CardContent>
+      </Card>
+      
+      
+      
+        <Card elevation={3} sx={{ mb: 4 }}>
+          <CardContent>
+          {/* Sección Compras */}
+          <Typography variant="h6" gutterBottom sx={{ fontWeight: '600' }}>
+            Compras
+          </Typography>
+          <Divider sx={{ mb: 2 }} />
+          <Grid container spacing={3} sx={{ mb: 4 }}>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                label="Proveedor"
+                name="proveedor"
+                variant="outlined"
+                fullWidth
+                value={formData.proveedor}
+                onChange={handleChange}
+                sx={{ borderRadius: 2 }}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                label="Coste Medio"
+                name="costeMedio"
+                variant="outlined"
+                fullWidth
+                value={formData.costeMedio}
+                onChange={handleChange}
+                InputProps={{
+                  startAdornment: <InputAdornment position="start">€</InputAdornment>,
+                }}
+                sx={{ borderRadius: 2 }}
+              />
+            </Grid>
+          </Grid>
+
+          {/* Sección Precio Compra */}
+          <Typography variant="h6" gutterBottom sx={{ fontWeight: '600' }}>
+            Precio Compra
+          </Typography>
+          <Divider sx={{ mb: 2 }} />
+          <Grid container spacing={3}>
+            <Grid item xs={12} sm={4}>
+              <TextField
+                label="Subtotal"
+                name="precioCompraSubtotal"
+                variant="outlined"
+                fullWidth
+                value={formData.precioCompraSubtotal}
+                onChange={handleChange}
+                InputProps={{
+                  startAdornment: <InputAdornment position="start">€</InputAdornment>,
+                }}
+                sx={{ borderRadius: 2 }}
+              />
+            </Grid>
+            <Grid item xs={12} sm={4}>
+              <TextField
+                label="Impuestos (IVA 21%)"
+                name="precioCompraImpuestos"
+                variant="outlined"
+                fullWidth
+                value={formData.precioCompraImpuestos}
+                onChange={handleChange}
+                InputProps={{
+                  startAdornment: <InputAdornment position="start">€</InputAdornment>,
+                }}
+                sx={{ borderRadius: 2 }}
+              />
+            </Grid>
+            <Grid item xs={12} sm={4}>
+              <TextField
+                label="Total"
+                name="precioCompraTotal"
+                variant="outlined"
+                fullWidth
+                value={formData.precioCompraTotal}
+                onChange={handleChange}
+                InputProps={{
+                  startAdornment: <InputAdornment position="start">€</InputAdornment>,
+                }}
+                sx={{ borderRadius: 2 }}
+              />
+            </Grid>
+          </Grid>
+
+          
+        </CardContent>
+      </Card>
+
+      <Card>
+      <CardContent>
+      {/* Sección Stock */}
+      <Typography variant="h6" gutterBottom sx={{ fontWeight: '600' }}>
+        Stock
+      </Typography>
+      <Divider sx={{ mb: 2 }} />
+      <Grid container spacing={3}>
+        {/* Campo Almacén Predeterminado */}
+        <Grid item xs={12} sm={6}>
+          <FormControl fullWidth variant="outlined" sx={{ borderRadius: 2 }}>
+            <InputLabel id="almacen-predeterminado-label">Almacén Predeterminado</InputLabel>
+            <Select
+              labelId="almacen-predeterminado-label"
+              id="almacen-predeterminado"
+              name="almacenPredeterminado"
+              value={formData.almacenPredeterminado}
+              onChange={handleChange}
+              label="Almacén Predeterminado"
+            >
+              {/* Iterar sobre la lista de almacenes para crear los MenuItems */}
+              
+            </Select>
+          </FormControl>
+        </Grid>
+
+        {/* Campo Cantidad */}
+        <Grid item xs={12} sm={6}>
+          <TextField
+            label="Cantidad"
+            name="cantidad"
+            variant="outlined"
+            fullWidth
+            type="number"
+            value={formData.cantidad}
+            onChange={handleChange}
+            InputProps={{
+              inputProps: { min: 0 },
+            }}
+            sx={{ borderRadius: 2 }}
+          />
+        </Grid>
+      </Grid>
+    </CardContent>
+      </Card>
+
+      <Card elevation={3} sx={{ mb: 4, mt:4 }}>
+        <CardContent>
+          {/* Menú Principal */}
+          <Typography variant="h6" gutterBottom sx={{ fontWeight: '600' }}>
+            Gestión de Inventario
+          </Typography>
+          <Divider sx={{ mb: 2 }} />
+
+          <Grid container spacing={2} sx={{ mb: 3 }}>
+            <Grid item>
+              <ToggleButtonGroup
+                exclusive
+                aria-label="Menú Principal"
+                // Sin funcionalidad: estado y manejadores omitidos
+                value="variantes" // Valor estático para fines estéticos
+              >
+                <ToggleButton value="variantes" aria-label="Gestionar variantes">
+                  Gestionar Variantes
+                </ToggleButton>
+                <ToggleButton value="lotes" aria-label="Gestionar lotes">
+                  Gestionar Lotes
+                </ToggleButton>
+              </ToggleButtonGroup>
+            </Grid>
+          </Grid>
+
+          {/* Menú Secundario: Gestionar Variantes */}
+          <Box>
+            {/* Opciones Superiores */}
+            <Grid container spacing={2} alignItems="center" sx={{ mb: 2 }}>
+              <Grid item>
+                <Button variant="contained" color="primary" sx={{ borderRadius: 2 }}>
+                  Precios de Compra
+                </Button>
+              </Grid>
+              <Grid item>
+                <Button variant="contained" color="secondary" sx={{ borderRadius: 2 }}>
+                  Precios de Venta
+                </Button>
+              </Grid>
+              <Grid item xs>
+                <TextField
+                  fullWidth
+                  variant="outlined"
+                  placeholder="Buscar Variante"
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <SearchIcon />
+                      </InputAdornment>
+                    ),
+                  }}
+                  sx={{ borderRadius: 2 }}
+                />
+              </Grid>
+              <Grid item>
+                <IconButton>
+                  
+                </IconButton>
+              </Grid>
+            </Grid>
+
+            {/* Tabla de Variantes */}
+            <TableContainer component={Paper} sx={{ borderRadius: 2 }}>
+              <Table aria-label="tabla de variantes">
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Referencia</TableCell>
+                    <TableCell>Cód. Barras</TableCell>
+                    <TableCell>Cód. Fábrica</TableCell>
+                    <TableCell>Precio Venta</TableCell>
+                    <TableCell>Precio Compra</TableCell>
+                    <TableCell>Peso</TableCell>
+                    <TableCell>Cantidad</TableCell>
+                    <TableCell>Acciones</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {/* Fila de Ejemplo */}
+                  <TableRow>
+                    <TableCell>000001</TableCell>
+                    <TableCell>123456789012</TableCell>
+                    <TableCell>ABCDEF</TableCell>
+                    <TableCell>1.555,55€</TableCell>
+                    <TableCell>1.999,55€</TableCell>
+                    <TableCell>1KG</TableCell>
+                    <TableCell>988</TableCell>
+                    <TableCell>
+                      <IconButton color="primary" sx={{ mr: 1 }}>
+                        <EditIcon />
+                      </IconButton>
+                      <IconButton color="error">
+                        <DeleteIcon />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                  {/* Puedes duplicar las filas según sea necesario para propósitos estéticos */}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Box>
+
+          {/* Menú Secundario: Gestionar Lotes */}
+          <Box sx={{ mt: 4 }}>
+            <Typography variant="h6" gutterBottom sx={{ fontWeight: '600' }}>
+              Configuración de Fechas de Lotes
+            </Typography>
+            <Divider sx={{ mb: 2 }} />
+
+            <Grid container spacing={2} alignItems="center">
+              <Grid item>
+                <ToggleButtonGroup
+                  exclusive
+                  aria-label="Toggle Fechas"
+                  // Sin funcionalidad: estado y manejadores omitidos
+                  value="inicio" // Valor estático para fines estéticos
+                >
+                  <ToggleButton value="inicio" aria-label="Fecha Inicio">
+                    10/05/2024
+                  </ToggleButton>
+                  <ToggleButton value="final" aria-label="Fecha Final">
+                    10/11/2024
+                  </ToggleButton>
+                </ToggleButtonGroup>
+              </Grid>
+            </Grid>
+          </Box>
         </CardContent>
       </Card>
 
