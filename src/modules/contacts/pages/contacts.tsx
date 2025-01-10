@@ -59,7 +59,7 @@ import ContactForm from '../components/contactForm'; // Asegúrate de tener este
 // Importar ContactService y tipos adicionales
 import ContactService from '../../../services/ContactService';
 import { Contact, ShippingAddress } from '../../../types/Contact';
-import { LinkedContact } from '../../../types/LinkedCobtsct';
+import { LinkedContact } from '../../../types/LinkedContact';
 import { CommonResponse } from '../../../types/CommonResponse';
 import useAuthStore from '../../../store/useAuthStore';
 // Añadir esta línea:
