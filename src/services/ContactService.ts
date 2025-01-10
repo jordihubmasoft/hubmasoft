@@ -2,7 +2,6 @@
 
 import { CommonResponse } from "../types/CommonResponse";
 import { Contact } from "../types/Contact";
-import { LinkedContact } from "../types/LinkedCobtsct"; // Asegúrate de importar la interfaz LinkedContact
 
 export default class ContactService {
   // Método para obtener un contacto por su ID
@@ -14,8 +13,6 @@ export default class ContactService {
       }
       const url = `${baseURL}/Contact/${contactId}`;
 
-      console.log("URL:", url);
-
       const response = await fetch(url, {
         method: "GET",
         headers: {
@@ -26,13 +23,12 @@ export default class ContactService {
 
       if (response.ok) {
         const resultData = await response.json();
-        console.log("API Data Received:", resultData);
         return {
           result: {
             resultNumber: resultData.result.resultNumber,
             errorMessage: resultData.result.errorMessage,
           },
-          data: resultData.data as Contact[], // Ahora es un arreglo de Contact
+          data: resultData.data as Contact[],
         };
       } else {
         const errorText = await response.text();
@@ -125,7 +121,7 @@ export default class ContactService {
       if (!baseURL) {
         throw new Error("Base URL no está definido en las variables de entorno.");
       }
-      const url = `${baseURL}/Contact`; // Asegúrate de que el endpoint es correcto
+      const url = `${baseURL}/Contact`;
 
       const response = await fetch(url, {
         method: "PUT",
@@ -133,7 +129,7 @@ export default class ContactService {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`,
         },
-        body: JSON.stringify(contactData), // Asegúrate de que contactData está correctamente estructurado
+        body: JSON.stringify(contactData),
       });
 
       if (response.ok) {
@@ -160,4 +156,41 @@ export default class ContactService {
       throw new Error("Ocurrió un problema al actualizar el contacto.");
     }
   }
+
+  // Opcional: Método para obtener múltiples contactos por IDs
+  // static async getContactsByIds(contactIds: string[], token: string): Promise<CommonResponse<Contact[]>> {
+  //   try {
+  //     const baseURL = process.env.NEXT_PUBLIC_API?.replace(/\/+$/, '');
+  //     if (!baseURL) {
+  //       throw new Error("Base URL no está definido en las variables de entorno.");
+  //     }
+  //     const idsParam = contactIds.join(',');
+  //     const url = `${baseURL}/Contact?ids=${idsParam}`;
+
+  //     const response = await fetch(url, {
+  //       method: "GET",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //         "Authorization": `Bearer ${token}`,
+  //       },
+  //     });
+
+  //     if (response.ok) {
+  //       const resultData = await response.json();
+  //       return {
+  //         result: {
+  //           resultNumber: resultData.result.resultNumber,
+  //           errorMessage: resultData.result.errorMessage,
+  //         },
+  //         data: resultData.data as Contact[],
+  //       };
+  //     } else {
+  //       const errorResponse = await response.json();
+  //       throw new Error(errorResponse.result?.errorMessage || "Error al obtener los contactos");
+  //     }
+  //   } catch (err: any) {
+  //     console.error("Error en la solicitud:", err.message || err);
+  //     throw new Error("Ocurrió un problema al obtener los contactos.");
+  //   }
+  // }
 }

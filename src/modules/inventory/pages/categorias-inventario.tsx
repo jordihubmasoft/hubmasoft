@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+// src/components/FamiliasInventario.tsx
+
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Container,
@@ -22,89 +24,182 @@ import {
   ListItem,
   ListItemText,
   Divider,
-  Fade,
-  MenuItem,
-  Select,
-  Tooltip,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import AddIcon from '@mui/icons-material/Add';
 import SearchIcon from '@mui/icons-material/Search';
-import Header from 'components/Header'; // Assuming you have this component
-import Sidebar from 'components/Sidebar'; // Assuming you have this component
-import { ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
+import Header from 'components/Header';
+import Sidebar from 'components/Sidebar';
+import { ResponsiveContainer, PieChart, Pie, Cell, Legend, Tooltip as RechartsTooltip } from 'recharts';
+import { Family } from '../types/family';
+import { SubFamily } from '../types/subFamily';
+import FamilyService from '../services/familyService';
+import SubFamilyService from '../services/subFamilyService';
 
-const sampleCategories = [
-  {
-    id: 1,
-    name: 'Refrescos',
-    products: ['Coca-Cola', 'Pepsi', 'Fanta'],
-    showInCatalog: true,
-    showInOrders: true,
-  },
-  {
-    id: 2,
-    name: 'Ropa',
-    products: ['Camiseta', 'Chaqueta', 'Pantalones'],
-    showInCatalog: true,
-    showInOrders: false,
-  },
-];
+const COLORS = ['#2666CF', '#4CAF50', '#FFA500', '#FF5722', '#8E24AA'];
 
-
-const CategoriasInventario = () => {
-  const [categories, setCategories] = useState(sampleCategories);
-  const [expandedCategory, setExpandedCategory] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [openAddCategoryDialog, setOpenAddCategoryDialog] = useState(false);
-  const [newCategoryData, setNewCategoryData] = useState({
+const FamiliasInventario: React.FC = () => {
+  const [familias, setFamilias] = useState<Family[]>([]);
+  const [familiaExpandida, setFamiliaExpandida] = useState<string | null>(null);
+  const [terminoBusqueda, setTerminoBusqueda] = useState('');
+  const [dialogoAgregarFamiliaAbierto, setDialogoAgregarFamiliaAbierto] = useState(false);
+  const [nuevaFamiliaData, setNuevaFamiliaData] = useState({
     name: '',
     showInCatalog: false,
     showInOrders: false,
-    products: [],
   });
+  const [dialogoAgregarSubFamiliaAbierto, setDialogoAgregarSubFamiliaAbierto] = useState(false);
+  const [familiaSeleccionadaId, setFamiliaSeleccionadaId] = useState<string | null>(null);
+  const [nuevoNombreSubFamilia, setNuevoNombreSubFamilia] = useState('');
   const [isMenuOpen, setIsMenuOpen] = useState(true);
+  const [token, setToken] = useState<string>(''); // Debes obtener el token de tu sistema de autenticación
+  const [cargando, setCargando] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleExpandClick = (categoryId) => {
-    setExpandedCategory(expandedCategory === categoryId ? null : categoryId);
+  useEffect(() => {
+    const storedToken = localStorage.getItem('authToken'); 
+    if (storedToken) {
+      setToken(storedToken);
+      fetchFamilias(storedToken); // nombre comercial, tamaño de empresa, en agregar contacto que filtre
+    } else {
+      console.error("No se encontró el token de autenticación.");
+      // Maneja el caso en que no haya token (redirigir a login, etc.)
+    }
+  }, []);
+
+  const fetchFamilias = async (authToken: string) => {
+    setCargando(true);
+    setError(null);
+    try {
+      const familiasObtenidas: Family[] = await FamilyService.getAllFamilies(authToken);
+      // Para cada familia, obtener sus sub-familias
+      const familiasConSubFamilias: Family[] = await Promise.all(
+        familiasObtenidas.map(async (familia) => {
+          try {
+            const subFamiliasObtenidas: SubFamily[] = await SubFamilyService.getSubFamiliesByFamilyId(familia.id, authToken);
+            return { ...familia, subFamilies: subFamiliasObtenidas };
+          } catch (error) {
+            console.error(`Error al obtener sub-familias para la familia ${familia.id}:`, error);
+            return { ...familia, subFamilies: [] };
+          }
+        })
+      );
+      setFamilias(familiasConSubFamilias);
+    } catch (error) {
+      console.error("Error al obtener las familias:", error);
+      setError("Ocurrió un problema al cargar las familias.");
+    } finally {
+      setCargando(false);
+    }
   };
 
-  const handleAddCategoryDialogOpen = () => {
-    setOpenAddCategoryDialog(true);
+  const handleExpandClick = (familyId: string) => {
+    setFamiliaExpandida(familiaExpandida === familyId ? null : familyId);
   };
 
-  const handleAddCategoryDialogClose = () => {
-    setOpenAddCategoryDialog(false);
-    setNewCategoryData({
+  const handleAgregarFamiliaDialogOpen = () => {
+    setDialogoAgregarFamiliaAbierto(true);
+  };
+
+  const handleAgregarFamiliaDialogClose = () => {
+    setDialogoAgregarFamiliaAbierto(false);
+    setNuevaFamiliaData({
       name: '',
       showInCatalog: false,
       showInOrders: false,
-      products: [],
     });
   };
 
-  const handleAddCategory = () => {
-    setCategories([...categories, { ...newCategoryData, id: categories.length + 1 }]);
-    handleAddCategoryDialogClose();
+  const handleAgregarFamilia = async () => {
+    if (nuevaFamiliaData.name.trim() === '') {
+      alert("El nombre de la familia no puede estar vacío.");
+      return;
+    }
+
+    try {
+      const nuevaFamilia: Family = await FamilyService.createFamily(
+        {
+          name: nuevaFamiliaData.name,
+        },
+        token
+      );
+      
+      if (!nuevaFamilia.id) {
+        nuevaFamilia.id = `${Date.now()}`; 
+      }
+      
+      nuevaFamilia.showInCatalog = nuevaFamiliaData.showInCatalog;
+      nuevaFamilia.showInOrders = nuevaFamiliaData.showInOrders;
+      nuevaFamilia.subFamilies = [];
+      setFamilias([...familias, nuevaFamilia]);
+      handleAgregarFamiliaDialogClose();
+    } catch (error: any) {
+      console.error("Error al crear la familia:", error);
+      alert("Ocurrió un error al crear la familia.");
+      
+    }
+  };
+
+  const handleAgregarSubFamiliaDialogOpen = (familyId: string) => {
+    setFamiliaSeleccionadaId(familyId);
+    setDialogoAgregarSubFamiliaAbierto(true);
+  };
+
+  const handleAgregarSubFamiliaDialogClose = () => {
+    setDialogoAgregarSubFamiliaAbierto(false);
+    setFamiliaSeleccionadaId(null);
+    setNuevoNombreSubFamilia('');
+  };
+
+  const handleAgregarSubFamilia = async () => {
+    if (nuevoNombreSubFamilia.trim() === '') {
+      alert("El nombre de la sub-familia no puede estar vacío.");
+      return;
+    }
+
+    if (!familiaSeleccionadaId) return;
+    try {
+      const nuevaSubFamilia: SubFamily = await SubFamilyService.createSubFamily(
+        {
+          familyId: familiaSeleccionadaId,
+          name: nuevoNombreSubFamilia,
+        },
+        token
+      );
+      // Verifica que la sub-familia tenga un id
+      if (!nuevaSubFamilia.id) {
+        // Asigna un id temporal si es necesario
+        nuevaSubFamilia.id = `${Date.now()}`;
+      }
+      setFamilias(
+        familias.map((familia) =>
+          familia.id === familiaSeleccionadaId
+            ? { ...familia, subFamilies: [...familia.subFamilies, nuevaSubFamilia] }
+            : familia
+        )
+      );
+      handleAgregarSubFamiliaDialogClose();
+    } catch (error: any) {
+      console.error("Error al crear la sub-familia:", error);
+      alert("Ocurrió un error al crear la sub-familia.");
+      // Maneja el error (mostrar mensaje, etc.)
+    }
   };
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
-  // Color scheme for pie chart
-const COLORS = ['#2666CF', '#4CAF50', '#FFA500', '#FF5722', '#8E24AA'];
 
-// Function to get data for the chart based on categories
-const getCategoryDataForChart = () => {
-  return categories.map((category) => ({
-    name: category.name,
-    value: category.products.length,
-  }));
-};
+  const getChartData = () => {
+    return familias.map((familia) => ({
+      name: familia.name,
+      value: familia.subFamilies.length,
+    }));
+  };
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', bgcolor: '#F3F4F6' }}>
-      {/* Header and Sidebar */}
+      {/* Header y Sidebar */}
       <Header isMenuOpen={isMenuOpen} />
       <Box sx={{ display: 'flex', flexGrow: 1, pt: '64px' }}>
         <Box
@@ -122,7 +217,7 @@ const getCategoryDataForChart = () => {
           <Sidebar isMenuOpen={isMenuOpen} toggleMenu={toggleMenu} />
         </Box>
 
-        {/* Main Content */}
+        {/* Contenido Principal */}
         <Box
           sx={{
             flexGrow: 1,
@@ -136,16 +231,16 @@ const getCategoryDataForChart = () => {
         >
           <Container maxWidth="xl">
             <Typography variant="h3" gutterBottom sx={{ color: '#1A1A40', fontWeight: '600' }}>
-              Categorías de Inventario
+              Familias de Inventario
             </Typography>
 
-            {/* Search Bar and Add Category Button */}
+            {/* Barra de Búsqueda y Botón para Añadir Familia */}
             <Box sx={{ display: 'flex', mb: 4 }}>
               <TextField
                 variant="outlined"
-                placeholder="Buscar categoría..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Buscar familia..."
+                value={terminoBusqueda}
+                onChange={(e) => setTerminoBusqueda(e.target.value)}
                 fullWidth
                 sx={{ mr: 2 }}
                 InputProps={{
@@ -159,7 +254,7 @@ const getCategoryDataForChart = () => {
               <Button
                 variant="contained"
                 startIcon={<AddIcon />}
-                onClick={handleAddCategoryDialogOpen}
+                onClick={handleAgregarFamiliaDialogOpen}
                 sx={{
                   bgcolor: '#2666CF',
                   color: '#ffffff',
@@ -172,118 +267,135 @@ const getCategoryDataForChart = () => {
                   },
                 }}
               >
-                Añadir Categoría
+                Añadir Familia
               </Button>
             </Box>
 
-            {/* Category Cards */}
-            <Grid container spacing={3}>
-            {categories
-                .filter((category) =>
-                category.name.toLowerCase().includes(searchTerm.toLowerCase())
-                )
-                .map((category) => (
-                <Grid item xs={12} sm={6} md={4} key={category.id}>
-                    <Card
-                    sx={{
-                        boxShadow: 3,
-                        transition: 'transform 0.3s ease, box-shadow 0.3s ease',
-                        '&:hover': {
-                        transform: 'scale(1.05)',
-                        boxShadow: '0 12px 20px rgba(0, 0, 0, 0.15)',
-                        },
-                    }}
-                    >
-                    <CardHeader
-                        title={category.name}
-                        sx={{ backgroundColor: '#2666CF', color: '#ffffff' }}
-                        action={
-                        <IconButton
-                            onClick={() => handleExpandClick(category.id)}
-                            sx={{ color: '#ffffff' }}
+            {/* Indicadores de Carga y Error */}
+            {cargando ? (
+              <Typography variant="h6" sx={{ color: '#1A1A40' }}>Cargando familias...</Typography>
+            ) : error ? (
+              <Typography variant="h6" sx={{ color: 'red' }}>{error}</Typography>
+            ) : (
+              <>
+                {/* Tarjetas de Familias */}
+                <Grid container spacing={3}>
+                  {familias
+                    .filter((familia) =>
+                      familia.name.toLowerCase().includes(terminoBusqueda.toLowerCase())
+                    )
+                    .map((familia) => (
+                      <Grid item xs={12} sm={6} md={4} key={familia.id}>
+                        <Card
+                          sx={{
+                            boxShadow: 3,
+                            transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+                            '&:hover': {
+                              transform: 'scale(1.05)',
+                              boxShadow: '0 12px 20px rgba(0, 0, 0, 0.15)',
+                            },
+                          }}
                         >
-                            <ExpandMoreIcon />
-                        </IconButton>
-                        }
-                    />
-                    <Collapse in={expandedCategory === category.id} timeout="auto" unmountOnExit>
-                        <CardContent>
-                        <Typography variant="body1" sx={{ fontWeight: '500', mb: 1 }}>
-                            Productos:
-                        </Typography>
-                        <List dense>
-                            {category.products.length > 0 ? (
-                            category.products.map((product, index) => (
-                                <ListItem key={index}>
-                                <ListItemText primary={product} />
-                                </ListItem>
-                            ))
-                            ) : (
-                            <Typography variant="body2" color="textSecondary">
-                                No hay productos
-                            </Typography>
-                            )}
-                        </List>
-                        <Divider sx={{ mt: 2, mb: 2 }} />
-                        <FormControlLabel
-                            control={<Checkbox checked={category.showInCatalog} disabled />}
-                            label="Mostrar en Catálogo"
-                        />
-                        <FormControlLabel
-                            control={<Checkbox checked={category.showInOrders} disabled />}
-                            label="Mostrar en Pedidos"
-                        />
-                        </CardContent>
-                    </Collapse>
-                    </Card>
-                </Grid>
-                ))}
-            </Grid>
-
-            {/* Insert Pie Chart here */}
-            <Box sx={{ mt: 5 }}>
-            <Typography variant="h6" gutterBottom sx={{ color: '#1A1A40', fontWeight: '600' }}>
-                Distribución de Productos por Categoría
-            </Typography>
-            <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                <Pie
-                    data={getCategoryDataForChart()}
-                    innerRadius={80}
-                    outerRadius={120}
-                    paddingAngle={5}
-                    dataKey="value"
-                >
-                    {getCategoryDataForChart().map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          <CardHeader
+                            title={familia.name}
+                            sx={{ backgroundColor: '#2666CF', color: '#ffffff' }}
+                            action={
+                              <IconButton
+                                onClick={() => handleExpandClick(familia.id)}
+                                sx={{ color: '#ffffff' }}
+                              >
+                                <ExpandMoreIcon />
+                              </IconButton>
+                            }
+                          />
+                          <Collapse in={familiaExpandida === familia.id} timeout="auto" unmountOnExit>
+                            <CardContent>
+                              <Typography variant="body1" sx={{ fontWeight: '500', mb: 1 }}>
+                                Sub-Familias:
+                              </Typography>
+                              <List dense>
+                                {familia.subFamilies.length > 0 ? (
+                                  familia.subFamilies.map((subFamilia) => (
+                                    <ListItem key={subFamilia.id || `${subFamilia.name}-${Math.random()}`}>
+                                      <ListItemText primary={subFamilia.name} />
+                                    </ListItem>
+                                  ))
+                                ) : (
+                                  <Typography variant="body2" color="textSecondary">
+                                    No hay sub-familias
+                                  </Typography>
+                                )}
+                              </List>
+                              <Divider sx={{ mt: 2, mb: 2 }} />
+                              <FormControlLabel
+                                control={<Checkbox checked={familia.showInCatalog} disabled />}
+                                label="Mostrar en Catálogo"
+                              />
+                              <FormControlLabel
+                                control={<Checkbox checked={familia.showInOrders} disabled />}
+                                label="Mostrar en Pedidos"
+                              />
+                              <Button
+                                variant="text"
+                                startIcon={<AddIcon />}
+                                onClick={() => handleAgregarSubFamiliaDialogOpen(familia.id)}
+                                sx={{ mt: 2, textTransform: 'none', color: '#2666CF' }}
+                              >
+                                Añadir Sub-Familia
+                              </Button>
+                            </CardContent>
+                          </Collapse>
+                        </Card>
+                      </Grid>
                     ))}
-                </Pie>
-                <Tooltip children={undefined} title={''} />
-                    <Legend verticalAlign="bottom" height={36} />
-                </PieChart>
-            </ResponsiveContainer>
-            </Box>
+                </Grid>
 
+                {/* Gráfico de Pastel */}
+                <Box sx={{ mt: 5 }}>
+                  <Typography variant="h6" gutterBottom sx={{ color: '#1A1A40', fontWeight: '600' }}>
+                    Distribución de Sub-Familias por Familia
+                  </Typography>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <PieChart>
+                      <Pie
+                        data={getChartData()}
+                        innerRadius={80}
+                        outerRadius={120}
+                        paddingAngle={5}
+                        dataKey="value"
+                        label
+                      >
+                        {getChartData().map((entry, index) => (
+                          <Cell key={`cell-${entry.name}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <RechartsTooltip />
+                      <Legend verticalAlign="bottom" height={36} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </Box>
+              </>
+            )}
           </Container>
 
-          {/* Add Category Dialog */}
-          <Dialog open={openAddCategoryDialog} onClose={handleAddCategoryDialogClose} maxWidth="md">
-            <DialogTitle>Añadir Nueva Categoría</DialogTitle>
+          {/* Diálogo para Añadir Familia */}
+          <Dialog open={dialogoAgregarFamiliaAbierto} onClose={handleAgregarFamiliaDialogClose} maxWidth="sm" fullWidth>
+            <DialogTitle>Añadir Nueva Familia</DialogTitle>
             <DialogContent>
               <TextField
                 fullWidth
-                label="Nombre de la categoría"
-                value={newCategoryData.name}
-                onChange={(e) => setNewCategoryData({ ...newCategoryData, name: e.target.value })}
+                label="Nombre de la familia"
+                value={nuevaFamiliaData.name}
+                onChange={(e) => setNuevaFamiliaData({ ...nuevaFamiliaData, name: e.target.value })}
                 sx={{ mb: 2 }}
               />
               <FormControlLabel
                 control={
                   <Checkbox
-                    checked={newCategoryData.showInCatalog}
+                    checked={nuevaFamiliaData.showInCatalog}
                     onChange={(e) =>
-                      setNewCategoryData({
-                        ...newCategoryData,
+                      setNuevaFamiliaData({
+                        ...nuevaFamiliaData,
                         showInCatalog: e.target.checked,
                       })
                     }
@@ -294,10 +406,10 @@ const getCategoryDataForChart = () => {
               <FormControlLabel
                 control={
                   <Checkbox
-                    checked={newCategoryData.showInOrders}
+                    checked={nuevaFamiliaData.showInOrders}
                     onChange={(e) =>
-                      setNewCategoryData({
-                        ...newCategoryData,
+                      setNuevaFamiliaData({
+                        ...nuevaFamiliaData,
                         showInOrders: e.target.checked,
                       })
                     }
@@ -305,33 +417,42 @@ const getCategoryDataForChart = () => {
                 }
                 label="Mostrar en Pedidos"
               />
-
-              {/* Products field (TextField for now) */}
-              <TextField
-                fullWidth
-                label="Agregar productos (separados por coma)"
-                placeholder="Escribe los nombres de los productos"
-                value={newCategoryData.products.join(', ')}
-                onChange={(e) =>
-                  setNewCategoryData({
-                    ...newCategoryData,
-                    products: e.target.value.split(',').map((p) => p.trim()),
-                  })
-                }
-                sx={{ mt: 2 }}
-              />
-              <Typography variant="body2" color="textSecondary" sx={{ mt: 2 }}>
-                Ejemplos: Bebidas → Refrescos, Aguas, Cafés, Cervezas; Ropa → Chaquetas, Camisas
-              </Typography>
             </DialogContent>
             <DialogActions>
-              <Button onClick={handleAddCategoryDialogClose}>Cancelar</Button>
+              <Button onClick={handleAgregarFamiliaDialogClose}>Cancelar</Button>
               <Button
-                onClick={handleAddCategory}
+                onClick={handleAgregarFamilia}
                 variant="contained"
                 sx={{ bgcolor: '#2666CF', color: '#ffffff', '&:hover': { bgcolor: '#1A4C97' } }}
               >
-                Crear Categoría
+                Crear Familia
+              </Button>
+            </DialogActions>
+          </Dialog>
+
+          {/* Diálogo para Añadir Sub-Familia */}
+          <Dialog open={dialogoAgregarSubFamiliaAbierto} onClose={handleAgregarSubFamiliaDialogClose} maxWidth="sm" fullWidth>
+            <DialogTitle>Añadir Nueva Sub-Familia</DialogTitle>
+            <DialogContent>
+              <TextField
+                fullWidth
+                label="Nombre de la sub-familia"
+                value={nuevoNombreSubFamilia}
+                onChange={(e) => setNuevoNombreSubFamilia(e.target.value)}
+                sx={{ mb: 2 }}
+              />
+              <Typography variant="body2" color="textSecondary" sx={{ mt: 2 }}>
+                Ejemplos: Sin Azúcar, Azucarados, etc.
+              </Typography>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleAgregarSubFamiliaDialogClose}>Cancelar</Button>
+              <Button
+                onClick={handleAgregarSubFamilia}
+                variant="contained"
+                sx={{ bgcolor: '#2666CF', color: '#ffffff', '&:hover': { bgcolor: '#1A4C97' } }}
+              >
+                Crear Sub-Familia
               </Button>
             </DialogActions>
           </Dialog>
@@ -341,4 +462,4 @@ const getCategoryDataForChart = () => {
   );
 };
 
-export default CategoriasInventario;
+export default FamiliasInventario;

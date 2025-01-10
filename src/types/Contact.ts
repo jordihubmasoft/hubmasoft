@@ -1,5 +1,4 @@
 // src/types/Contact.ts
-
 export interface ShippingAddress {
   direccion: string;
   poblacion: string;
@@ -26,15 +25,15 @@ export interface ExtraInformation {
   swift: string;
   iban: string;
   shippingAddress: ShippingAddress[];
-  id: string;
+  id: number; // Cambiado a number
   creationDate: string;
   active: boolean;
   updatingDate: string;
 }
 
 export interface Contact {
-  id: string;
-  userId: string;
+  id: number; // Cambiado a number
+  userId: number; // Asegúrate de que también sea number
   name: string;
   email: string;
   country: string;

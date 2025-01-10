@@ -1,5 +1,7 @@
+// src/services/LinkedContactsService.ts
+
 import { CommonResponse } from "../types/CommonResponse";
-import { LinkedContact } from "../types/LinkedCobtsct";
+import { LinkedContact } from "../types/LinkedContact";
 
 export default class LinkedContactsService {
   // Método para obtener un contacto vinculado por su ContactId
@@ -152,4 +154,3 @@ export default class LinkedContactsService {
     }
   }
 }
-
