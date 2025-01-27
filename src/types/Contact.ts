@@ -32,8 +32,8 @@ export interface ExtraInformation {
 }
 
 export interface Contact {
-  id: number; // Cambiado a number
-  userId: number; // Asegúrate de que también sea number
+  id: string; // Cambiado a number
+  userId: string; // Asegúrate de que también sea number
   name: string;
   email: string;
   country: string;

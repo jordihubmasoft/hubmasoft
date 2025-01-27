@@ -31,8 +31,17 @@ export default class LinkedContactsService {
           data: resultData.data as LinkedContact[],
         };
       } else {
-        const errorResponse = await response.json();
-        throw new Error(errorResponse.result?.errorMessage || `Error al obtener el contacto vinculado`);
+        let errorMessage = `Error al obtener el contacto vinculado. Código de estado: ${response.status}`;
+        try {
+          const errorResponse = await response.json();
+          errorMessage = errorResponse.result?.errorMessage || errorMessage;
+        } catch {
+          // La respuesta no es JSON
+          const errorText = await response.text();
+          errorMessage = `Error al obtener el contacto vinculado: ${errorText}`;
+        }
+        console.error('Respuesta del servidor:', errorMessage);
+        throw new Error(errorMessage);
       }
     } catch (err: any) {
       console.error("Error en la solicitud:", err.message || err);
@@ -41,7 +50,11 @@ export default class LinkedContactsService {
   }
 
   // Método para agregar un contacto vinculado
-  static async addLinkedContact(ownerContactId: string, linkedContactId: string, token: string): Promise<CommonResponse<LinkedContact>> {
+  static async addLinkedContact(
+    ownerContactId: string,
+    linkedContactId: string,
+    token: string
+  ): Promise<CommonResponse<LinkedContact>> {
     try {
       const baseURL = process.env.NEXT_PUBLIC_API?.replace(/\/+$/, '');
       if (!baseURL) {
@@ -51,7 +64,7 @@ export default class LinkedContactsService {
 
       const body = {
         ownerContactId,
-        LinekdContactId: linkedContactId,
+        LinkedContactId: linkedContactId, // Clave corregida
       };
 
       const response = await fetch(url, {
@@ -73,8 +86,17 @@ export default class LinkedContactsService {
           data: resultData.data as LinkedContact,
         };
       } else {
-        const errorResponse = await response.json();
-        throw new Error(errorResponse.result?.errorMessage || `Error al agregar el contacto vinculado`);
+        let errorMessage = `Error al agregar el contacto vinculado. Código de estado: ${response.status}`;
+        try {
+          const errorResponse = await response.json();
+          errorMessage = errorResponse.result?.errorMessage || errorMessage;
+        } catch {
+          // La respuesta no es JSON
+          const errorText = await response.text();
+          errorMessage = `Error al agregar el contacto vinculado: ${errorText}`;
+        }
+        console.error('Respuesta del servidor:', errorMessage);
+        throw new Error(errorMessage);
       }
     } catch (err: any) {
       console.error("Error en la solicitud:", err.message || err);
@@ -109,8 +131,17 @@ export default class LinkedContactsService {
           data: resultData.data as LinkedContact,
         };
       } else {
-        const errorResponse = await response.json();
-        throw new Error(errorResponse.result?.errorMessage || `Error al aprobar el contacto vinculado`);
+        let errorMessage = `Error al aprobar el contacto vinculado. Código de estado: ${response.status}`;
+        try {
+          const errorResponse = await response.json();
+          errorMessage = errorResponse.result?.errorMessage || errorMessage;
+        } catch {
+          // La respuesta no es JSON
+          const errorText = await response.text();
+          errorMessage = `Error al aprobar el contacto vinculado: ${errorText}`;
+        }
+        console.error('Respuesta del servidor:', errorMessage);
+        throw new Error(errorMessage);
       }
     } catch (err: any) {
       console.error("Error en la solicitud:", err.message || err);
@@ -145,8 +176,17 @@ export default class LinkedContactsService {
           data: null,
         };
       } else {
-        const errorResponse = await response.json();
-        throw new Error(errorResponse.result?.errorMessage || `Error al eliminar el contacto vinculado`);
+        let errorMessage = `Error al eliminar el contacto vinculado. Código de estado: ${response.status}`;
+        try {
+          const errorResponse = await response.json();
+          errorMessage = errorResponse.result?.errorMessage || errorMessage;
+        } catch {
+          // La respuesta no es JSON
+          const errorText = await response.text();
+          errorMessage = `Error al eliminar el contacto vinculado: ${errorText}`;
+        }
+        console.error('Respuesta del servidor:', errorMessage);
+        throw new Error(errorMessage);
       }
     } catch (err: any) {
       console.error("Error en la solicitud:", err.message || err);
