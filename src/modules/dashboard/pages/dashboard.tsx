@@ -210,7 +210,7 @@ const Dashboard = () => {
             province: contactData.province || '',
             mobile: contactData.mobile || '',
             website: contactData.website || '',
-            contactId: contactData.id || '',
+            contactId: contactData.id ? contactData.id.toString() : '',
             userId: agentId || '',
             skills: contactData.skills || '',
             experience: contactData.experience || '',

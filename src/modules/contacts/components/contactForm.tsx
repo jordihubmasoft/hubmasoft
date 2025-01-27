@@ -32,9 +32,9 @@ interface ContactFormProps {
   handleSave: (contact: Contact) => Promise<void>;
 }
 
-// Estado inicial para el formulario
+// components/ContactForm.tsx
 const initialFormData: Contact = {
-  id: '',
+  id: '', // Asegúrate de que el id principal también sea numérico
   userId: '',
   name: '',
   email: '',
@@ -64,21 +64,22 @@ const initialFormData: Contact = {
     language: '',
     currency: '',
     paymentMethod: '',
-    paymentExpirationDays: '',
-    paymentExpirationDay: '',
+    paymentExpirationDays: '', // Asegúrate de que este campo también sea numérico
+    paymentExpirationDay: '',  // Asegúrate de que este campo también sea numérico
     rate: '',
-    discount: '',
+    discount: '', // Asegúrate de que este campo también sea numérico
     swift: '',
     iban: '',
     shippingAddress: [
       { direccion: '', poblacion: '', codigoPostal: '', provincia: '', pais: '' },
     ],
-    id: '',
+    id: 0, // Cambiado a número
     creationDate: '',
     active: true,
     updatingDate: '',
   },
 };
+
 
 const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, handleSave }) => {
   const [formData, setFormData] = useState<Contact>(initialFormData);

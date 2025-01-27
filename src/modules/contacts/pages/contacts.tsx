@@ -372,33 +372,62 @@ const Contacts = () => {
     setIsDrawerOpen(true);
   };
 
-  const handleSave = async (contact: Contact) => {
-    if (!token || !ownerContactId) {
-      console.error('No hay token o ownerContactId disponible');
-      return;
-    }
-  
-    try {
-      let response: CommonResponse<Contact>;
-      if (contact.id) {
-        response = await ContactService.updateContact({ ...contact, contactId: contact.id.toString() }, token);
-        // Transformar y actualizar tu estado...
-      } else {
-        // **Aquí agregas el userId al contacto antes de crearlo**
-        
-  
-        response = await ContactService.createContact(contact, token);
-        // Luego transformas, actualizas tu estado y vinculas el contacto...
-        const newContact = transformServiceContactToLocal(response.data);
-        setContacts((prev) => [...prev, newContact]);
-        setSelectedContact(newContact);
-  
-        await LinkedContactsService.addLinkedContact(ownerContactId, response.data.id.toString(), token);
+  // Dentro de tu componente Contacts.tsx
+
+const handleSave = async (contact: Contact) => {
+  if (!token || !ownerContactId) {
+    console.error('No hay token o ownerContactId disponible');
+    
+    return;
+  }
+
+  try {
+    let response: CommonResponse<Contact>;
+    if (contact.id) {
+      response = await ContactService.updateContact(
+        { ...contact, contactId: contact.id.toString() },
+        token
+      );
+      // Transformar y actualizar tu estado...
+      const updatedContact = transformServiceContactToLocal(response.data);
+      setContacts((prev) =>
+        prev.map((c) => (c.id === updatedContact.id ? updatedContact : c))
+      );
+      setSelectedContact(updatedContact);
+      
+    } else {
+      // **Agregar userId al contacto antes de crearlo**
+      response = await ContactService.createContact(contact, token);
+      
+      const newContact = transformServiceContactToLocal(response.data);
+      
+      // Verificar si el nuevo contacto tiene un ID válido
+      if (isNaN(newContact.id)) {
+        console.error('El nuevo contacto tiene un ID inválido:', newContact);
       }
-    } catch (error) {
-      console.error('Error al guardar el contacto:', error);
+      
+      setContacts((prev) => [...prev, newContact]);
+      setSelectedContact(newContact);
+
+      // Asegurarse de que el ID del nuevo contacto es válido antes de vincular
+      if (!isNaN(newContact.id)) {
+        await LinkedContactsService.addLinkedContact(
+          ownerContactId,
+          newContact.id.toString(),
+          token
+        );
+        
+      } else {
+        console.error('No se puede vincular el contacto debido a un ID inválido.');
+        
+      }
     }
-  };
+  } catch (error: any) {
+    console.error('Error al guardar el contacto:', error);
+    
+  }
+};
+
   
   
   // Función para transformar de un Contact del servicio a tu formato interno

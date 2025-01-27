@@ -375,7 +375,7 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                           helperText={formErrors.userType || ''}
                         >
                           <MenuItem value="">Selecciona Tipo</MenuItem>
-                          <MenuItem value="freelancer">Freelancer</MenuItem>
+                          <MenuItem value="freelancer">Autónomo</MenuItem>
                           <MenuItem value="company">Empresa</MenuItem>
                         </TextField>
                       </Grid>
