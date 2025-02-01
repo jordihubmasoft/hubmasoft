@@ -1,4 +1,5 @@
 // src/types/Contact.ts
+
 export interface ShippingAddress {
   direccion: string;
   poblacion: string;
@@ -8,7 +9,7 @@ export interface ShippingAddress {
 }
 
 export interface ExtraInformation {
-  contact: string; // Ajusta el tipo según corresponda
+  contact: string;
   salesTax: number;
   equivalenceSurcharge: number;
   shoppingTax: number;
@@ -25,31 +26,52 @@ export interface ExtraInformation {
   swift: string;
   iban: string;
   shippingAddress: ShippingAddress[];
-  id: number; // Cambiado a number
+  id: number;
   creationDate: string;
   active: boolean;
   updatingDate: string;
 }
 
 export interface Contact {
-  id: string; // Cambiado a number
-  userId: string; // Asegúrate de que también sea number
-  name: string;
+  id: number;
+  userId: number;
+  // Campos principales en español
+  nombre: string;             // antes "name"
   email: string;
-  country: string;
-  city: string;
-  userType: string;
-  phone: string;
-  mobile: string;
-  website: string;
-  address: string;
-  postalCode: string;
-  nie: string;
-  commercialName: string;
-  province: string;
+  pais: string;               // antes "country"
+  poblacion: string;          // antes "city"
+  tipoContacto: string;       // antes "userType"
+  telefono: string;           // antes "phone"
+  movil: string;              // antes "mobile"
+  sitioWeb: string;           // antes "website"
+  direccion: string;          // antes "address"
+  codigoPostal: string;       // antes "postalCode"
+  nif: string;                // antes "nie"
+  nombreComercial: string;    // antes "commercialName"
+  provincia: string;
+  identificacionVAT: string;  // de extraInformation.vatType
+  tags: string;               // campo adicional
+  idioma: string;             // de extraInformation.language
+  moneda: string;             // de extraInformation.currency
+  formaPago: string;          // de extraInformation.paymentMethod
+  diasVencimiento: string;    // de extraInformation.paymentExpirationDays
+  diaVencimiento: string;     // de extraInformation.paymentExpirationDay
+  tarifa: string;             // de extraInformation.rate
+  descuento: string;          // de extraInformation.discount
+  cuentaCompras: string;      // campo adicional
+  cuentaPagos: string;        // campo adicional
+  swift: string;              // de extraInformation.swift
+  iban: string;               // de extraInformation.iban
+  refMandato: string;         // campo adicional
+  referenciaInterna: string;   // de extraInformation.internalReference
+  comercialAsignado: string;  // campo adicional
+  tipoIVA: string[];          // se construye a partir de extraInformation.vatType (en arreglo)
+  informacionAdicional: string; // campo adicional
+  // Campos opcionales adicionales
   skills?: string;
   experience?: string;
   companyName?: string;
   companySize?: string;
-  extraInformation?: ExtraInformation; // Añadido
+  // Se conserva la información extra original, de forma opcional
+  extraInformation?: ExtraInformation;
 }

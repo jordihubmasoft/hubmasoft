@@ -11,7 +11,6 @@ import {
   Dialog,
   DialogActions,
   DialogContent,
-  DialogContentText,
   DialogTitle,
   InputAdornment,
   MenuItem,
@@ -34,6 +33,7 @@ import {
   TableHead,
   TableRow,
   ListItemButton,
+  Drawer,
 } from "@mui/material";
 import Header from "../../../components/Header";
 import Sidebar from "../../../components/Sidebar";
@@ -44,7 +44,6 @@ import MoreVertIcon from "@mui/icons-material/MoreVert";
 import ImportExportIcon from "@mui/icons-material/ImportExport";
 import PortalIcon from "@mui/icons-material/Language";
 import ViewColumnIcon from "@mui/icons-material/ViewColumn";
-import { Drawer } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import EmailIcon from "@mui/icons-material/Email";
 import PhoneIcon from "@mui/icons-material/Phone";
@@ -54,18 +53,17 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import { useRouter } from "next/router";
 import { Bar } from "react-chartjs-2";
 import ContactTable from "../components/contactTable";
-import ContactForm from "../components/contactForm"; // Asegúrate de tener este componente
+import ContactForm from "../components/contactForm";
 
-// Importar ContactService y tipos adicionales
+// Servicios y tipos
 import ContactService from "../../../services/ContactService";
-import { Contact, ShippingAddress } from "../../../types/Contact";
+import { Contact } from "../../../types/Contact";
 import { LinkedContact } from "../../../types/LinkedContact";
 import { CommonResponse } from "../../../types/CommonResponse";
 import useAuthStore from "../../../store/useAuthStore";
-// Añadir esta línea:
 import LinkedContactsService from "../../../services/LinkedContactsService";
 
-// Datos de ejemplo para los gráficos de ventas y compras
+// Datos para los gráficos de ventas y compras
 const salesData = {
   labels: [
     "Ene",
@@ -116,6 +114,7 @@ const purchasesData = {
   ],
 };
 
+// Lista de todas las columnas disponibles en la tabla
 const allColumns = [
   { id: "nombre", label: "Nombre" },
   { id: "nombreComercial", label: "Nombre Comercial" },
@@ -149,22 +148,25 @@ const allColumns = [
   { id: "tipoIVA", label: "Tipo de IVA" },
 ];
 
-const initialFormData = {
+// Datos iniciales para el formulario de contacto (vacío)
+const initialFormData: Contact = {
+  id: 0,
+  userId: 0,
   nombre: "",
-  nombreComercial: "",
-  nif: "",
-  direccion: "",
-  poblacion: "",
-  codigoPostal: "",
-  provincia: "",
-  pais: "",
   email: "",
+  pais: "",
+  poblacion: "",
+  tipoContacto: "",
   telefono: "",
   movil: "",
   sitioWeb: "",
+  direccion: "",
+  codigoPostal: "",
+  nif: "",
+  nombreComercial: "",
+  provincia: "",
   identificacionVAT: "",
   tags: "",
-  tipoContacto: "",
   idioma: "",
   moneda: "",
   formaPago: "",
@@ -183,155 +185,65 @@ const initialFormData = {
   informacionAdicional: "",
 };
 
-const contactsData = [
-  {
-    id: 1,
-    nombre: "Juan Pérez",
-    nombreComercial: "JP Business",
-    nif: "12345678Z",
-    direccion: "Calle Falsa 123",
-    poblacion: "Madrid",
-    codigoPostal: "28001",
-    provincia: "Madrid",
-    pais: "España",
-    email: "juan@example.com",
-    telefono: "912345678",
-    movil: "600123456",
-    sitioWeb: "https://www.jp-business.com",
-    identificacionVAT: "ES12345678Z",
-    tags: "Cliente VIP",
-    tipoContacto: "Cliente",
-    idioma: "Español",
-    moneda: "EUR",
-    formaPago: "Transferencia",
-    diasVencimiento: "30",
-    diaVencimiento: "15",
-    tarifa: "Normal",
-    descuento: "10",
-    cuentaCompras: "4001",
-    cuentaPagos: "5001",
-    swift: "BBVAESMMXXX",
-    iban: "ES7620770024003102575766",
-    refMandato: "12345",
-    referenciaInterna: "REF001",
-    comercialAsignado: "Luis Gómez",
-    tipoIVA: ["IVA 1"],
-    informacionAdicional: "Cliente con historial impecable.",
-  },
-  {
-    id: 2,
-    nombre: "María González",
-    nombreComercial: "Distribuciones MG",
-    nif: "87654321Y",
-    direccion: "Avenida Principal 45",
-    poblacion: "Barcelona",
-    codigoPostal: "08001",
-    provincia: "Barcelona",
-    pais: "España",
-    email: "maria@example.com",
-    telefono: "931234567",
-    movil: "650123789",
-    sitioWeb: "https://www.mg-distribuciones.com",
-    identificacionVAT: "ES87654321Y",
-    tags: "Proveedor Regular",
-    tipoContacto: "Proveedor",
-    idioma: "Español",
-    moneda: "EUR",
-    formaPago: "Domiciliación Bancaria",
-    diasVencimiento: "60",
-    diaVencimiento: "20",
-    tarifa: "Especial",
-    descuento: "5",
-    cuentaCompras: "4100",
-    cuentaPagos: "5100",
-    swift: "CAIXESBBXXX",
-    iban: "ES9020800066101234567891",
-    refMandato: "98765",
-    referenciaInterna: "REF002",
-    comercialAsignado: "Carlos Martínez",
-    tipoIVA: ["IVA 2"],
-    informacionAdicional: "Proveedor puntual y confiable.",
-  },
-];
-
 const Contacts = () => {
+  // Estados principales
   const [open, setOpen] = useState(false);
-  const [selectedContact, setSelectedContact] = useState<any>(null);
-  const [contacts, setContacts] = useState(contactsData);
+  const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
+  const [contacts, setContacts] = useState<Contact[]>([]);
   const [isMenuOpen, setIsMenuOpen] = useState(true);
   const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
   const [password, setPassword] = useState("");
   const [isPasswordEnabled, setIsPasswordEnabled] = useState(false);
-  const [visibleColumns, setVisibleColumns] = useState(
+  const [visibleColumns, setVisibleColumns] = useState<string[]>(
     allColumns.map((col) => col.id)
   );
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [filteredPeople, setFilteredPeople] = useState(contactsData);
+  const [filteredPeople, setFilteredPeople] = useState<Contact[]>([]);
   const [filter, setFilter] = useState("todos");
   const [isDrawerExpanded, setIsDrawerExpanded] = useState(false);
   const [selectedTab, setSelectedTab] = useState(0);
   const [isEditing, setIsEditing] = useState(false);
-  const [editData, setEditData] = useState(selectedContact);
+  const [editData, setEditData] = useState<Contact | null>(null);
   const [isEditingClient, setIsEditingClient] = useState(false);
   const [editClientData, setEditClientData] = useState({
-    nombre: selectedContact?.nombre || "",
-    nif: selectedContact?.nif || "",
-    telefono: selectedContact?.telefono || "",
-    email: selectedContact?.email || "",
-    direccion: selectedContact?.direccion || "",
-    codigoPostal: selectedContact?.codigoPostal || "",
-    poblacion: selectedContact?.poblacion || "",
-    provincia: selectedContact?.provincia || "",
-    pais: selectedContact?.pais || "",
+    nombre: "",
+    nif: "",
+    telefono: "",
+    email: "",
+    direccion: "",
+    codigoPostal: "",
+    poblacion: "",
+    provincia: "",
+    pais: "",
   });
-  const [linkedContacts, setLinkedContacts] = useState<LinkedContact[]>([]); // <--- Añadido
+  const [linkedContacts, setLinkedContacts] = useState<LinkedContact[]>([]);
   const token = useAuthStore((state) => state.token);
   const ownerContactId = useAuthStore((state) => state.contactId);
+  const router = useRouter();
 
-  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
-    setSelectedTab(newValue);
-  };
-
-  const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const term = event.target.value.toLowerCase();
-    setSearchTerm(term);
-    setFilteredPeople(
-      contacts.filter(
-        (contact) =>
-          contact.nombre.toLowerCase().includes(term) ||
-          contact.tipoContacto.toLowerCase().includes(term)
-      )
-    );
-  };
-
-  const handleOpenDialog = () => {
-    setIsDialogOpen(true);
-  };
-
-  const handleCloseDialog = () => {
-    setIsDialogOpen(false);
-  };
+  // Efecto para recuperar los contactos desde el API
   useEffect(() => {
-    const fetchLinkedContacts = async () => {
-      if (ownerContactId && token) {
-        try {
-          const response = await LinkedContactsService.getByContactId(
-            ownerContactId,
-            token
+    if (token) {
+      ContactService.getAllContacts(token)
+        .then((response) => {
+          // Se asume que response.data es un arreglo de objetos en formato de servicio
+          const fetchedContacts: Contact[] = response.data.map(
+            (serviceContact: any) =>
+              transformServiceContactToLocal(serviceContact)
           );
-          setLinkedContacts(response.data || []);
-        } catch (error) {
-          console.error("Error al obtener contactos vinculados:", error);
-        }
-      }
-    };
+          setContacts(fetchedContacts);
+          setFilteredPeople(fetchedContacts);
+        })
+        .catch((error) =>
+          console.error("Error al obtener contactos:", error)
+        );
+    }
+  }, [token]);
 
-    fetchLinkedContacts();
-  }, [ownerContactId, token]); // <--- Añadido
-
+  // Efecto para actualizar columnas visibles (LocalStorage)
   useEffect(() => {
     const savedColumns =
       JSON.parse(localStorage.getItem("visibleColumns") || "[]") ||
@@ -343,9 +255,9 @@ const Contacts = () => {
     localStorage.setItem("visibleColumns", JSON.stringify(visibleColumns));
   }, [visibleColumns]);
 
+  // Actualizar datos de edición cuando cambia el contacto seleccionado
   useEffect(() => {
     setEditData(selectedContact);
-    setIsEditing(false);
   }, [selectedContact]);
 
   useEffect(() => {
@@ -365,7 +277,46 @@ const Contacts = () => {
     }
   }, [selectedContact]);
 
-  const handleOpen = (contact: any = null) => {
+  // Efecto para cargar los contactos vinculados del contacto seleccionado
+  useEffect(() => {
+    const fetchLinkedContacts = async () => {
+      if (selectedContact?.id && token) {
+        try {
+          const response = await LinkedContactsService.getByContactId(
+            selectedContact.id.toString(),
+            token
+          );
+          setLinkedContacts(response.data || []);
+        } catch (error) {
+          console.error("Error al obtener contactos vinculados:", error);
+        }
+      }
+    };
+    fetchLinkedContacts();
+  }, [selectedContact, token]);
+
+  // Manejo del cambio en la búsqueda (usando fallback para evitar errores)
+  const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const term = event.target.value.toLowerCase();
+    setSearchTerm(term);
+    setFilteredPeople(
+      contacts.filter(
+        (contact) =>
+          (contact.nombre || "").toLowerCase().includes(term) ||
+          (contact.tipoContacto || "").toLowerCase().includes(term)
+      )
+    );
+  };
+
+  const handleOpenDialog = () => {
+    setIsDialogOpen(true);
+  };
+
+  const handleCloseDialog = () => {
+    setIsDialogOpen(false);
+  };
+
+  const handleOpen = (contact: Contact | null = null) => {
     setSelectedContact(contact);
     setOpen(true);
   };
@@ -400,28 +351,25 @@ const Contacts = () => {
         token
       );
       setLinkedContacts((prev) =>
-        prev.filter((lc) => lc.LinekdContactId !== linkedContactId)
+        prev.filter((lc) => lc.linkedContactId !== linkedContactId)
       );
     } catch (error) {
       console.error("Error al eliminar contacto vinculado:", error);
     }
   };
 
-  const handleOpenDrawer = (contact: any) => {
+  const handleOpenDrawer = (contact: Contact) => {
     setSelectedContact(contact);
     setEditData(contact);
     setIsDrawerOpen(true);
   };
 
-  // Dentro de tu componente Contacts.tsx
-
+  // Función para guardar (crear/actualizar) un contacto
   const handleSave = async (contact: Contact) => {
     if (!token || !ownerContactId) {
       console.error("No hay token o ownerContactId disponible");
-
       return;
     }
-
     try {
       let response: CommonResponse<Contact>;
       if (contact.id) {
@@ -429,27 +377,19 @@ const Contacts = () => {
           { ...contact, contactId: contact.id.toString() },
           token
         );
-        // Transformar y actualizar tu estado...
         const updatedContact = transformServiceContactToLocal(response.data);
         setContacts((prev) =>
           prev.map((c) => (c.id === updatedContact.id ? updatedContact : c))
         );
         setSelectedContact(updatedContact);
       } else {
-        // **Agregar userId al contacto antes de crearlo**
         response = await ContactService.createContact(contact, token);
-
         const newContact = transformServiceContactToLocal(response.data);
-
-        // Verificar si el nuevo contacto tiene un ID válido
         if (isNaN(newContact.id)) {
           console.error("El nuevo contacto tiene un ID inválido:", newContact);
         }
-
         setContacts((prev) => [...prev, newContact]);
         setSelectedContact(newContact);
-
-        // Asegurarse de que el ID del nuevo contacto es válido antes de vincular
         if (!isNaN(newContact.id)) {
           await LinkedContactsService.addLinkedContact(
             ownerContactId,
@@ -457,9 +397,7 @@ const Contacts = () => {
             token
           );
         } else {
-          console.error(
-            "No se puede vincular el contacto debido a un ID inválido."
-          );
+          console.error("No se puede vincular el contacto debido a un ID inválido.");
         }
       }
     } catch (error: any) {
@@ -467,32 +405,31 @@ const Contacts = () => {
     }
   };
 
-  // Función para transformar de un Contact del servicio a tu formato interno
-  function transformServiceContactToLocal(serviceContact: Contact) {
+  // Función para transformar un objeto recibido del servicio al formato interno
+  function transformServiceContactToLocal(serviceContact: any): Contact {
     return {
       id: Number(serviceContact.id),
-      nombre: serviceContact.name,
-      nombreComercial: serviceContact.commercialName,
-      nif: serviceContact.nie,
-      direccion: serviceContact.address,
-      poblacion: serviceContact.city,
-      codigoPostal: serviceContact.postalCode,
-      provincia: serviceContact.province,
-      pais: serviceContact.country,
-      email: serviceContact.email,
-      telefono: serviceContact.phone,
-      movil: serviceContact.mobile,
-      sitioWeb: serviceContact.website,
+      userId: serviceContact.userId || 0,
+      nombre: serviceContact.name || "",
+      email: serviceContact.email || "",
+      pais: serviceContact.country || "",
+      poblacion: serviceContact.city || "",
+      tipoContacto: serviceContact.userType || "",
+      telefono: serviceContact.phone || "",
+      movil: serviceContact.mobile || "",
+      sitioWeb: serviceContact.website || "",
+      direccion: serviceContact.address || "",
+      codigoPostal: serviceContact.postalCode || "",
+      nif: serviceContact.nie || "",
+      nombreComercial: serviceContact.commercialName || "",
+      provincia: serviceContact.province || "",
       identificacionVAT: serviceContact.extraInformation?.vatType || "",
       tags: "",
-      tipoContacto: serviceContact.userType,
       idioma: serviceContact.extraInformation?.language || "",
       moneda: serviceContact.extraInformation?.currency || "",
       formaPago: serviceContact.extraInformation?.paymentMethod || "",
-      diasVencimiento:
-        serviceContact.extraInformation?.paymentExpirationDays || "",
-      diaVencimiento:
-        serviceContact.extraInformation?.paymentExpirationDay || "",
+      diasVencimiento: serviceContact.extraInformation?.paymentExpirationDays || "",
+      diaVencimiento: serviceContact.extraInformation?.paymentExpirationDay || "",
       tarifa: serviceContact.extraInformation?.rate || "",
       descuento: serviceContact.extraInformation?.discount || "",
       cuentaCompras: "",
@@ -500,13 +437,13 @@ const Contacts = () => {
       swift: serviceContact.extraInformation?.swift || "",
       iban: serviceContact.extraInformation?.iban || "",
       refMandato: "",
-      referenciaInterna:
-        serviceContact.extraInformation?.internalReference || "",
+      referenciaInterna: serviceContact.extraInformation?.internalReference || "",
       comercialAsignado: "",
       tipoIVA: serviceContact.extraInformation?.vatType
         ? [serviceContact.extraInformation.vatType]
         : [],
       informacionAdicional: "",
+      extraInformation: serviceContact.extraInformation,
     };
   }
 
@@ -526,23 +463,20 @@ const Contacts = () => {
     setAnchorEl(null);
   };
 
+  // Función para obtener los contactos filtrados (usando fallback para evitar errores)
   const getFilteredContacts = () => {
     return contacts.filter((contact) => {
-      const matchesSearchTerm =
-        contact.nombre.toLowerCase().includes(searchTerm) ||
-        contact.tipoContacto.toLowerCase().includes(searchTerm);
-
+      const nombre = (contact.nombre || "").toLowerCase();
+      const tipo = (contact.tipoContacto || "").toLowerCase();
+      const matchesSearchTerm = nombre.includes(searchTerm) || tipo.includes(searchTerm);
       if (filter === "todos") return matchesSearchTerm;
       if (filter === "clientes")
         return matchesSearchTerm && contact.tipoContacto === "Cliente";
       if (filter === "proveedores")
         return matchesSearchTerm && contact.tipoContacto === "Proveedor";
-
       return false;
     });
   };
-
-  const router = useRouter();
 
   const handlePortalClick = () => {
     if (isPasswordEnabled) {
@@ -552,7 +486,7 @@ const Contacts = () => {
     }
   };
 
-  const handleEdit = (contact: any) => {
+  const handleEdit = (contact: Contact) => {
     handleOpen(contact);
   };
 
@@ -631,7 +565,7 @@ const Contacts = () => {
               />
             </Box>
 
-            {/* Contenedor para filtros y botones de acción */}
+            {/* Filtros y botones de acción */}
             <Box
               sx={{
                 display: "flex",
@@ -642,7 +576,6 @@ const Contacts = () => {
                 gap: 2,
               }}
             >
-              {/* Filtros alineados a la izquierda */}
               <Box
                 sx={{
                   display: "flex",
@@ -681,7 +614,6 @@ const Contacts = () => {
                 </Button>
               </Box>
 
-              {/* Botones de acción alineados a la derecha */}
               <Box
                 sx={{
                   display: "flex",
@@ -737,11 +669,9 @@ const Contacts = () => {
                     bgcolor: "#FFA500",
                     color: "#ffffff",
                     borderRadius: 2,
-                    boxShadow: "0 3px 6px rgba(0, 0, 0, 0.1)",
+                    boxShadow: "0 3px 6px rgba(0,0,0,0.1)",
                     transition: "background-color 0.3s ease",
-                    "&:hover": {
-                      bgcolor: "#FF8C00",
-                    },
+                    "&:hover": { bgcolor: "#FF8C00" },
                     minWidth: "48px",
                     minHeight: "48px",
                   }}
@@ -754,10 +684,7 @@ const Contacts = () => {
                   open={Boolean(anchorEl)}
                   onClose={handleMenuClose}
                   PaperProps={{
-                    style: {
-                      maxHeight: "400px",
-                      width: "250px",
-                    },
+                    style: { maxHeight: "400px", width: "250px" },
                   }}
                 >
                   {allColumns.map((column) => (
@@ -793,7 +720,7 @@ const Contacts = () => {
               onRowClick={handleOpenDrawer}
             />
 
-            {/* Drawer */}
+            {/* Drawer con detalles y acciones adicionales */}
             <Drawer
               anchor="right"
               open={isDrawerOpen}
@@ -813,9 +740,7 @@ const Contacts = () => {
               }}
             >
               {!isDrawerExpanded ? (
-                // **Contenido No Expandido**
                 <Box sx={{ p: 2, overflowY: "auto", height: "100%" }}>
-                  {/* Nombre, tipo de contacto y botón "Más" */}
                   <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
                     <Box
                       sx={{
@@ -834,25 +759,19 @@ const Contacts = () => {
                       {selectedContact?.nombre?.split(" ")[1]?.[0]}
                     </Box>
                     <Box sx={{ flexGrow: 1 }}>
-                      <Typography
-                        variant="h6"
-                        sx={{ margin: 0, fontWeight: "bold" }}
-                      >
+                      <Typography variant="h6" sx={{ margin: 0, fontWeight: "bold" }}>
                         {selectedContact?.nombre}
                       </Typography>
                       <Typography variant="body2" sx={{ color: "#8A8A8A" }}>
                         {selectedContact?.tipoContacto}
                       </Typography>
                     </Box>
-                    <Box
-                      sx={{ display: "flex", justifyContent: "flex-end", p: 2 }}
-                    >
+                    <Box sx={{ display: "flex", justifyContent: "flex-end", p: 2 }}>
                       <Button
                         startIcon={<ArrowForwardIcon />}
                         onClick={() => setIsDrawerExpanded(true)}
                         sx={{
-                          background:
-                            "linear-gradient(90deg, #2666CF, #6A82FB)",
+                          background: "linear-gradient(90deg, #2666CF, #6A82FB)",
                           color: "#ffffff",
                           fontWeight: "500",
                           textTransform: "none",
@@ -866,14 +785,7 @@ const Contacts = () => {
                     </Box>
                   </Box>
 
-                  {/* Opciones de contacto */}
-                  <Box
-                    sx={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      mb: 3,
-                    }}
-                  >
+                  <Box sx={{ display: "flex", justifyContent: "space-between", mb: 3 }}>
                     <IconButton>
                       <EmailIcon />
                     </IconButton>
@@ -891,7 +803,6 @@ const Contacts = () => {
                     </IconButton>
                   </Box>
 
-                  {/* Información de Contacto */}
                   <Box sx={{ mb: 3 }}>
                     <Box
                       sx={{
@@ -912,11 +823,7 @@ const Contacts = () => {
                               setSelectedContact(editData);
                               setIsEditing(false);
                             }}
-                            sx={{
-                              textTransform: "none",
-                              color: "#2666CF",
-                              mr: 1,
-                            }}
+                            sx={{ textTransform: "none", color: "#2666CF", mr: 1 }}
                           >
                             Guardar
                           </Button>
@@ -942,7 +849,7 @@ const Contacts = () => {
                         </Button>
                       )}
                     </Box>
-                    {isEditing ? (
+                    {isEditing && editData ? (
                       <>
                         <TextField
                           label="Nombre"
@@ -966,10 +873,7 @@ const Contacts = () => {
                           label="Dirección"
                           value={editData.direccion}
                           onChange={(e) =>
-                            setEditData({
-                              ...editData,
-                              direccion: e.target.value,
-                            })
+                            setEditData({ ...editData, direccion: e.target.value })
                           }
                           fullWidth
                           sx={{ mb: 1 }}
@@ -978,10 +882,7 @@ const Contacts = () => {
                           label="Teléfono"
                           value={editData.telefono}
                           onChange={(e) =>
-                            setEditData({
-                              ...editData,
-                              telefono: e.target.value,
-                            })
+                            setEditData({ ...editData, telefono: e.target.value })
                           }
                           fullWidth
                           sx={{ mb: 1 }}
@@ -998,15 +899,14 @@ const Contacts = () => {
                       </>
                     ) : (
                       <>
-                        <Typography variant="body2">
+                        <Typography variant="body2" sx={{ mb: 1 }}>
                           <strong>Nombre:</strong> {selectedContact?.nombre}
                         </Typography>
-                        <Typography variant="body2">
+                        <Typography variant="body2" sx={{ mb: 1 }}>
                           <strong>Nif:</strong> {selectedContact?.nif}
                         </Typography>
-                        <Typography variant="body2">
-                          <strong>Dirección:</strong>{" "}
-                          {selectedContact?.direccion}
+                        <Typography variant="body2" sx={{ mb: 1 }}>
+                          <strong>Dirección:</strong> {selectedContact?.direccion}
                         </Typography>
                         <Typography variant="body2">
                           <strong>Teléfono:</strong>{" "}
@@ -1017,7 +917,7 @@ const Contacts = () => {
                             {selectedContact?.telefono}
                           </a>
                         </Typography>
-                        <Typography variant="body2">
+                        <Typography variant="body2" sx={{ mb: 1 }}>
                           <strong>Email:</strong>{" "}
                           <a
                             href={`mailto:${selectedContact?.email}`}
@@ -1030,7 +930,6 @@ const Contacts = () => {
                     )}
                   </Box>
 
-                  {/* Botones de creación rápida */}
                   <Box sx={{ display: "flex", gap: 1, mb: 2 }}>
                     <Button variant="outlined" sx={{ textTransform: "none" }}>
                       Nuevo Presupuesto
@@ -1049,7 +948,6 @@ const Contacts = () => {
                     </Button>
                   </Box>
 
-                  {/* Sección para crear nuevos elementos */}
                   <Box
                     sx={{
                       display: "flex",
@@ -1075,7 +973,6 @@ const Contacts = () => {
                     </Button>
                   </Box>
 
-                  {/* Botón Añadir contraseña */}
                   <Button
                     variant="outlined"
                     sx={{ textTransform: "none", mb: 3 }}
@@ -1084,11 +981,7 @@ const Contacts = () => {
                     Añadir Contraseña
                   </Button>
 
-                  {/* Sección de relaciones */}
-                  <Typography
-                    variant="body1"
-                    sx={{ fontWeight: "bold", mb: 2 }}
-                  >
+                  <Typography variant="body1" sx={{ fontWeight: "bold", mb: 2 }}>
                     Relaciones
                   </Typography>
                   <Button
@@ -1108,14 +1001,12 @@ const Contacts = () => {
                   </Button>
                   <List>
                     {linkedContacts.map((lc) => (
-                      <ListItem key={lc.LinekdContactId}>
+                      <ListItem key={lc.linkedContactId}>
                         <ListItemText
-                          primary={`Contacto ID: ${lc.LinekdContactId}`}
+                          primary={`Contacto ID: ${lc.linkedContactId}`}
                         />
                         <IconButton
-                          onClick={() =>
-                            handleUnlinkContact(lc.LinekdContactId)
-                          }
+                          onClick={() => handleUnlinkContact(lc.linkedContactId)}
                         >
                           <DeleteIcon />
                         </IconButton>
@@ -1123,12 +1014,8 @@ const Contacts = () => {
                     ))}
                   </List>
 
-                  {/* Gráfico de Ventas */}
                   <Box sx={{ mb: 2 }}>
-                    <Typography
-                      variant="body1"
-                      sx={{ fontWeight: "bold", mb: 1 }}
-                    >
+                    <Typography variant="body1" sx={{ fontWeight: "bold", mb: 1 }}>
                       Ventas
                     </Typography>
                     <Box
@@ -1178,9 +1065,7 @@ const Contacts = () => {
                             alignItems: "center",
                             fontSize: "0.75rem",
                           }}
-                          endIcon={
-                            <ArrowForwardIcon sx={{ fontSize: "1rem" }} />
-                          }
+                          endIcon={<ArrowForwardIcon sx={{ fontSize: "1rem" }} />}
                           onClick={() => {}}
                         >
                           8 facturas
@@ -1237,7 +1122,6 @@ const Contacts = () => {
                         >
                           0 días
                         </Typography>
-
                         <Typography
                           variant="body2"
                           sx={{ color: "#B0B0B0", fontSize: "0.75rem", mt: 1 }}
@@ -1262,20 +1146,14 @@ const Contacts = () => {
                       options={{
                         responsive: true,
                         plugins: {
-                          legend: {
-                            display: false,
-                          },
+                          legend: { display: false },
                         },
                       }}
                     />
                   </Box>
 
-                  {/* Gráfico de Compras */}
                   <Box sx={{ mb: 2 }}>
-                    <Typography
-                      variant="body1"
-                      sx={{ fontWeight: "bold", mb: 1 }}
-                    >
+                    <Typography variant="body1" sx={{ fontWeight: "bold", mb: 1 }}>
                       Compras
                     </Typography>
                     <Box
@@ -1325,9 +1203,7 @@ const Contacts = () => {
                             alignItems: "center",
                             fontSize: "0.75rem",
                           }}
-                          endIcon={
-                            <ArrowForwardIcon sx={{ fontSize: "1rem" }} />
-                          }
+                          endIcon={<ArrowForwardIcon sx={{ fontSize: "1rem" }} />}
                           onClick={() => {}}
                         >
                           5 pedidos
@@ -1384,7 +1260,6 @@ const Contacts = () => {
                         >
                           5 días
                         </Typography>
-
                         <Typography
                           variant="body2"
                           sx={{ color: "#B0B0B0", fontSize: "0.75rem", mt: 1 }}
@@ -1409,31 +1284,17 @@ const Contacts = () => {
                       options={{
                         responsive: true,
                         plugins: {
-                          legend: {
-                            display: false,
-                          },
+                          legend: { display: false },
                         },
                       }}
                     />
                   </Box>
                 </Box>
               ) : (
-                // **Contenido Expandido**
-                <Box
-                  sx={{
-                    p: 3,
-                    overflowY: "auto",
-                    height: "100%",
-                    bgcolor: "#F9F9F9",
-                  }}
-                >
-                  {/* Cabecera */}
+                <Box sx={{ p: 3, overflowY: "auto", height: "100%", bgcolor: "#F9F9F9" }}>
                   <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
-                    <Typography
-                      variant="h5"
-                      sx={{ fontWeight: "bold", flexGrow: 1, color: "#333" }}
-                    >
-                      {selectedContact?.nombre || "Félix Martínez Giménez"}
+                    <Typography variant="h5" sx={{ fontWeight: "bold", flexGrow: 1, color: "#333" }}>
+                      {selectedContact?.nombre || "Nombre del Contacto"}
                     </Typography>
                     <Button
                       startIcon={<ArrowForwardIcon />}
@@ -1452,22 +1313,17 @@ const Contacts = () => {
                     </Button>
                   </Box>
 
-                  {/* Pestañas de Navegación */}
                   <Tabs
                     value={selectedTab}
-                    onChange={handleTabChange}
+                    onChange={(e, newValue) => setSelectedTab(newValue)}
                     sx={{
                       mb: 3,
-                      ".MuiTabs-indicator": {
-                        bgcolor: "#2666CF",
-                      },
+                      ".MuiTabs-indicator": { bgcolor: "#2666CF" },
                       ".MuiTab-root": {
                         textTransform: "none",
                         fontWeight: "bold",
                         color: "#666",
-                        "&.Mui-selected": {
-                          color: "#2666CF",
-                        },
+                        "&.Mui-selected": { color: "#2666CF" },
                       },
                     }}
                   >
@@ -1479,20 +1335,17 @@ const Contacts = () => {
                     <Tab label="Notas" />
                   </Tabs>
 
-                  {/* Contenido de las pestañas */}
                   {selectedTab === 0 && (
                     <Grid container spacing={3}>
-                      {/* Información del Cliente */}
                       <Grid item xs={12} md={3}>
                         <Paper
                           sx={{
                             p: 2,
                             borderRadius: 2,
-                            boxShadow: "0 3px 6px rgba(0, 0, 0, 0.1)",
+                            boxShadow: "0 3px 6px rgba(0,0,0,0.1)",
                             height: "100%",
                           }}
                         >
-                          {/* Encabezado con el botón "Editar" */}
                           <Box
                             sx={{
                               display: "flex",
@@ -1512,17 +1365,10 @@ const Contacts = () => {
                                 <Button
                                   variant="text"
                                   onClick={() => {
-                                    handleSave({
-                                      ...selectedContact,
-                                      ...editClientData,
-                                    });
+                                    handleSave({ ...selectedContact, ...editClientData });
                                     setIsEditingClient(false);
                                   }}
-                                  sx={{
-                                    textTransform: "none",
-                                    color: "#2666CF",
-                                    mr: 1,
-                                  }}
+                                  sx={{ textTransform: "none", color: "#2666CF", mr: 1 }}
                                 >
                                   Guardar
                                 </Button>
@@ -1530,26 +1376,19 @@ const Contacts = () => {
                                   variant="text"
                                   onClick={() => {
                                     setEditClientData({
-                                      nombre: selectedContact.nombre || "",
-                                      nif: selectedContact.nif || "",
-                                      telefono: selectedContact.telefono || "",
-                                      email: selectedContact.email || "",
-                                      direccion:
-                                        selectedContact.direccion || "",
-                                      codigoPostal:
-                                        selectedContact.codigoPostal || "",
-                                      poblacion:
-                                        selectedContact.poblacion || "",
-                                      provincia:
-                                        selectedContact.provincia || "",
-                                      pais: selectedContact.pais || "",
+                                      nombre: selectedContact?.nombre || "",
+                                      nif: selectedContact?.nif || "",
+                                      telefono: selectedContact?.telefono || "",
+                                      email: selectedContact?.email || "",
+                                      direccion: selectedContact?.direccion || "",
+                                      codigoPostal: selectedContact?.codigoPostal || "",
+                                      poblacion: selectedContact?.poblacion || "",
+                                      provincia: selectedContact?.provincia || "",
+                                      pais: selectedContact?.pais || "",
                                     });
                                     setIsEditingClient(false);
                                   }}
-                                  sx={{
-                                    textTransform: "none",
-                                    color: "#B00020",
-                                  }}
+                                  sx={{ textTransform: "none", color: "#B00020" }}
                                 >
                                   Cancelar
                                 </Button>
@@ -1568,63 +1407,46 @@ const Contacts = () => {
 
                           {isEditingClient ? (
                             <>
-                              {/* Campos Editables */}
                               <TextField
                                 label="Nombre"
                                 name="nombre"
                                 value={editClientData.nombre}
                                 onChange={(e) =>
-                                  setEditClientData({
-                                    ...editClientData,
-                                    nombre: e.target.value,
-                                  })
+                                  setEditClientData({ ...editClientData, nombre: e.target.value })
                                 }
                                 fullWidth
                                 sx={{ mb: 1 }}
                               />
-
                               <TextField
                                 label="NIF"
                                 name="nif"
                                 value={editClientData.nif}
                                 onChange={(e) =>
-                                  setEditClientData({
-                                    ...editClientData,
-                                    nif: e.target.value,
-                                  })
+                                  setEditClientData({ ...editClientData, nif: e.target.value })
                                 }
                                 fullWidth
                                 sx={{ mb: 1 }}
                               />
-
                               <TextField
                                 label="Teléfono"
                                 name="telefono"
                                 value={editClientData.telefono}
                                 onChange={(e) =>
-                                  setEditClientData({
-                                    ...editClientData,
-                                    telefono: e.target.value,
-                                  })
+                                  setEditClientData({ ...editClientData, telefono: e.target.value })
                                 }
                                 fullWidth
                                 sx={{ mb: 1 }}
                               />
-
                               <TextField
                                 label="Email"
                                 name="email"
                                 value={editClientData.email}
                                 onChange={(e) =>
-                                  setEditClientData({
-                                    ...editClientData,
-                                    email: e.target.value,
-                                  })
+                                  setEditClientData({ ...editClientData, email: e.target.value })
                                 }
                                 fullWidth
                                 sx={{ mb: 1 }}
                               />
-
                               <Typography variant="body2" sx={{ mb: 1 }}>
                                 <strong>Dirección:</strong>
                               </Typography>
@@ -1635,10 +1457,7 @@ const Contacts = () => {
                                     name="direccion"
                                     value={editClientData.direccion}
                                     onChange={(e) =>
-                                      setEditClientData({
-                                        ...editClientData,
-                                        direccion: e.target.value,
-                                      })
+                                      setEditClientData({ ...editClientData, direccion: e.target.value })
                                     }
                                     fullWidth
                                     size="small"
@@ -1651,10 +1470,7 @@ const Contacts = () => {
                                     name="codigoPostal"
                                     value={editClientData.codigoPostal}
                                     onChange={(e) =>
-                                      setEditClientData({
-                                        ...editClientData,
-                                        codigoPostal: e.target.value,
-                                      })
+                                      setEditClientData({ ...editClientData, codigoPostal: e.target.value })
                                     }
                                     fullWidth
                                     size="small"
@@ -1667,10 +1483,7 @@ const Contacts = () => {
                                     name="poblacion"
                                     value={editClientData.poblacion}
                                     onChange={(e) =>
-                                      setEditClientData({
-                                        ...editClientData,
-                                        poblacion: e.target.value,
-                                      })
+                                      setEditClientData({ ...editClientData, poblacion: e.target.value })
                                     }
                                     fullWidth
                                     size="small"
@@ -1683,10 +1496,7 @@ const Contacts = () => {
                                     name="provincia"
                                     value={editClientData.provincia}
                                     onChange={(e) =>
-                                      setEditClientData({
-                                        ...editClientData,
-                                        provincia: e.target.value,
-                                      })
+                                      setEditClientData({ ...editClientData, provincia: e.target.value })
                                     }
                                     fullWidth
                                     size="small"
@@ -1699,10 +1509,7 @@ const Contacts = () => {
                                     name="pais"
                                     value={editClientData.pais}
                                     onChange={(e) =>
-                                      setEditClientData({
-                                        ...editClientData,
-                                        pais: e.target.value,
-                                      })
+                                      setEditClientData({ ...editClientData, pais: e.target.value })
                                     }
                                     fullWidth
                                     size="small"
@@ -1713,10 +1520,8 @@ const Contacts = () => {
                             </>
                           ) : (
                             <>
-                              {/* Información Estática */}
                               <Typography variant="body2" sx={{ mb: 1 }}>
-                                <strong>Nombre:</strong>{" "}
-                                {selectedContact?.nombre}
+                                <strong>Nombre:</strong> {selectedContact?.nombre}
                               </Typography>
                               <Typography variant="body2" sx={{ mb: 1 }}>
                                 <strong>NIF:</strong> {selectedContact?.nif}
@@ -1816,109 +1621,15 @@ const Contacts = () => {
                             </TextField>
                           </Box>
                           <Bar
-                            data={{
-                              labels: [
-                                "Enero",
-                                "Febrero",
-                                "Marzo",
-                                "Abril",
-                                "Mayo",
-                                "Junio",
-                                "Julio",
-                              ],
-                              datasets: [
-                                {
-                                  label: "Cobradas",
-                                  data: [
-                                    2000, 4000, 10000, 5000, 7000, 6000, 8000,
-                                  ],
-                                  backgroundColor: "#003366",
-                                  borderRadius: 5,
-                                  borderWidth: 1,
-                                },
-                                {
-                                  label: "Pendientes",
-                                  data: [
-                                    1000, 2000, 3000, 2000, 3000, 2500, 3000,
-                                  ],
-                                  backgroundColor: "#2666CF",
-                                  borderRadius: 5,
-                                  borderWidth: 1,
-                                },
-                                {
-                                  label: "Vencidas",
-                                  data: [
-                                    500, 1000, 1500, 1000, 2000, 1500, 1000,
-                                  ],
-                                  backgroundColor: "#DC3545",
-                                  borderRadius: 5,
-                                  borderWidth: 1,
-                                },
-                              ],
-                            }}
+                            data={salesData}
                             options={{
                               responsive: true,
-                              plugins: {
-                                legend: {
-                                  position: "bottom",
-                                  labels: {
-                                    usePointStyle: true,
-                                    color: "#333",
-                                    font: {
-                                      size: 13,
-                                    },
-                                  },
-                                },
-                                tooltip: {
-                                  callbacks: {
-                                    label: (context) => `${context.raw} €`,
-                                  },
-                                  backgroundColor: "#1F4B99",
-                                  titleColor: "#FFF",
-                                  bodyColor: "#FFF",
-                                  cornerRadius: 5,
-                                },
-                              },
-                              scales: {
-                                x: {
-                                  grid: {
-                                    drawOnChartArea: false,
-                                    drawTicks: true,
-                                    color: "#e0e0e0",
-                                  },
-                                  ticks: {
-                                    color: "#555",
-                                    font: {
-                                      size: 12,
-                                    },
-                                  },
-                                },
-                                y: {
-                                  grid: {
-                                    color: "#e0e0e0",
-                                  },
-                                  ticks: {
-                                    color: "#555",
-                                    font: {
-                                      size: 12,
-                                    },
-                                    callback: (value: number) => `${value} €`,
-                                  },
-                                },
-                              },
-                              maintainAspectRatio: false,
-                              layout: {
-                                padding: {
-                                  top: 20,
-                                  bottom: 10,
-                                },
-                              },
+                              plugins: { legend: { display: false } },
                             }}
                           />
                         </Paper>
                       </Grid>
 
-                      {/* Resumen Financiero */}
                       <Grid item xs={12} md={3}>
                         <Paper
                           sx={{
@@ -1935,9 +1646,7 @@ const Contacts = () => {
                           </Typography>
                           <Typography variant="body2" sx={{ mb: 1 }}>
                             <strong>Total por vencer:</strong>{" "}
-                            <span
-                              style={{ color: "#2666CF", fontWeight: "bold" }}
-                            >
+                            <span style={{ color: "#2666CF", fontWeight: "bold" }}>
                               1.345,98 €
                             </span>
                           </Typography>
@@ -1956,7 +1665,6 @@ const Contacts = () => {
                         </Paper>
                       </Grid>
 
-                      {/* Portal del Cliente */}
                       <Grid item xs={12} md={6}>
                         <Paper
                           sx={{
@@ -1971,13 +1679,7 @@ const Contacts = () => {
                           >
                             Portal Cliente
                           </Typography>
-                          <Box
-                            sx={{
-                              display: "flex",
-                              gap: 2,
-                              alignItems: "center",
-                            }}
-                          >
+                          <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
                             <Button
                               variant="outlined"
                               sx={{
@@ -1992,8 +1694,7 @@ const Contacts = () => {
                             <Button
                               variant="contained"
                               sx={{
-                                background:
-                                  "linear-gradient(90deg, #2666CF, #6A82FB)",
+                                background: "linear-gradient(90deg, #2666CF, #6A82FB)",
                                 color: "#ffffff",
                                 fontWeight: "500",
                                 textTransform: "none",
@@ -2008,7 +1709,6 @@ const Contacts = () => {
                         </Paper>
                       </Grid>
 
-                      {/* Notas */}
                       <Grid item xs={12} md={6}>
                         <Paper
                           sx={{
@@ -2025,8 +1725,7 @@ const Contacts = () => {
                             Notas
                           </Typography>
                           <Typography variant="body2" sx={{ mb: 1 }}>
-                            21/09/2024: Entregar los pedidos antes de las 13h
-                            que cierran el muelle de carga.
+                            21/09/2024: Entregar los pedidos antes de las 13h que cierran el muelle de carga.
                           </Typography>
                           <Button
                             startIcon={<AddIcon />}
@@ -2044,7 +1743,6 @@ const Contacts = () => {
                     </Grid>
                   )}
 
-                  {/* **Contenido de Otras Pestañas** */}
                   {selectedTab === 1 && (
                     <Grid container spacing={3}>
                       <Grid item xs={12}>
@@ -2065,46 +1763,31 @@ const Contacts = () => {
                             <Table stickyHeader>
                               <TableHead sx={{ bgcolor: "#003366" }}>
                                 <TableRow>
-                                  <TableCell
-                                    sx={{ color: "#fff", fontWeight: "bold" }}
-                                  >
+                                  <TableCell sx={{ color: "#fff", fontWeight: "bold" }}>
                                     Número de Factura
                                   </TableCell>
-                                  <TableCell
-                                    sx={{ color: "#fff", fontWeight: "bold" }}
-                                  >
+                                  <TableCell sx={{ color: "#fff", fontWeight: "bold" }}>
                                     Fecha
                                   </TableCell>
-                                  <TableCell
-                                    sx={{ color: "#fff", fontWeight: "bold" }}
-                                  >
+                                  <TableCell sx={{ color: "#fff", fontWeight: "bold" }}>
                                     Cliente
                                   </TableCell>
-                                  <TableCell
-                                    sx={{ color: "#fff", fontWeight: "bold" }}
-                                  >
+                                  <TableCell sx={{ color: "#fff", fontWeight: "bold" }}>
                                     Total
                                   </TableCell>
-                                  <TableCell
-                                    sx={{ color: "#fff", fontWeight: "bold" }}
-                                  >
+                                  <TableCell sx={{ color: "#fff", fontWeight: "bold" }}>
                                     Estado
                                   </TableCell>
                                 </TableRow>
                               </TableHead>
                               <TableBody>
-                                {/* Aquí agregarías dinámicamente las filas de facturas */}
+                                {/* Aquí agregar dinámicamente las filas de facturas */}
                                 <TableRow>
                                   <TableCell>FA-2023-001</TableCell>
                                   <TableCell>01/01/2023</TableCell>
                                   <TableCell>Cliente A</TableCell>
                                   <TableCell>1,200.00 €</TableCell>
-                                  <TableCell
-                                    sx={{
-                                      color: "#28A745",
-                                      fontWeight: "bold",
-                                    }}
-                                  >
+                                  <TableCell sx={{ color: "#28A745", fontWeight: "bold" }}>
                                     Pagada
                                   </TableCell>
                                 </TableRow>
@@ -2115,6 +1798,7 @@ const Contacts = () => {
                       </Grid>
                     </Grid>
                   )}
+
                   {selectedTab === 2 && (
                     <Grid container spacing={3}>
                       <Grid item xs={12}>
@@ -2135,40 +1819,27 @@ const Contacts = () => {
                             <Table stickyHeader>
                               <TableHead sx={{ bgcolor: "#003366" }}>
                                 <TableRow>
-                                  <TableCell
-                                    sx={{ color: "#fff", fontWeight: "bold" }}
-                                  >
+                                  <TableCell sx={{ color: "#fff", fontWeight: "bold" }}>
                                     Número de Albarán
                                   </TableCell>
-                                  <TableCell
-                                    sx={{ color: "#fff", fontWeight: "bold" }}
-                                  >
+                                  <TableCell sx={{ color: "#fff", fontWeight: "bold" }}>
                                     Fecha
                                   </TableCell>
-                                  <TableCell
-                                    sx={{ color: "#fff", fontWeight: "bold" }}
-                                  >
+                                  <TableCell sx={{ color: "#fff", fontWeight: "bold" }}>
                                     Cliente
                                   </TableCell>
-                                  <TableCell
-                                    sx={{ color: "#fff", fontWeight: "bold" }}
-                                  >
+                                  <TableCell sx={{ color: "#fff", fontWeight: "bold" }}>
                                     Estado
                                   </TableCell>
                                 </TableRow>
                               </TableHead>
                               <TableBody>
-                                {/* Aquí agregarías dinámicamente las filas de albaranes */}
+                                {/* Aquí agregar dinámicamente las filas de albaranes */}
                                 <TableRow>
                                   <TableCell>AL-2023-001</TableCell>
                                   <TableCell>02/01/2023</TableCell>
                                   <TableCell>Cliente B</TableCell>
-                                  <TableCell
-                                    sx={{
-                                      color: "#FFC107",
-                                      fontWeight: "bold",
-                                    }}
-                                  >
+                                  <TableCell sx={{ color: "#FFC107", fontWeight: "bold" }}>
                                     Pendiente
                                   </TableCell>
                                 </TableRow>
@@ -2179,6 +1850,7 @@ const Contacts = () => {
                       </Grid>
                     </Grid>
                   )}
+
                   {selectedTab === 3 && (
                     <Grid container spacing={3}>
                       <Grid item xs={12}>
@@ -2199,46 +1871,31 @@ const Contacts = () => {
                             <Table stickyHeader>
                               <TableHead sx={{ bgcolor: "#003366" }}>
                                 <TableRow>
-                                  <TableCell
-                                    sx={{ color: "#fff", fontWeight: "bold" }}
-                                  >
+                                  <TableCell sx={{ color: "#fff", fontWeight: "bold" }}>
                                     Número de Pedido
                                   </TableCell>
-                                  <TableCell
-                                    sx={{ color: "#fff", fontWeight: "bold" }}
-                                  >
+                                  <TableCell sx={{ color: "#fff", fontWeight: "bold" }}>
                                     Fecha
                                   </TableCell>
-                                  <TableCell
-                                    sx={{ color: "#fff", fontWeight: "bold" }}
-                                  >
+                                  <TableCell sx={{ color: "#fff", fontWeight: "bold" }}>
                                     Cliente
                                   </TableCell>
-                                  <TableCell
-                                    sx={{ color: "#fff", fontWeight: "bold" }}
-                                  >
+                                  <TableCell sx={{ color: "#fff", fontWeight: "bold" }}>
                                     Total
                                   </TableCell>
-                                  <TableCell
-                                    sx={{ color: "#fff", fontWeight: "bold" }}
-                                  >
+                                  <TableCell sx={{ color: "#fff", fontWeight: "bold" }}>
                                     Estado
                                   </TableCell>
                                 </TableRow>
                               </TableHead>
                               <TableBody>
-                                {/* Aquí agregarías dinámicamente las filas de pedidos */}
+                                {/* Aquí agregar dinámicamente las filas de pedidos */}
                                 <TableRow>
                                   <TableCell>PE-2023-001</TableCell>
                                   <TableCell>03/01/2023</TableCell>
                                   <TableCell>Cliente C</TableCell>
                                   <TableCell>2,500.00 €</TableCell>
-                                  <TableCell
-                                    sx={{
-                                      color: "#DC3545",
-                                      fontWeight: "bold",
-                                    }}
-                                  >
+                                  <TableCell sx={{ color: "#DC3545", fontWeight: "bold" }}>
                                     Cancelado
                                   </TableCell>
                                 </TableRow>
@@ -2249,6 +1906,7 @@ const Contacts = () => {
                       </Grid>
                     </Grid>
                   )}
+
                   {selectedTab === 4 && (
                     <Grid container spacing={3}>
                       <Grid item xs={12}>
@@ -2269,30 +1927,22 @@ const Contacts = () => {
                             <Table stickyHeader>
                               <TableHead sx={{ bgcolor: "#003366" }}>
                                 <TableRow>
-                                  <TableCell
-                                    sx={{ color: "#fff", fontWeight: "bold" }}
-                                  >
+                                  <TableCell sx={{ color: "#fff", fontWeight: "bold" }}>
                                     Fecha de Pago
                                   </TableCell>
-                                  <TableCell
-                                    sx={{ color: "#fff", fontWeight: "bold" }}
-                                  >
+                                  <TableCell sx={{ color: "#fff", fontWeight: "bold" }}>
                                     Nombre Cliente
                                   </TableCell>
-                                  <TableCell
-                                    sx={{ color: "#fff", fontWeight: "bold" }}
-                                  >
+                                  <TableCell sx={{ color: "#fff", fontWeight: "bold" }}>
                                     Número de Factura
                                   </TableCell>
-                                  <TableCell
-                                    sx={{ color: "#fff", fontWeight: "bold" }}
-                                  >
+                                  <TableCell sx={{ color: "#fff", fontWeight: "bold" }}>
                                     Total Pagado
                                   </TableCell>
                                 </TableRow>
                               </TableHead>
                               <TableBody>
-                                {/* Aquí agregarías dinámicamente las filas de pagos */}
+                                {/* Aquí agregar dinámicamente las filas de pagos */}
                                 <TableRow>
                                   <TableCell>04/01/2023</TableCell>
                                   <TableCell>Cliente D</TableCell>
@@ -2306,6 +1956,7 @@ const Contacts = () => {
                       </Grid>
                     </Grid>
                   )}
+
                   {selectedTab === 5 && (
                     <Grid container spacing={3}>
                       <Grid item xs={12}>
@@ -2324,14 +1975,13 @@ const Contacts = () => {
                             Notas
                           </Typography>
                           <Grid container spacing={2}>
-                            {/* Ejemplo de notas */}
                             <Grid item xs={12} sm={6} md={4}>
                               <Paper
                                 sx={{
                                   p: 2,
                                   bgcolor: "#FFF8DC",
                                   borderRadius: 2,
-                                  boxShadow: "0 3px 6px rgba(0, 0, 0, 0.1)",
+                                  boxShadow: "0 3px 6px rgba(0,0,0,0.1)",
                                   position: "relative",
                                 }}
                               >
@@ -2418,13 +2068,8 @@ const Contacts = () => {
               </DialogActions>
             </Dialog>
 
-            {/* Diálogo de Relacionar Persona */}
-            <Dialog
-              open={isDialogOpen}
-              onClose={handleCloseDialog}
-              maxWidth="sm"
-              fullWidth
-            >
+            {/* Diálogo para Relacionar Persona */}
+            <Dialog open={isDialogOpen} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
               <DialogTitle>Relacionar persona</DialogTitle>
               <DialogContent>
                 <TextField
@@ -2438,13 +2083,8 @@ const Contacts = () => {
                 <List>
                   {filteredPeople.map((person) => (
                     <ListItem key={person.id} disableGutters>
-                      <ListItemButton
-                        onClick={() => handleLinkContact(person.id)}
-                      >
-                        <ListItemText
-                          primary={person.nombre}
-                          secondary={person.tipoContacto}
-                        />
+                      <ListItemButton onClick={() => handleLinkContact(person.id)}>
+                        <ListItemText primary={person.nombre} secondary={person.tipoContacto} />
                       </ListItemButton>
                     </ListItem>
                   ))}

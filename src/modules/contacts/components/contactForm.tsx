@@ -22,33 +22,43 @@ import {
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 import { SelectChangeEvent } from '@mui/material/Select';
-import { Contact, ShippingAddress, ExtraInformation } from '../../../types/Contact'; // Asegúrate de que las rutas sean correctas
+import { Contact, ShippingAddress, ExtraInformation } from '../../../types/Contact';
 
-// Definir las interfaces para los props y los datos del formulario
-interface ContactFormProps {
-  open: boolean;
-  handleClose: () => void;
-  contact: Contact | null;
-  handleSave: (contact: Contact) => Promise<void>;
-}
-
-// components/ContactForm.tsx
+// Objeto inicial usando los nombres en español
 const initialFormData: Contact = {
-  id: '', // Asegúrate de que el id principal también sea numérico
-  userId: '',
-  name: '',
+  id: 0,
+  userId: 0,
+  nombre: '',
   email: '',
-  country: '',
-  city: '',
-  userType: '',
-  phone: '',
-  mobile: '',
-  website: '',
-  address: '',
-  postalCode: '',
-  nie: '',
-  commercialName: '',
-  province: '',
+  pais: '',
+  poblacion: '',
+  tipoContacto: '',
+  telefono: '',
+  movil: '',
+  sitioWeb: '',
+  direccion: '',
+  codigoPostal: '',
+  nif: '',
+  nombreComercial: '',
+  provincia: '',
+  identificacionVAT: '',
+  tags: '',
+  idioma: '',
+  moneda: '',
+  formaPago: '',
+  diasVencimiento: '',
+  diaVencimiento: '',
+  tarifa: '',
+  descuento: '',
+  cuentaCompras: '',
+  cuentaPagos: '',
+  swift: '',
+  iban: '',
+  refMandato: '',
+  referenciaInterna: '',
+  comercialAsignado: '',
+  tipoIVA: [],
+  informacionAdicional: '',
   skills: '',
   experience: '',
   companyName: '',
@@ -64,26 +74,31 @@ const initialFormData: Contact = {
     language: '',
     currency: '',
     paymentMethod: '',
-    paymentExpirationDays: '', // Asegúrate de que este campo también sea numérico
-    paymentExpirationDay: '',  // Asegúrate de que este campo también sea numérico
+    paymentExpirationDays: '',
+    paymentExpirationDay: '',
     rate: '',
-    discount: '', // Asegúrate de que este campo también sea numérico
+    discount: '',
     swift: '',
     iban: '',
     shippingAddress: [
       { direccion: '', poblacion: '', codigoPostal: '', provincia: '', pais: '' },
     ],
-    id: 0, // Cambiado a número
+    id: 0,
     creationDate: '',
     active: true,
     updatingDate: '',
   },
 };
 
+interface ContactFormProps {
+  open: boolean;
+  handleClose: () => void;
+  contact: Contact | null;
+  handleSave: (contact: Contact) => Promise<void>;
+}
 
 const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, handleSave }) => {
   const [formData, setFormData] = useState<Contact>(initialFormData);
-
   const [errors, setErrors] = useState<Partial<Record<keyof Contact | keyof ExtraInformation, string>>>({});
 
   useEffect(() => {
@@ -94,100 +109,66 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, h
     }
   }, [contact]);
 
-  // Manejador para TextField y otros inputs estándar
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = event.target;
     if (!name) return;
-
-    // Verificar si el campo pertenece a extraInformation
+    // Si el campo pertenece a extraInformation
     if (name.startsWith('extraInformation.')) {
       const field = name.split('.')[1];
-      setFormData((prev) => ({
+      setFormData(prev => ({
         ...prev,
         extraInformation: {
           ...prev.extraInformation!,
           [field]: value,
         },
       }));
-      setErrors((prev) => ({
-        ...prev,
-        [field]: '',
-      }));
+      setErrors(prev => ({ ...prev, [field]: '' }));
     } else {
-      setFormData((prev) => ({
-        ...prev,
-        [name]: value,
-      }));
-      setErrors((prev) => ({
-        ...prev,
-        [name]: '',
-      }));
+      setFormData(prev => ({ ...prev, [name]: value }));
+      setErrors(prev => ({ ...prev, [name]: '' }));
     }
   };
 
-  // Manejador para Select simples (multiple=false)
   const handleSelectChange = (event: SelectChangeEvent<string>) => {
     const { name, value } = event.target;
     if (!name) return;
-
     if (name.startsWith('extraInformation.')) {
       const field = name.split('.')[1];
-      setFormData((prev) => ({
+      setFormData(prev => ({
         ...prev,
         extraInformation: {
           ...prev.extraInformation!,
           [field]: value,
         },
       }));
-      setErrors((prev) => ({
-        ...prev,
-        [field]: '',
-      }));
+      setErrors(prev => ({ ...prev, [field]: '' }));
     } else {
-      setFormData((prev) => ({
-        ...prev,
-        [name]: value,
-      }));
-      setErrors((prev) => ({
-        ...prev,
-        [name]: '',
-      }));
+      setFormData(prev => ({ ...prev, [name]: value }));
+      setErrors(prev => ({ ...prev, [name]: '' }));
     }
   };
 
-  // Manejador para Select múltiples (multiple=true)
   const handleMultipleSelectChange = (event: SelectChangeEvent<string[]>) => {
     const { name, value } = event.target;
     if (!name) return;
-
     if (name.startsWith('extraInformation.')) {
       const field = name.split('.')[1];
-      setFormData((prev) => ({
+      setFormData(prev => ({
         ...prev,
         extraInformation: {
           ...prev.extraInformation!,
           [field]: value as string[],
         },
       }));
-      setErrors((prev) => ({
-        ...prev,
-        [field]: '',
-      }));
+      setErrors(prev => ({ ...prev, [field]: '' }));
     } else {
-      setFormData((prev) => ({
-        ...prev,
-        [name]: value as string[],
-      }));
-      setErrors((prev) => ({
-        ...prev,
-        [name]: '',
-      }));
+      setFormData(prev => ({ ...prev, [name]: value as string[] }));
+      setErrors(prev => ({ ...prev, [name]: '' }));
     }
   };
 
-  // Manejadores para Direcciones de Envío
   const addShippingAddress = () => {
-    setFormData((prev) => ({
+    setFormData(prev => ({
       ...prev,
       extraInformation: {
         ...prev.extraInformation!,
@@ -202,7 +183,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, h
   const removeShippingAddress = (index: number) => {
     const updatedAddresses = [...formData.extraInformation!.shippingAddress];
     updatedAddresses.splice(index, 1);
-    setFormData((prev) => ({
+    setFormData(prev => ({
       ...prev,
       extraInformation: {
         ...prev.extraInformation!,
@@ -218,11 +199,8 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, h
     const { name, value } = event.target;
     if (!name) return;
     const updatedAddresses = [...formData.extraInformation!.shippingAddress];
-    updatedAddresses[index] = {
-      ...updatedAddresses[index],
-      [name]: value,
-    };
-    setFormData((prev) => ({
+    updatedAddresses[index] = { ...updatedAddresses[index], [name]: value };
+    setFormData(prev => ({
       ...prev,
       extraInformation: {
         ...prev.extraInformation!,
@@ -231,48 +209,21 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, h
     }));
   };
 
-  // Validación del formulario
+  // Validación adaptada a las claves en español
   const validateForm = (): boolean => {
     const newErrors: Partial<Record<keyof Contact | keyof ExtraInformation, string>> = {};
-
-    // Validar campos principales
-    if (!formData.name.trim()) {
-      newErrors.name = 'Este campo es obligatorio';
-    }
-    if (!formData.nie.trim()) {
-      newErrors.nie = 'Este campo es obligatorio';
-    }
-    if (!formData.address.trim()) {
-      newErrors.address = 'Este campo es obligatorio';
-    }
-    if (!formData.postalCode.trim()) {
-      newErrors.postalCode = 'Este campo es obligatorio';
-    }
-    if (!formData.province.trim()) {
-      newErrors.province = 'Este campo es obligatorio';
-    }
-    if (!formData.country.trim()) {
-      newErrors.country = 'Este campo es obligatorio';
-    }
-
-    // Validar campos de extraInformation
+    if (!formData.nombre.trim()) newErrors.nombre = 'Este campo es obligatorio';
+    if (!formData.nif.trim()) newErrors.nif = 'Este campo es obligatorio';
+    if (!formData.direccion.trim()) newErrors.direccion = 'Este campo es obligatorio';
+    if (!formData.codigoPostal.trim()) newErrors.codigoPostal = 'Este campo es obligatorio';
+    if (!formData.provincia.trim()) newErrors.provincia = 'Este campo es obligatorio';
+    if (!formData.pais.trim()) newErrors.pais = 'Este campo es obligatorio';
     const extra = formData.extraInformation!;
-    if (!extra.vatType.trim()) {
-      newErrors.vatType = 'Este campo es obligatorio';
-    }
-    if (!extra.language.trim()) {
-      newErrors.language = 'Este campo es obligatorio';
-    }
-    if (!extra.currency.trim()) {
-      newErrors.currency = 'Este campo es obligatorio';
-    }
-    if (!extra.paymentMethod.trim()) {
-      newErrors.paymentMethod = 'Este campo es obligatorio';
-    }
-
+    if (!extra.vatType.trim()) newErrors.vatType = 'Este campo es obligatorio';
+    if (!extra.language.trim()) newErrors.language = 'Este campo es obligatorio';
+    if (!extra.currency.trim()) newErrors.currency = 'Este campo es obligatorio';
+    if (!extra.paymentMethod.trim()) newErrors.paymentMethod = 'Este campo es obligatorio';
     setErrors(newErrors);
-
-    // Retorna true si no hay errores
     return Object.keys(newErrors).length === 0;
   };
 
@@ -281,11 +232,9 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, h
       try {
         await handleSave(formData);
         handleClose();
-        // Reiniciar el formulario si es necesario
         setFormData(initialFormData);
         setErrors({});
       } catch (error) {
-        // Manejar errores de guardado si es necesario
         console.error('Error al guardar el contacto:', error);
       }
     }
@@ -296,7 +245,6 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, h
       <DialogTitle sx={{ fontWeight: '700', fontFamily: 'Roboto, sans-serif' }}>
         {contact ? 'Editar Contacto' : 'Agregar Contacto'}
       </DialogTitle>
-
       <DialogContent>
         <DialogContentText sx={{ fontWeight: '400', fontFamily: 'Roboto, sans-serif' }}>
           {contact ? 'Edita la información del contacto' : 'Introduce la información del nuevo contacto'}
@@ -311,106 +259,104 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, h
             <TextField
               margin="dense"
               label="Nombre"
-              name="name"
+              name="nombre"
               fullWidth
               variant="outlined"
-              value={formData.name}
+              value={formData.nombre}
               onChange={handleInputChange}
-              error={Boolean(errors.name)}
-              helperText={errors.name}
+              error={Boolean(errors.nombre)}
+              helperText={errors.nombre}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
             <TextField
               margin="dense"
               label="Nombre Comercial"
-              name="commercialName"
+              name="nombreComercial"
               fullWidth
               variant="outlined"
-              value={formData.commercialName}
+              value={formData.nombreComercial}
               onChange={handleInputChange}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
             <TextField
               margin="dense"
-              label="NIE"
-              name="nie"
+              label="NIF"
+              name="nif"
               fullWidth
               variant="outlined"
-              value={formData.nie}
+              value={formData.nif}
               onChange={handleInputChange}
-              error={Boolean(errors.nie)}
-              helperText={errors.nie}
+              error={Boolean(errors.nif)}
+              helperText={errors.nif}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
             <TextField
               margin="dense"
               label="Dirección"
-              name="address"
+              name="direccion"
               fullWidth
               variant="outlined"
-              value={formData.address}
+              value={formData.direccion}
               onChange={handleInputChange}
-              error={Boolean(errors.address)}
-              helperText={errors.address}
+              error={Boolean(errors.direccion)}
+              helperText={errors.direccion}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
             <TextField
               margin="dense"
               label="Código Postal"
-              name="postalCode"
+              name="codigoPostal"
               fullWidth
               variant="outlined"
-              value={formData.postalCode}
+              value={formData.codigoPostal}
               onChange={handleInputChange}
-              error={Boolean(errors.postalCode)}
-              helperText={errors.postalCode}
+              error={Boolean(errors.codigoPostal)}
+              helperText={errors.codigoPostal}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
             <TextField
               margin="dense"
-              label="Ciudad"
-              name="city"
+              label="Población"
+              name="poblacion"
               fullWidth
               variant="outlined"
-              value={formData.city}
+              value={formData.poblacion}
               onChange={handleInputChange}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
-            <FormControl fullWidth error={Boolean(errors.province)} margin="dense">
+            <FormControl fullWidth error={Boolean(errors.provincia)} margin="dense">
               <InputLabel>Provincia</InputLabel>
               <Select
-                name="province"
-                value={formData.province}
+                name="provincia"
+                value={formData.provincia}
                 onChange={handleSelectChange}
                 label="Provincia"
               >
                 <MenuItem value="Madrid">Madrid</MenuItem>
                 <MenuItem value="Barcelona">Barcelona</MenuItem>
-                {/* Agrega más provincias según tus necesidades */}
               </Select>
-              {errors.province && <FormHelperText>{errors.province}</FormHelperText>}
+              {errors.provincia && <FormHelperText>{errors.provincia}</FormHelperText>}
             </FormControl>
           </Grid>
           <Grid item xs={12} sm={6}>
-            <FormControl fullWidth error={Boolean(errors.country)} margin="dense">
+            <FormControl fullWidth error={Boolean(errors.pais)} margin="dense">
               <InputLabel>País</InputLabel>
               <Select
-                name="country"
-                value={formData.country}
+                name="pais"
+                value={formData.pais}
                 onChange={handleSelectChange}
                 label="País"
               >
                 <MenuItem value="España">España</MenuItem>
                 <MenuItem value="Portugal">Portugal</MenuItem>
-                {/* Agrega más países según tus necesidades */}
               </Select>
-              {errors.country && <FormHelperText>{errors.country}</FormHelperText>}
+              {errors.pais && <FormHelperText>{errors.pais}</FormHelperText>}
             </FormControl>
           </Grid>
         </Grid>
@@ -436,10 +382,10 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, h
             <TextField
               margin="dense"
               label="Teléfono"
-              name="phone"
+              name="telefono"
               fullWidth
               variant="outlined"
-              value={formData.phone}
+              value={formData.telefono}
               onChange={handleInputChange}
               type="tel"
             />
@@ -448,10 +394,10 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, h
             <TextField
               margin="dense"
               label="Móvil"
-              name="mobile"
+              name="movil"
               fullWidth
               variant="outlined"
-              value={formData.mobile}
+              value={formData.movil}
               onChange={handleInputChange}
               type="tel"
             />
@@ -460,10 +406,10 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, h
             <TextField
               margin="dense"
               label="Sitio Web"
-              name="website"
+              name="sitioWeb"
               fullWidth
               variant="outlined"
-              value={formData.website}
+              value={formData.sitioWeb}
               onChange={handleInputChange}
               type="url"
             />
@@ -475,7 +421,6 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, h
           Información Adicional
         </Typography>
         <Grid container spacing={2}>
-          {/* Habilidades */}
           <Grid item xs={12} sm={6}>
             <TextField
               margin="dense"
@@ -487,7 +432,6 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, h
               onChange={handleInputChange}
             />
           </Grid>
-          {/* Experiencia */}
           <Grid item xs={12} sm={6}>
             <TextField
               margin="dense"
@@ -499,7 +443,6 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, h
               onChange={handleInputChange}
             />
           </Grid>
-          {/* Nombre de la Empresa */}
           <Grid item xs={12} sm={6}>
             <TextField
               margin="dense"
@@ -511,7 +454,6 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, h
               onChange={handleInputChange}
             />
           </Grid>
-          {/* Tamaño de la Empresa */}
           <Grid item xs={12} sm={6}>
             <TextField
               margin="dense"
@@ -530,7 +472,6 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, h
           Información Extra
         </Typography>
         <Grid container spacing={2}>
-          {/* Tipo de IVA */}
           <Grid item xs={12} sm={6}>
             <FormControl fullWidth error={Boolean(errors.vatType)} margin="dense">
               <InputLabel>Tipo de IVA</InputLabel>
@@ -542,12 +483,10 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, h
               >
                 <MenuItem value="IVA 1">IVA 1</MenuItem>
                 <MenuItem value="IVA 2">IVA 2</MenuItem>
-                {/* Agrega más tipos de IVA según tus necesidades */}
               </Select>
               {errors.vatType && <FormHelperText>{errors.vatType}</FormHelperText>}
             </FormControl>
           </Grid>
-          {/* Idioma */}
           <Grid item xs={12} sm={6}>
             <FormControl fullWidth error={Boolean(errors.language)} margin="dense">
               <InputLabel>Idioma</InputLabel>
@@ -559,12 +498,10 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, h
               >
                 <MenuItem value="Español">Español</MenuItem>
                 <MenuItem value="Inglés">Inglés</MenuItem>
-                {/* Agrega más idiomas según tus necesidades */}
               </Select>
               {errors.language && <FormHelperText>{errors.language}</FormHelperText>}
             </FormControl>
           </Grid>
-          {/* Moneda */}
           <Grid item xs={12} sm={6}>
             <FormControl fullWidth error={Boolean(errors.currency)} margin="dense">
               <InputLabel>Moneda</InputLabel>
@@ -576,12 +513,10 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, h
               >
                 <MenuItem value="EUR">EUR</MenuItem>
                 <MenuItem value="USD">USD</MenuItem>
-                {/* Agrega más monedas según tus necesidades */}
               </Select>
               {errors.currency && <FormHelperText>{errors.currency}</FormHelperText>}
             </FormControl>
           </Grid>
-          {/* Método de Pago */}
           <Grid item xs={12} sm={6}>
             <FormControl fullWidth error={Boolean(errors.paymentMethod)} margin="dense">
               <InputLabel>Método de Pago</InputLabel>
@@ -593,12 +528,10 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, h
               >
                 <MenuItem value="Transferencia">Transferencia</MenuItem>
                 <MenuItem value="Domiciliación Bancaria">Domiciliación Bancaria</MenuItem>
-                {/* Agrega más métodos de pago según tus necesidades */}
               </Select>
               {errors.paymentMethod && <FormHelperText>{errors.paymentMethod}</FormHelperText>}
             </FormControl>
           </Grid>
-          {/* Día de Pago */}
           <Grid item xs={12} sm={6}>
             <TextField
               margin="dense"
@@ -611,7 +544,6 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, h
               type="number"
             />
           </Grid>
-          {/* Días de Vencimiento */}
           <Grid item xs={12} sm={6}>
             <TextField
               margin="dense"
@@ -624,7 +556,6 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, h
               type="number"
             />
           </Grid>
-          {/* Día de Vencimiento */}
           <Grid item xs={12} sm={6}>
             <TextField
               margin="dense"
@@ -637,7 +568,6 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, h
               type="number"
             />
           </Grid>
-          {/* Tasa */}
           <Grid item xs={12} sm={6}>
             <TextField
               margin="dense"
@@ -649,7 +579,6 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, h
               onChange={handleInputChange}
             />
           </Grid>
-          {/* Descuento */}
           <Grid item xs={12} sm={6}>
             <TextField
               margin="dense"
@@ -662,7 +591,6 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, h
               type="number"
             />
           </Grid>
-          {/* Swift */}
           <Grid item xs={12} sm={6}>
             <TextField
               margin="dense"
@@ -674,7 +602,6 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, h
               onChange={handleInputChange}
             />
           </Grid>
-          {/* IBAN */}
           <Grid item xs={12} sm={6}>
             <TextField
               margin="dense"
@@ -686,7 +613,6 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, h
               onChange={handleInputChange}
             />
           </Grid>
-          {/* Referencia Interna */}
           <Grid item xs={12} sm={6}>
             <TextField
               margin="dense"
@@ -744,7 +670,6 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, h
                 >
                   <MenuItem value="Madrid">Madrid</MenuItem>
                   <MenuItem value="Barcelona">Barcelona</MenuItem>
-                  {/* Agrega más provincias según tus necesidades */}
                 </Select>
               </FormControl>
             </Grid>
@@ -759,7 +684,6 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, h
                 >
                   <MenuItem value="España">España</MenuItem>
                   <MenuItem value="Portugal">Portugal</MenuItem>
-                  {/* Agrega más países según tus necesidades */}
                 </Select>
               </FormControl>
             </Grid>
