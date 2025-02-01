@@ -393,7 +393,7 @@ const Contacts = () => {
       nombreComercial: serviceContact.commercialName || '',
       provincia: serviceContact.province || '',
       identificacionVAT: serviceContact.extraInformation?.vatType || '',
-      tags: '', // Se puede mapear si el API lo envía
+      tags: '', 
       idioma: serviceContact.extraInformation?.language || '',
       moneda: serviceContact.extraInformation?.currency || '',
       formaPago: serviceContact.extraInformation?.paymentMethod || '',

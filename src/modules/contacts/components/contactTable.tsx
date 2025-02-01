@@ -41,14 +41,30 @@ const ContactTable: React.FC<ContactTableProps> = ({
   onDelete,
   onRowClick,
 }) => {
+  // Creamos un arreglo de columnas visibles ordenado según el orden definido en allColumns
+  const sortedVisibleColumns = allColumns.filter((column) =>
+    visibleColumns.includes(column.id)
+  );
+
   return (
-    <TableContainer component={Paper} sx={{ borderRadius: 2, boxShadow: '0 3px 10px rgba(0, 0, 0, 0.1)' }}>
+    <TableContainer
+      component={Paper}
+      sx={{
+        borderRadius: 2,
+        boxShadow: '0 3px 10px rgba(0, 0, 0, 0.1)',
+      }}
+    >
       <Table sx={{ minWidth: '100%' }}>
-        <TableHead sx={{ bgcolor: '#2666CF', '& th': { color: '#ffffff', fontWeight: '600' } }}>
+        <TableHead
+          sx={{
+            bgcolor: '#2666CF',
+            '& th': { color: '#ffffff', fontWeight: '600' },
+          }}
+        >
           <TableRow>
-            {allColumns.map((column) =>
-              visibleColumns.includes(column.id) ? <TableCell key={column.id}>{column.label}</TableCell> : null
-            )}
+            {sortedVisibleColumns.map((column) => (
+              <TableCell key={column.id}>{column.label}</TableCell>
+            ))}
             <TableCell>Acciones</TableCell>
           </TableRow>
         </TableHead>
@@ -65,21 +81,21 @@ const ContactTable: React.FC<ContactTableProps> = ({
                 sx={{ '&:hover': { bgcolor: '#F1F1F1', cursor: 'pointer' } }}
                 onClick={() => onRowClick(contact)}
               >
-                {visibleColumns.map((column) => (
+                {sortedVisibleColumns.map((column) => (
                   <TableCell
-                    key={column}
+                    key={column.id}
                     sx={
-                      column === 'tipoContacto'
+                      column.id === 'tipoContacto'
                         ? {
-                            bgcolor: contact[column] === 'Cliente' ? '#d4edda' : '#fff3cd',
-                            color: contact[column] === 'Cliente' ? '#155724' : '#856404',
+                            bgcolor: contact[column.id] === 'Cliente' ? '#d4edda' : '#fff3cd',
+                            color: contact[column.id] === 'Cliente' ? '#155724' : '#856404',
                             fontWeight: 'bold',
                             borderRadius: '4px',
                           }
                         : {}
                     }
                   >
-                    {contact[column]}
+                    {contact[column.id]}
                   </TableCell>
                 ))}
                 <TableCell>
