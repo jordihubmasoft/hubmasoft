@@ -1,10 +1,8 @@
 // src/services/ContactService.ts
-
 import { CommonResponse } from "../types/CommonResponse";
 import { Contact } from "../types/Contact";
 
 export default class ContactService {
-  // Método para obtener un contacto por su ID
   static async getContactById(contactId: string, token: string): Promise<CommonResponse<Contact[]>> {
     try {
       const baseURL = process.env.NEXT_PUBLIC_API?.replace(/\/+$/, '');
@@ -41,7 +39,6 @@ export default class ContactService {
     }
   }
 
-  // Método para obtener todos los contactos
   static async getAllContacts(token: string): Promise<CommonResponse<Contact[]>> {
     try {
       const baseURL = process.env.NEXT_PUBLIC_API?.replace(/\/+$/, '');
@@ -77,7 +74,6 @@ export default class ContactService {
     }
   }
 
-  // Método para crear un nuevo contacto
   static async createContact(contactData: Omit<Contact, 'id'>, token: string): Promise<CommonResponse<Contact>> {
     try {
       const baseURL = process.env.NEXT_PUBLIC_API?.replace(/\/+$/, '');
@@ -114,7 +110,6 @@ export default class ContactService {
     }
   }
 
-  // Método para actualizar un contacto existente
   static async updateContact(contactData: Partial<Contact> & { contactId: string }, token: string): Promise<CommonResponse<Contact>> {
     try {
       const baseURL = process.env.NEXT_PUBLIC_API?.replace(/\/+$/, '');
@@ -156,41 +151,4 @@ export default class ContactService {
       throw new Error("Ocurrió un problema al actualizar el contacto.");
     }
   }
-
-  // Opcional: Método para obtener múltiples contactos por IDs
-  // static async getContactsByIds(contactIds: string[], token: string): Promise<CommonResponse<Contact[]>> {
-  //   try {
-  //     const baseURL = process.env.NEXT_PUBLIC_API?.replace(/\/+$/, '');
-  //     if (!baseURL) {
-  //       throw new Error("Base URL no está definido en las variables de entorno.");
-  //     }
-  //     const idsParam = contactIds.join(',');
-  //     const url = `${baseURL}/Contact?ids=${idsParam}`;
-
-  //     const response = await fetch(url, {
-  //       method: "GET",
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //         "Authorization": `Bearer ${token}`,
-  //       },
-  //     });
-
-  //     if (response.ok) {
-  //       const resultData = await response.json();
-  //       return {
-  //         result: {
-  //           resultNumber: resultData.result.resultNumber,
-  //           errorMessage: resultData.result.errorMessage,
-  //         },
-  //         data: resultData.data as Contact[],
-  //       };
-  //     } else {
-  //       const errorResponse = await response.json();
-  //       throw new Error(errorResponse.result?.errorMessage || "Error al obtener los contactos");
-  //     }
-  //   } catch (err: any) {
-  //     console.error("Error en la solicitud:", err.message || err);
-  //     throw new Error("Ocurrió un problema al obtener los contactos.");
-  //   }
-  // }
 }

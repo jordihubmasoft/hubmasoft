@@ -1,10 +1,8 @@
 // src/services/LinkedContactsService.ts
-
 import { CommonResponse } from "../types/CommonResponse";
 import { LinkedContact } from "../types/LinkedContact";
 
 export default class LinkedContactsService {
-  // Método para obtener un contacto vinculado por su ContactId
   static async getByContactId(contactId: string, token: string): Promise<CommonResponse<LinkedContact[]>> {
     try {
       const baseURL = process.env.NEXT_PUBLIC_API?.replace(/\/+$/, '');
@@ -36,7 +34,6 @@ export default class LinkedContactsService {
           const errorResponse = await response.json();
           errorMessage = errorResponse.result?.errorMessage || errorMessage;
         } catch {
-          // La respuesta no es JSON
           const errorText = await response.text();
           errorMessage = `Error al obtener el contacto vinculado: ${errorText}`;
         }
@@ -49,7 +46,6 @@ export default class LinkedContactsService {
     }
   }
 
-  // Método para agregar un contacto vinculado
   static async addLinkedContact(
     ownerContactId: string,
     linkedContactId: string,
@@ -64,7 +60,7 @@ export default class LinkedContactsService {
 
       const body = {
         ownerContactId,
-        LinkedContactId: linkedContactId, // Clave corregida
+        linkedContactId,
       };
 
       const response = await fetch(url, {
@@ -91,7 +87,6 @@ export default class LinkedContactsService {
           const errorResponse = await response.json();
           errorMessage = errorResponse.result?.errorMessage || errorMessage;
         } catch {
-          // La respuesta no es JSON
           const errorText = await response.text();
           errorMessage = `Error al agregar el contacto vinculado: ${errorText}`;
         }
@@ -104,7 +99,6 @@ export default class LinkedContactsService {
     }
   }
 
-  // Método para aprobar un contacto vinculado
   static async approveLinkedContact(ownerContactId: string, contactId: string, token: string): Promise<CommonResponse<LinkedContact>> {
     try {
       const baseURL = process.env.NEXT_PUBLIC_API?.replace(/\/+$/, '');
@@ -136,7 +130,6 @@ export default class LinkedContactsService {
           const errorResponse = await response.json();
           errorMessage = errorResponse.result?.errorMessage || errorMessage;
         } catch {
-          // La respuesta no es JSON
           const errorText = await response.text();
           errorMessage = `Error al aprobar el contacto vinculado: ${errorText}`;
         }
@@ -149,14 +142,13 @@ export default class LinkedContactsService {
     }
   }
 
-  // Método para eliminar un contacto vinculado
-  static async deleteLinkedContact(ownerContactId: string, contactId: string, token: string): Promise<CommonResponse<null>> {
+  static async deleteLinkedContact(ownerContactId: string, linkedContactId: string, token: string): Promise<CommonResponse<null>> {
     try {
       const baseURL = process.env.NEXT_PUBLIC_API?.replace(/\/+$/, '');
       if (!baseURL) {
         throw new Error("Base URL no está definido en las variables de entorno.");
       }
-      const url = `${baseURL}/LinkedContact?ownerContactId=${ownerContactId}&contactId=${contactId}`;
+      const url = `${baseURL}/LinkedContact?ownerContactId=${ownerContactId}&contactId=${linkedContactId}`;
 
       const response = await fetch(url, {
         method: "DELETE",
@@ -181,7 +173,6 @@ export default class LinkedContactsService {
           const errorResponse = await response.json();
           errorMessage = errorResponse.result?.errorMessage || errorMessage;
         } catch {
-          // La respuesta no es JSON
           const errorText = await response.text();
           errorMessage = `Error al eliminar el contacto vinculado: ${errorText}`;
         }

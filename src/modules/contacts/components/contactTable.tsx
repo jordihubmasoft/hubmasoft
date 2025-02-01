@@ -8,11 +8,11 @@ import {
   TableBody,
   IconButton,
   Paper,
-  TableContainer
+  TableContainer,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import { v4 as uuidv4 } from 'uuid'; // Importar uuid para generar IDs únicos
+import { v4 as uuidv4 } from 'uuid';
 
 interface Column {
   id: string;
@@ -39,7 +39,7 @@ const ContactTable: React.FC<ContactTableProps> = ({
   allColumns,
   onEdit,
   onDelete,
-  onRowClick
+  onRowClick,
 }) => {
   return (
     <TableContainer component={Paper} sx={{ borderRadius: 2, boxShadow: '0 3px 10px rgba(0, 0, 0, 0.1)' }}>
@@ -54,15 +54,11 @@ const ContactTable: React.FC<ContactTableProps> = ({
         </TableHead>
         <TableBody>
           {contacts.map((contact, index) => {
-            // Validar si contact.id es un número válido
             const isValidId = typeof contact.id === 'number' && !isNaN(contact.id);
-            // Asignar una key única: usar contact.id si es válido, sino generar una key única
             const key = isValidId ? contact.id : `contact-${uuidv4()}`;
-
             if (!isValidId) {
               console.warn(`Contacto en el índice ${index} tiene un ID inválido:`, contact);
             }
-
             return (
               <TableRow
                 key={key}
@@ -72,32 +68,34 @@ const ContactTable: React.FC<ContactTableProps> = ({
                 {visibleColumns.map((column) => (
                   <TableCell
                     key={column}
-                    sx={{
-                      ...(column === 'tipoContacto' && {
-                        bgcolor: contact[column] === 'Cliente' ? '#d4edda' : '#fff3cd',
-                        color: contact[column] === 'Cliente' ? '#155724' : '#856404',
-                        fontWeight: 'bold',
-                        borderRadius: '4px',
-                      }),
-                    }}
+                    sx={
+                      column === 'tipoContacto'
+                        ? {
+                            bgcolor: contact[column] === 'Cliente' ? '#d4edda' : '#fff3cd',
+                            color: contact[column] === 'Cliente' ? '#155724' : '#856404',
+                            fontWeight: 'bold',
+                            borderRadius: '4px',
+                          }
+                        : {}
+                    }
                   >
                     {contact[column]}
                   </TableCell>
                 ))}
                 <TableCell>
                   <IconButton
-                    onClick={(e) => { 
-                      e.stopPropagation(); 
-                      onEdit(contact); 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onEdit(contact);
                     }}
                     sx={{ color: '#1A1A40' }}
                   >
                     <EditIcon />
                   </IconButton>
                   <IconButton
-                    onClick={(e) => { 
-                      e.stopPropagation(); 
-                      onDelete(contact.id); 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDelete(contact.id);
                     }}
                     sx={{ color: '#B00020' }}
                   >
