@@ -13,15 +13,11 @@ import {
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { v4 as uuidv4 } from 'uuid';
+import { Contact } from '../../../types/Contact';
 
 interface Column {
   id: string;
   label: string;
-}
-
-interface Contact {
-  id: number;
-  [key: string]: any;
 }
 
 interface ContactTableProps {
@@ -29,7 +25,7 @@ interface ContactTableProps {
   visibleColumns: string[];
   allColumns: Column[];
   onEdit: (contact: Contact) => void;
-  onDelete: (contactId: number) => void;
+  onDelete: (contactId: string) => void;
   onRowClick: (contact: Contact) => void;
 }
 
@@ -69,12 +65,8 @@ const ContactTable: React.FC<ContactTableProps> = ({
           </TableRow>
         </TableHead>
         <TableBody>
-          {contacts.map((contact, index) => {
-            const isValidId = typeof contact.id === 'number' && !isNaN(contact.id);
-            const key = isValidId ? contact.id : `contact-${uuidv4()}`;
-            if (!isValidId) {
-              console.warn(`Contacto en el índice ${index} tiene un ID inválido:`, contact);
-            }
+          {contacts.map((contact) => {
+            const key = contact.id || `contact-${uuidv4()}`;
             return (
               <TableRow
                 key={key}
@@ -87,8 +79,14 @@ const ContactTable: React.FC<ContactTableProps> = ({
                     sx={
                       column.id === 'tipoContacto'
                         ? {
-                            bgcolor: contact[column.id] === 'Cliente' ? '#d4edda' : '#fff3cd',
-                            color: contact[column.id] === 'Cliente' ? '#155724' : '#856404',
+                            bgcolor:
+                              contact[column.id] === 'Cliente'
+                                ? '#d4edda'
+                                : '#fff3cd',
+                            color:
+                              contact[column.id] === 'Cliente'
+                                ? '#155724'
+                                : '#856404',
                             fontWeight: 'bold',
                             borderRadius: '4px',
                           }

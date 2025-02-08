@@ -33,8 +33,8 @@ export interface ExtraInformation {
 }
 
 export interface Contact {
-  id: number;
-  userId: number;
+  id: string;
+  userId: string;
   // Campos principales en español
   nombre: string;             // antes "name"
   email: string;

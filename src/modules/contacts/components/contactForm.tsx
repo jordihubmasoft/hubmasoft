@@ -26,8 +26,8 @@ import { Contact, ShippingAddress, ExtraInformation } from '../../../types/Conta
 
 // Objeto inicial usando los nombres en español
 const initialFormData: Contact = {
-  id: 0,
-  userId: 0,
+  id: '',
+  userId: '',
   nombre: '',
   email: '',
   pais: '',
