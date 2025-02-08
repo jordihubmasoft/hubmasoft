@@ -6,9 +6,7 @@ export default class ContactService {
   static async getContactById(contactId: string, token: string): Promise<CommonResponse<Contact[]>> {
     try {
       const baseURL = process.env.NEXT_PUBLIC_API?.replace(/\/+$/, '');
-      if (!baseURL) {
-        throw new Error("Base URL no está definido en las variables de entorno.");
-      }
+      if (!baseURL) throw new Error("Base URL no está definido en las variables de entorno.");
       const url = `${baseURL}/Contact/${contactId}`;
 
       const response = await fetch(url, {
@@ -42,9 +40,7 @@ export default class ContactService {
   static async getAllContacts(token: string): Promise<CommonResponse<Contact[]>> {
     try {
       const baseURL = process.env.NEXT_PUBLIC_API?.replace(/\/+$/, '');
-      if (!baseURL) {
-        throw new Error("Base URL no está definido en las variables de entorno.");
-      }
+      if (!baseURL) throw new Error("Base URL no está definido en las variables de entorno.");
       const url = `${baseURL}/Contact/All`;
 
       const response = await fetch(url, {
@@ -74,13 +70,14 @@ export default class ContactService {
     }
   }
 
-  static async createContact(contactData: Omit<Contact, 'id'>, token: string): Promise<CommonResponse<Contact>> {
+  // Modificado: ahora se envía el payload directamente (sin envolverlo en "request")
+  static async createContact(contactData: Omit<Contact, "id" | "userId">, token: string): Promise<CommonResponse<Contact>> {
     try {
       const baseURL = process.env.NEXT_PUBLIC_API?.replace(/\/+$/, '');
-      if (!baseURL) {
-        throw new Error("Base URL no está definido en las variables de entorno.");
-      }
+      if (!baseURL) throw new Error("Base URL no está definido en las variables de entorno.");
       const url = `${baseURL}/Contact`;
+
+      const payload = { ...contactData };
 
       const response = await fetch(url, {
         method: "POST",
@@ -88,7 +85,8 @@ export default class ContactService {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`,
         },
-        body: JSON.stringify(contactData),
+        // Se envía el payload directamente
+        body: JSON.stringify(payload),
       });
 
       if (response.ok) {
@@ -113,9 +111,7 @@ export default class ContactService {
   static async updateContact(contactData: Partial<Contact> & { contactId: string }, token: string): Promise<CommonResponse<Contact>> {
     try {
       const baseURL = process.env.NEXT_PUBLIC_API?.replace(/\/+$/, '');
-      if (!baseURL) {
-        throw new Error("Base URL no está definido en las variables de entorno.");
-      }
+      if (!baseURL) throw new Error("Base URL no está definido en las variables de entorno.");
       const url = `${baseURL}/Contact`;
 
       const response = await fetch(url, {

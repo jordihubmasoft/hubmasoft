@@ -6,9 +6,7 @@ export default class LinkedContactsService {
   static async getByContactId(contactId: string, token: string): Promise<CommonResponse<LinkedContact[]>> {
     try {
       const baseURL = process.env.NEXT_PUBLIC_API?.replace(/\/+$/, '');
-      if (!baseURL) {
-        throw new Error("Base URL no está definido en las variables de entorno.");
-      }
+      if (!baseURL) throw new Error("Base URL no está definido en las variables de entorno.");
       const url = `${baseURL}/LinkedContact/${contactId}`;
 
       const response = await fetch(url, {
@@ -37,7 +35,7 @@ export default class LinkedContactsService {
           const errorText = await response.text();
           errorMessage = `Error al obtener el contacto vinculado: ${errorText}`;
         }
-        console.error('Respuesta del servidor:', errorMessage);
+        console.error("Respuesta del servidor:", errorMessage);
         throw new Error(errorMessage);
       }
     } catch (err: any) {
@@ -46,21 +44,18 @@ export default class LinkedContactsService {
     }
   }
 
-  static async addLinkedContact(
-    ownerContactId: string,
-    linkedContactId: string,
-    token: string
-  ): Promise<CommonResponse<LinkedContact>> {
+  static async addLinkedContact(ownerContactId: string, linkedContactId: string, token: string): Promise<CommonResponse<LinkedContact>> {
     try {
       const baseURL = process.env.NEXT_PUBLIC_API?.replace(/\/+$/, '');
-      if (!baseURL) {
-        throw new Error("Base URL no está definido en las variables de entorno.");
-      }
+      if (!baseURL) throw new Error("Base URL no está definido en las variables de entorno.");
       const url = `${baseURL}/LinkedContact`;
 
-      const body = {
-        ownerContactId,
-        linkedContactId,
+      // Se envían las propiedades requeridas por el backend, 
+      // y ahora se agrega isApproved: true para que siempre se cree como aprobado.
+      const body = { 
+        OwnerContactId: ownerContactId, 
+        LinekdContactId: linkedContactId,
+        isApproved: true
       };
 
       const response = await fetch(url, {
@@ -90,7 +85,7 @@ export default class LinkedContactsService {
           const errorText = await response.text();
           errorMessage = `Error al agregar el contacto vinculado: ${errorText}`;
         }
-        console.error('Respuesta del servidor:', errorMessage);
+        console.error("Respuesta del servidor:", errorMessage);
         throw new Error(errorMessage);
       }
     } catch (err: any) {
@@ -102,9 +97,7 @@ export default class LinkedContactsService {
   static async approveLinkedContact(ownerContactId: string, contactId: string, token: string): Promise<CommonResponse<LinkedContact>> {
     try {
       const baseURL = process.env.NEXT_PUBLIC_API?.replace(/\/+$/, '');
-      if (!baseURL) {
-        throw new Error("Base URL no está definido en las variables de entorno.");
-      }
+      if (!baseURL) throw new Error("Base URL no está definido en las variables de entorno.");
       const url = `${baseURL}/LinkedContact/approve?ownerContactId=${ownerContactId}&contactId=${contactId}`;
 
       const response = await fetch(url, {
@@ -133,7 +126,7 @@ export default class LinkedContactsService {
           const errorText = await response.text();
           errorMessage = `Error al aprobar el contacto vinculado: ${errorText}`;
         }
-        console.error('Respuesta del servidor:', errorMessage);
+        console.error("Respuesta del servidor:", errorMessage);
         throw new Error(errorMessage);
       }
     } catch (err: any) {
@@ -145,9 +138,7 @@ export default class LinkedContactsService {
   static async deleteLinkedContact(ownerContactId: string, linkedContactId: string, token: string): Promise<CommonResponse<null>> {
     try {
       const baseURL = process.env.NEXT_PUBLIC_API?.replace(/\/+$/, '');
-      if (!baseURL) {
-        throw new Error("Base URL no está definido en las variables de entorno.");
-      }
+      if (!baseURL) throw new Error("Base URL no está definido en las variables de entorno.");
       const url = `${baseURL}/LinkedContact?ownerContactId=${ownerContactId}&contactId=${linkedContactId}`;
 
       const response = await fetch(url, {
@@ -176,7 +167,7 @@ export default class LinkedContactsService {
           const errorText = await response.text();
           errorMessage = `Error al eliminar el contacto vinculado: ${errorText}`;
         }
-        console.error('Respuesta del servidor:', errorMessage);
+        console.error("Respuesta del servidor:", errorMessage);
         throw new Error(errorMessage);
       }
     } catch (err: any) {
