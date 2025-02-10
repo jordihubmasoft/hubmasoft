@@ -47,9 +47,9 @@ import { useTranslation } from "../../../hooks/useTranslations";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import DeleteIcon from "@mui/icons-material/Delete";
 import Fade from "@mui/material/Fade";
-import UserInfoDialog from "../components/UserInfoDialog"; 
+import UserInfoDialog from "../components/UserInfoDialog";
 import Zoom from "@mui/material/Zoom";
-import useAuthStore from '../../../store/useAuthStore';
+import useAuthStore from "../../../store/useAuthStore";
 import {
   FiShoppingCart,
   FiDollarSign,
@@ -126,7 +126,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(false);
   const [refresh, setRefresh] = useState(false);
 
-  // Estado del formulario para gestionar los datos
+  // Estado del formulario (se mantienen las propiedades en inglés)
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -152,37 +152,36 @@ const Dashboard = () => {
     experience: "",
     companyName: "",
     companySize: "",
-    phone1: "", // Nuevo
-    vatIdentification: "", // Nuevo
-    salesTax: 0, // Nuevo
-    equivalenceSurcharge: 0, // Nuevo
-    shoppingTax: 0, // Nuevo
-    paymentDay: 0, // Nuevo
-    tags: "", // Nuevo
-    vatType: "", // Nuevo
-    internalReference: "", // Nuevo
-    language: "", // Nuevo
-    currency: "", // Nuevo
-    paymentMethod: "", // Nuevo
-    paymentExpirationDays: "", // Nuevo
-    paymentExpirationDay: "", // Nuevo
-    rate: "", // Nuevo
-    discount: "", // Nuevo
-    swift: "", // Nuevo
-    iban: "", // Nuevo
+    phone1: "",
+    vatIdentification: "",
+    salesTax: 0,
+    equivalenceSurcharge: 0,
+    shoppingTax: 0,
+    paymentDay: 0,
+    tags: "",
+    vatType: "",
+    internalReference: "",
+    language: "",
+    currency: "",
+    paymentMethod: "",
+    paymentExpirationDays: "",
+    paymentExpirationDay: "",
+    rate: "",
+    discount: "",
+    swift: "",
+    iban: "",
     shippingAddresses: [
       {
-        direction: "", // Nuevo
-        city: "", // Nuevo
-        postalCode: "", // Nuevo
-        province: "", // Nuevo
-        country: "" // Nuevo
+        direction: "",
+        city: "",
+        postalCode: "",
+        province: "",
+        country: ""
       }
     ]
   });
   
-
-  // Inicializa formErrors con la interfaz FormErrors
+  // Inicializa formErrors
   const [formErrors, setFormErrors] = useState<FormErrors>({});
 
   useEffect(() => {
@@ -194,9 +193,12 @@ const Dashboard = () => {
         const response = await ContactService.getContactById(contactId, token);
   
         if (response?.data?.length > 0) {
-          const contactData = response.data[0];
+          // Para evitar errores de tipado (dado que en Contact el campo se llama "nombre")
+          // se realiza un casting a any y se utilizan las propiedades que devuelve la API.
+          const contactData = response.data[0] as any;
           setFormData((prev) => ({
             ...prev,
+            // Mantenemos "name" en el estado porque es lo que usa el formulario
             name: contactData.name || '',
             email: contactData.email || '',
             country: contactData.country || '',
@@ -216,6 +218,7 @@ const Dashboard = () => {
             experience: contactData.experience || '',
             companyName: contactData.companyName || '',
             companySize: contactData.companySize || '',
+            // Para la dirección de envío se sigue usando la estructura interna
             shippingAddress: contactData.extraInformation?.shippingAddress?.[0]?.direccion || '',
             shippingCity: contactData.extraInformation?.shippingAddress?.[0]?.poblacion || '',
             shippingProvince: contactData.extraInformation?.shippingAddress?.[0]?.provincia || '',
@@ -224,7 +227,7 @@ const Dashboard = () => {
           }));
           setHasContact(true);
         } else {
-          resetFormData(); // Reutilizando lógica para limpiar formulario
+          resetFormData();
         }
       } catch (error) {
         console.error('Error fetching contact:', error);
@@ -268,9 +271,7 @@ const Dashboard = () => {
     fetchContact();
   }, [open, contactId, token, agentId, refresh]);
   
-  
-
-  // Estado para controlar la visibilidad de todos los widgets
+  // Estado para los widgets
   const [widgets, setWidgets] = useState({
     showVentas: true,
     showClientes: true,
@@ -408,7 +409,6 @@ const Dashboard = () => {
       }
     });
 
-    // Validaciones adicionales según el tipo de usuario
     if (formData.userType === 'freelancer') {
       if (!formData.skills) {
         errors.skills = `${t('dashboard.skills')} es requerido`;
@@ -433,7 +433,7 @@ const Dashboard = () => {
   const handleChange = (event: any) => {
     const name = event.target.name;
     const value = event.target.value;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleFormSubmit = async (event: React.FormEvent) => {
@@ -452,7 +452,7 @@ const Dashboard = () => {
   
     const contactData: any = {
       userId: agentId,
-      contactId: contactId, // Usa contactId en el body
+      contactId: contactId,
       name: formData.name,
       nie: formData.nie,
       address: formData.address,
@@ -492,8 +492,6 @@ const Dashboard = () => {
       ]
     };
     
-    
-  
     try {
       let response;
       if (hasContact && contactId) {
@@ -505,7 +503,8 @@ const Dashboard = () => {
       }
   
       if (response && response.data) {
-        const updatedContact = response.data;
+        const updatedContact = response.data as any;
+        // Mapeamos la respuesta usando las propiedades en inglés (tal y como el formulario lo espera)
         setFormData({
           ...formData,
           name: updatedContact.name || formData.name,
@@ -524,7 +523,7 @@ const Dashboard = () => {
           nie: updatedContact.nie || formData.nie,
           commercialName: updatedContact.commercialName || formData.commercialName,
           province: updatedContact.province || formData.province,
-          mobile: updatedContact.phone1 || formData.mobile,
+          mobile: updatedContact.mobile || formData.mobile,
           website: updatedContact.website || formData.website,
           contactId: updatedContact.id || formData.contactId,
           userId: updatedContact.userId || formData.userId,
@@ -534,17 +533,25 @@ const Dashboard = () => {
           companySize: updatedContact.companySize || formData.companySize,
         });
         setHasContact(true);
-        setRefresh(prev => !prev); // Forzar refetch
+        setRefresh((prev) => !prev);
       }
   
-      setOpen(false); // Cierra el modal
+      setOpen(false);
     } catch (error: any) {
-      console.error(hasContact ? 'Error actualizando el contacto:' : 'Error creando el contacto:', error);
-      alert(hasContact ? 'Ocurrió un problema al actualizar el contacto. Por favor, inténtalo de nuevo.' : 'Ocurrió un problema al crear el contacto. Por favor, inténtalo de nuevo.');
+      console.error(
+        hasContact
+          ? "Error actualizando el contacto:"
+          : "Error creando el contacto:",
+        error
+      );
+      alert(
+        hasContact
+          ? "Ocurrió un problema al actualizar el contacto. Por favor, inténtalo de nuevo."
+          : "Ocurrió un problema al crear el contacto. Por favor, inténtalo de nuevo."
+      );
     }
   };
   
-
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
@@ -648,8 +655,7 @@ const Dashboard = () => {
               maxWidth: "calc(100% - 240px)",
             }}
           >
-            <Container maxWidth="xl" sx={{ px: { xs: 2, sm: 3, md: 5 }, width: '100%' }}>
-
+            <Container maxWidth="xl" sx={{ px: { xs: 2, sm: 3, md: 5 }, width: "100%" }}>
               <Typography
                 variant="h3"
                 gutterBottom
@@ -677,14 +683,14 @@ const Dashboard = () => {
                   <Button
                     variant="contained"
                     sx={{
-                      background: 'linear-gradient(90deg, #2666CF, #6A82FB)',
-                      color: '#ffffff',
-                      fontWeight: '500',
-                      textTransform: 'none',
-                      padding: '10px 20px',
+                      background: "linear-gradient(90deg, #2666CF, #6A82FB)",
+                      color: "#ffffff",
+                      fontWeight: "500",
+                      textTransform: "none",
+                      padding: "10px 20px",
                       borderRadius: 2,
-                      boxShadow: '0 3px 6px rgba(0,0,0,0.1)',
-                      minWidth: '120px',
+                      boxShadow: "0 3px 6px rgba(0,0,0,0.1)",
+                      minWidth: "120px",
                     }}
                   >
                     {t("dashboard.newContactRequests")}
@@ -710,117 +716,65 @@ const Dashboard = () => {
                   <IconButton
                     onClick={handleMenuClick}
                     sx={{
-                      background: 'linear-gradient(90deg, #2666CF, #6A82FB)',
-                      color: '#ffffff',
-                      fontWeight: '500',
-                      textTransform: 'none',
+                      background: "linear-gradient(90deg, #2666CF, #6A82FB)",
+                      color: "#ffffff",
+                      fontWeight: "500",
+                      textTransform: "none",
                       borderRadius: 2,
-                      boxShadow: '0 3px 6px rgba(0,0,0,0.1)',
+                      boxShadow: "0 3px 6px rgba(0,0,0,0.1)",
                     }}
                   >
                     <AddCircleOutlineIcon sx={{ fontSize: 32 }} />
                   </IconButton>
                 </Zoom>
               </Box>
-              <Menu
-                anchorEl={anchorEl}
-                open={Boolean(anchorEl)}
-                onClose={handleMenuClose}
-              >
+              <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose}>
                 <MenuItem>
-                  <Checkbox
-                    checked={widgets.showVentas}
-                    onChange={handleWidgetChange}
-                    name="showVentas"
-                  />
+                  <Checkbox checked={widgets.showVentas} onChange={handleWidgetChange} name="showVentas" />
                   <ListItemText primary="Ventas" />
                 </MenuItem>
                 <MenuItem>
-                  <Checkbox
-                    checked={widgets.showClientes}
-                    onChange={handleWidgetChange}
-                    name="showClientes"
-                  />
+                  <Checkbox checked={widgets.showClientes} onChange={handleWidgetChange} name="showClientes" />
                   <ListItemText primary="Clientes" />
                 </MenuItem>
                 <MenuItem>
-                  <Checkbox
-                    checked={widgets.showImpuestos}
-                    onChange={handleWidgetChange}
-                    name="showImpuestos"
-                  />
+                  <Checkbox checked={widgets.showImpuestos} onChange={handleWidgetChange} name="showImpuestos" />
                   <ListItemText primary="Impuestos" />
                 </MenuItem>
                 <MenuItem>
-                  <Checkbox
-                    checked={widgets.showBalance}
-                    onChange={handleWidgetChange}
-                    name="showBalance"
-                  />
+                  <Checkbox checked={widgets.showBalance} onChange={handleWidgetChange} name="showBalance" />
                   <ListItemText primary="Balance" />
                 </MenuItem>
                 <MenuItem>
-                  <Checkbox
-                    checked={widgets.showInvoicesToReceive}
-                    onChange={handleWidgetChange}
-                    name="showInvoicesToReceive"
-                  />
+                  <Checkbox checked={widgets.showInvoicesToReceive} onChange={handleWidgetChange} name="showInvoicesToReceive" />
                   <ListItemText primary="Invoices to Receive" />
                 </MenuItem>
                 <MenuItem>
-                  <Checkbox
-                    checked={widgets.showInvoicesToPay}
-                    onChange={handleWidgetChange}
-                    name="showInvoicesToPay"
-                  />
+                  <Checkbox checked={widgets.showInvoicesToPay} onChange={handleWidgetChange} name="showInvoicesToPay" />
                   <ListItemText primary="Invoices to Pay" />
                 </MenuItem>
                 <MenuItem>
-                  <Checkbox
-                    checked={widgets.showComparacionVentas}
-                    onChange={handleWidgetChange}
-                    name="showComparacionVentas"
-                  />
+                  <Checkbox checked={widgets.showComparacionVentas} onChange={handleWidgetChange} name="showComparacionVentas" />
                   <ListItemText primary="Comparación de Ventas" />
                 </MenuItem>
                 <MenuItem>
-                  <Checkbox
-                    checked={widgets.showFlujoTransacciones}
-                    onChange={handleWidgetChange}
-                    name="showFlujoTransacciones"
-                  />
+                  <Checkbox checked={widgets.showFlujoTransacciones} onChange={handleWidgetChange} name="showFlujoTransacciones" />
                   <ListItemText primary="Flujo de Transacciones" />
                 </MenuItem>
                 <MenuItem>
-                  <Checkbox
-                    checked={widgets.showMejoresClientes}
-                    onChange={handleWidgetChange}
-                    name="showMejoresClientes"
-                  />
+                  <Checkbox checked={widgets.showMejoresClientes} onChange={handleWidgetChange} name="showMejoresClientes" />
                   <ListItemText primary="Mejores Clientes" />
                 </MenuItem>
                 <MenuItem>
-                  <Checkbox
-                    checked={widgets.showProductosVendidos}
-                    onChange={handleWidgetChange}
-                    name="showProductosVendidos"
-                  />
+                  <Checkbox checked={widgets.showProductosVendidos} onChange={handleWidgetChange} name="showProductosVendidos" />
                   <ListItemText primary="Productos Vendidos" />
                 </MenuItem>
                 <MenuItem>
-                  <Checkbox
-                    checked={widgets.showDevolucionesClientes}
-                    onChange={handleWidgetChange}
-                    name="showDevolucionesClientes"
-                  />
+                  <Checkbox checked={widgets.showDevolucionesClientes} onChange={handleWidgetChange} name="showDevolucionesClientes" />
                   <ListItemText primary="Devoluciones de Clientes" />
                 </MenuItem>
                 <MenuItem>
-                  <Checkbox
-                    checked={widgets.showClientesConVentas}
-                    onChange={handleWidgetChange}
-                    name="showClientesConVentas"
-                  />
+                  <Checkbox checked={widgets.showClientesConVentas} onChange={handleWidgetChange} name="showClientesConVentas" />
                   <ListItemText primary="Clientes con Ventas" />
                 </MenuItem>
               </Menu>
@@ -845,9 +799,7 @@ const Dashboard = () => {
                           height: "100%",
                         }}
                       >
-                        <Box
-                          sx={{ display: "flex", alignItems: "center", mb: 2 }}
-                        >
+                        <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
                           <Box
                             sx={{
                               display: "flex",
@@ -860,9 +812,7 @@ const Dashboard = () => {
                               mr: 2,
                             }}
                           >
-                            <FiShoppingCart
-                              style={{ color: "#2666CF", fontSize: "20px" }}
-                            />
+                            <FiShoppingCart style={{ color: "#2666CF", fontSize: "20px" }} />
                           </Box>
                           <Typography
                             variant="h6"
@@ -908,9 +858,7 @@ const Dashboard = () => {
                           height: "100%",
                         }}
                       >
-                        <Box
-                          sx={{ display: "flex", alignItems: "center", mb: 2 }}
-                        >
+                        <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
                           <Box
                             sx={{
                               display: "flex",
@@ -923,9 +871,7 @@ const Dashboard = () => {
                               mr: 2,
                             }}
                           >
-                            <FiDollarSign
-                              style={{ color: "#4682B4", fontSize: "20px" }}
-                            />
+                            <FiDollarSign style={{ color: "#4682B4", fontSize: "20px" }} />
                           </Box>
                           <Typography
                             variant="h6"
@@ -971,9 +917,7 @@ const Dashboard = () => {
                           height: "100%",
                         }}
                       >
-                        <Box
-                          sx={{ display: "flex", alignItems: "center", mb: 2 }}
-                        >
+                        <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
                           <Box
                             sx={{
                               display: "flex",
@@ -986,9 +930,7 @@ const Dashboard = () => {
                               mr: 2,
                             }}
                           >
-                            <FiTrendingUp
-                              style={{ color: "#32CD32", fontSize: "20px" }}
-                            />
+                            <FiTrendingUp style={{ color: "#32CD32", fontSize: "20px" }} />
                           </Box>
                           <Typography
                             variant="h6"
@@ -1034,9 +976,7 @@ const Dashboard = () => {
                           height: "100%",
                         }}
                       >
-                        <Box
-                          sx={{ display: "flex", alignItems: "center", mb: 2 }}
-                        >
+                        <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
                           <Box
                             sx={{
                               display: "flex",
@@ -1049,9 +989,7 @@ const Dashboard = () => {
                               mr: 2,
                             }}
                           >
-                            <FiBarChart2
-                              style={{ color: "#FFD700", fontSize: "20px" }}
-                            />
+                            <FiBarChart2 style={{ color: "#FFD700", fontSize: "20px" }} />
                           </Box>
                           <Typography
                             variant="h6"
@@ -1108,34 +1046,18 @@ const Dashboard = () => {
                           borderRadius: "12px",
                         }}
                       >
-                        <FiFileText
-                          style={{ color: "#4CAF50", fontSize: "30px" }}
-                        />
+                        <FiFileText style={{ color: "#4CAF50", fontSize: "30px" }} />
                       </Box>
                       <Box sx={{ flexGrow: 1, ml: 2 }}>
-                        <Typography
-                          variant="h6"
-                          sx={{ color: "#1A1A40", fontWeight: "700", mb: 1 }}
-                        >
+                        <Typography variant="h6" sx={{ color: "#1A1A40", fontWeight: "700", mb: 1 }}>
                           {t("dashboard.invoicesToReceive")}
                         </Typography>
-                        <Box
-                          sx={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                          }}
-                        >
+                        <Box sx={{ display: "flex", justifyContent: "space-between" }}>
                           <Box>
-                            <Typography
-                              variant="body2"
-                              sx={{ color: "#1A1A40", fontWeight: "500" }}
-                            >
+                            <Typography variant="body2" sx={{ color: "#1A1A40", fontWeight: "500" }}>
                               {t("dashboard.current")}
                             </Typography>
-                            <Typography
-                              variant="h5"
-                              sx={{ color: "#1A1A40", fontWeight: "700" }}
-                            >
+                            <Typography variant="h5" sx={{ color: "#1A1A40", fontWeight: "700" }}>
                               €0,00
                             </Typography>
                             <Typography variant="body2" sx={{ color: "#888" }}>
@@ -1143,16 +1065,10 @@ const Dashboard = () => {
                             </Typography>
                           </Box>
                           <Box>
-                            <Typography
-                              variant="body2"
-                              sx={{ color: "#1A1A40", fontWeight: "500" }}
-                            >
+                            <Typography variant="body2" sx={{ color: "#1A1A40", fontWeight: "500" }}>
                               {t("dashboard.expired")}
                             </Typography>
-                            <Typography
-                              variant="h5"
-                              sx={{ color: "#FF0000", fontWeight: "700" }}
-                            >
+                            <Typography variant="h5" sx={{ color: "#FF0000", fontWeight: "700" }}>
                               €0,00
                             </Typography>
                             <Typography variant="body2" sx={{ color: "#888" }}>
@@ -1194,34 +1110,18 @@ const Dashboard = () => {
                           borderRadius: "12px",
                         }}
                       >
-                        <FiCalendar
-                          style={{ color: "#F44336", fontSize: "30px" }}
-                        />
+                        <FiCalendar style={{ color: "#F44336", fontSize: "30px" }} />
                       </Box>
                       <Box sx={{ flexGrow: 1, ml: 2 }}>
-                        <Typography
-                          variant="h6"
-                          sx={{ color: "#1A1A40", fontWeight: "700", mb: 1 }}
-                        >
+                        <Typography variant="h6" sx={{ color: "#1A1A40", fontWeight: "700", mb: 1 }}>
                           {t("dashboard.invoicesToPay")}
                         </Typography>
-                        <Box
-                          sx={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                          }}
-                        >
+                        <Box sx={{ display: "flex", justifyContent: "space-between" }}>
                           <Box>
-                            <Typography
-                              variant="body2"
-                              sx={{ color: "#1A1A40", fontWeight: "500" }}
-                            >
+                            <Typography variant="body2" sx={{ color: "#1A1A40", fontWeight: "500" }}>
                               {t("dashboard.current")}
                             </Typography>
-                            <Typography
-                              variant="h5"
-                              sx={{ color: "#1A1A40", fontWeight: "700" }}
-                            >
+                            <Typography variant="h5" sx={{ color: "#1A1A40", fontWeight: "700" }}>
                               €0,00
                             </Typography>
                             <Typography variant="body2" sx={{ color: "#888" }}>
@@ -1229,16 +1129,10 @@ const Dashboard = () => {
                             </Typography>
                           </Box>
                           <Box>
-                            <Typography
-                              variant="body2"
-                              sx={{ color: "#1A1A40", fontWeight: "500" }}
-                            >
+                            <Typography variant="body2" sx={{ color: "#1A1A40", fontWeight: "500" }}>
                               {t("dashboard.expired")}
                             </Typography>
-                            <Typography
-                              variant="h5"
-                              sx={{ color: "#FF0000", fontWeight: "700" }}
-                            >
+                            <Typography variant="h5" sx={{ color: "#FF0000", fontWeight: "700" }}>
                               €0,00
                             </Typography>
                             <Typography variant="body2" sx={{ color: "#888" }}>
@@ -1296,7 +1190,6 @@ const Dashboard = () => {
                           >
                             <Select
                               value={selectedPeriod}
-                              
                               sx={{
                                 minWidth: "160px",
                                 height: "40px",
@@ -1305,21 +1198,14 @@ const Dashboard = () => {
                               }}
                             >
                               <MenuItem value="7 días">Últimos 7 días</MenuItem>
-                              <MenuItem value="15 días">
-                                Últimos 15 días
-                              </MenuItem>
+                              <MenuItem value="15 días">Últimos 15 días</MenuItem>
                               <MenuItem value="1 mes">Último mes</MenuItem>
-                              <MenuItem value="3 meses">
-                                Último trimestre
-                              </MenuItem>
-                              <MenuItem value="6 meses">
-                                Últimos 6 meses
-                              </MenuItem>
+                              <MenuItem value="3 meses">Último trimestre</MenuItem>
+                              <MenuItem value="6 meses">Últimos 6 meses</MenuItem>
                               <MenuItem value="1 año">Último año</MenuItem>
                             </Select>
                             <Select
                               value={selectedYear}
-                              
                               sx={{
                                 minWidth: "120px",
                                 height: "40px",
@@ -1337,17 +1223,8 @@ const Dashboard = () => {
                         </Box>
                         <Box sx={{ height: 400, position: "relative" }}>
                           <Bar data={data} options={options} />
-                          <Box
-                            sx={{
-                              position: "absolute",
-                              top: 10,
-                              right: 20,
-                            }}
-                          >
-                            <Typography
-                              variant="h4"
-                              sx={{ color: "#2666CF", fontWeight: "700" }}
-                            >
+                          <Box sx={{ position: "absolute", top: 10, right: 20 }}>
+                            <Typography variant="h4" sx={{ color: "#2666CF", fontWeight: "700" }}>
                               {amount}
                             </Typography>
                           </Box>
@@ -1392,19 +1269,17 @@ const Dashboard = () => {
                         >
                           Flujo de Transacciones
                         </Typography>
-                        <Box
-                          sx={{ display: "flex", gap: 1, alignItems: "center" }}
-                        >
+                        <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
                           <Button
                             variant="contained"
                             sx={{
-                              background: 'linear-gradient(90deg, #2666CF, #6A82FB)',
-                              color: '#ffffff',
-                              fontWeight: '500',
-                              textTransform: 'none',
+                              background: "linear-gradient(90deg, #2666CF, #6A82FB)",
+                              color: "#ffffff",
+                              fontWeight: "500",
+                              textTransform: "none",
                               borderRadius: 2,
-                              boxShadow: '0 3px 6px rgba(0,0,0,0.1)',
-                              minWidth: '120px',
+                              boxShadow: "0 3px 6px rgba(0,0,0,0.1)",
+                              minWidth: "120px",
                             }}
                           >
                             Filtrar
@@ -1414,7 +1289,6 @@ const Dashboard = () => {
                           </IconButton>
                         </Box>
                       </Box>
-
                       <Box sx={{ height: 300, position: "relative" }}>
                         <Chart
                           type="bar"
@@ -1484,9 +1358,7 @@ const Dashboard = () => {
                               legend: {
                                 display: true,
                                 position: "top",
-                                labels: {
-                                  usePointStyle: true,
-                                },
+                                labels: { usePointStyle: true },
                               },
                               tooltip: {
                                 mode: "index" as const,
@@ -1505,13 +1377,9 @@ const Dashboard = () => {
                                   display: true,
                                   text: "Fecha",
                                   color: "#666666",
-                                  font: {
-                                    size: 14,
-                                  },
+                                  font: { size: 14 },
                                 },
-                                grid: {
-                                  color: "rgba(200, 200, 200, 0.2)",
-                                },
+                                grid: { color: "rgba(200, 200, 200, 0.2)" },
                               },
                               y: {
                                 display: true,
@@ -1519,13 +1387,9 @@ const Dashboard = () => {
                                   display: true,
                                   text: "Cantidad (€)",
                                   color: "#666666",
-                                  font: {
-                                    size: 14,
-                                  },
+                                  font: { size: 14 },
                                 },
-                                grid: {
-                                  color: "rgba(200, 200, 200, 0.2)",
-                                },
+                                grid: { color: "rgba(200, 200, 200, 0.2)" },
                                 suggestedMin: 0,
                                 suggestedMax: 1,
                               },
@@ -1547,16 +1411,10 @@ const Dashboard = () => {
                         }}
                       >
                         <Box sx={{ textAlign: "center", flexGrow: 1 }}>
-                          <Typography
-                            variant="subtitle1"
-                            sx={{ color: "#1A1A40", fontWeight: "500" }}
-                          >
+                          <Typography variant="subtitle1" sx={{ color: "#1A1A40", fontWeight: "500" }}>
                             Total Ingresos
                           </Typography>
-                          <Typography
-                            variant="h5"
-                            sx={{ color: "#32CD32", fontWeight: "700" }}
-                          >
+                          <Typography variant="h5" sx={{ color: "#32CD32", fontWeight: "700" }}>
                             €0,00
                           </Typography>
                           <Typography variant="caption" sx={{ color: "#888" }}>
@@ -1564,16 +1422,10 @@ const Dashboard = () => {
                           </Typography>
                         </Box>
                         <Box sx={{ textAlign: "center", flexGrow: 1 }}>
-                          <Typography
-                            variant="subtitle1"
-                            sx={{ color: "#1A1A40", fontWeight: "500" }}
-                          >
+                          <Typography variant="subtitle1" sx={{ color: "#1A1A40", fontWeight: "500" }}>
                             Total Egresos
                           </Typography>
-                          <Typography
-                            variant="h5"
-                            sx={{ color: "#FF0000", fontWeight: "700" }}
-                          >
+                          <Typography variant="h5" sx={{ color: "#FF0000", fontWeight: "700" }}>
                             €0,00
                           </Typography>
                           <Typography variant="caption" sx={{ color: "#888" }}>
@@ -1581,16 +1433,10 @@ const Dashboard = () => {
                           </Typography>
                         </Box>
                         <Box sx={{ textAlign: "center", flexGrow: 1 }}>
-                          <Typography
-                            variant="subtitle1"
-                            sx={{ color: "#1A1A40", fontWeight: "500" }}
-                          >
+                          <Typography variant="subtitle1" sx={{ color: "#1A1A40", fontWeight: "500" }}>
                             Beneficio Neto
                           </Typography>
-                          <Typography
-                            variant="h5"
-                            sx={{ color: "#0000FF", fontWeight: "700" }}
-                          >
+                          <Typography variant="h5" sx={{ color: "#0000FF", fontWeight: "700" }}>
                             €0,00
                           </Typography>
                           <Typography variant="caption" sx={{ color: "#888" }}>
@@ -1620,31 +1466,16 @@ const Dashboard = () => {
                         },
                       }}
                     >
-                      <Typography
-                        variant="h6"
-                        sx={{ color: "#1A1A40", fontWeight: "700", mb: 1 }}
-                      >
+                      <Typography variant="h6" sx={{ color: "#1A1A40", fontWeight: "700", mb: 1 }}>
                         Productos más vendidos
                       </Typography>
                       <Typography variant="body1" sx={{ color: "#888", mb: 2 }}>
                         El total vendido tiene impuestos incluidos.
                       </Typography>
-                      <Box
-                        sx={{
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          mb: 2,
-                        }}
-                      >
-                        <FiBarChart2
-                          style={{ color: "#888", fontSize: "50px" }}
-                        />
+                      <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", mb: 2 }}>
+                        <FiBarChart2 style={{ color: "#888", fontSize: "50px" }} />
                       </Box>
-                      <Typography
-                        variant="body2"
-                        sx={{ color: "#1A1A40", textAlign: "center" }}
-                      >
+                      <Typography variant="body2" sx={{ color: "#1A1A40", textAlign: "center" }}>
                         Sin ventas registradas
                       </Typography>
                       <Typography variant="caption" sx={{ color: "#888" }}>
@@ -1672,31 +1503,16 @@ const Dashboard = () => {
                         },
                       }}
                     >
-                      <Typography
-                        variant="h6"
-                        sx={{ color: "#1A1A40", fontWeight: "700", mb: 1 }}
-                      >
+                      <Typography variant="h6" sx={{ color: "#1A1A40", fontWeight: "700", mb: 1 }}>
                         Mejores clientes
                       </Typography>
                       <Typography variant="body1" sx={{ color: "#888", mb: 2 }}>
                         El total vendido tiene impuestos incluidos.
                       </Typography>
-                      <Box
-                        sx={{
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          mb: 2,
-                        }}
-                      >
-                        <FiBarChart2
-                          style={{ color: "#888", fontSize: "50px" }}
-                        />
+                      <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", mb: 2 }}>
+                        <FiBarChart2 style={{ color: "#888", fontSize: "50px" }} />
                       </Box>
-                      <Typography
-                        variant="body2"
-                        sx={{ color: "#1A1A40", textAlign: "center" }}
-                      >
+                      <Typography variant="body2" sx={{ color: "#1A1A40", textAlign: "center" }}>
                         Sin ventas registradas
                       </Typography>
                       <Typography variant="caption" sx={{ color: "#888" }}>
@@ -1718,8 +1534,7 @@ const Dashboard = () => {
                           bgcolor: "#ffffff",
                           borderRadius: 3,
                           boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
-                          transition:
-                            "transform 0.3s ease, box-shadow 0.3s ease",
+                          transition: "transform 0.3s ease, box-shadow 0.3s ease",
                           "&:hover": {
                             transform: "translateY(-5px)",
                             boxShadow: "0 8px 20px rgba(0, 0, 0, 0.2)",
@@ -1728,16 +1543,10 @@ const Dashboard = () => {
                           position: "relative",
                         }}
                       >
-                        <Typography
-                          variant="subtitle1"
-                          sx={{ color: "#1A1A40", fontWeight: "600", mb: 1 }}
-                        >
+                        <Typography variant="subtitle1" sx={{ color: "#1A1A40", fontWeight: "600", mb: 1 }}>
                           Impuestos en venta
                         </Typography>
-                        <Typography
-                          variant="h4"
-                          sx={{ color: "#1A1A40", fontWeight: "700" }}
-                        >
+                        <Typography variant="h4" sx={{ color: "#1A1A40", fontWeight: "700" }}>
                           €0,00
                         </Typography>
                         <Box
@@ -1750,9 +1559,7 @@ const Dashboard = () => {
                             padding: "8px",
                           }}
                         >
-                          <FiDollarSign
-                            style={{ color: "#00A9F4", fontSize: "24px" }}
-                          />
+                          <FiDollarSign style={{ color: "#00A9F4", fontSize: "24px" }} />
                         </Box>
                         <Box sx={{ mt: 2, width: "100%" }}>
                           <Typography variant="body2" sx={{ color: "#888" }}>
@@ -1792,8 +1599,7 @@ const Dashboard = () => {
                           bgcolor: "#ffffff",
                           borderRadius: 3,
                           boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
-                          transition:
-                            "transform 0.3s ease, box-shadow 0.3s ease",
+                          transition: "transform 0.3s ease, box-shadow 0.3s ease",
                           "&:hover": {
                             transform: "translateY(-5px)",
                             boxShadow: "0 8px 20px rgba(0, 0, 0, 0.2)",
@@ -1802,16 +1608,10 @@ const Dashboard = () => {
                           position: "relative",
                         }}
                       >
-                        <Typography
-                          variant="subtitle1"
-                          sx={{ color: "#1A1A40", fontWeight: "600", mb: 1 }}
-                        >
+                        <Typography variant="subtitle1" sx={{ color: "#1A1A40", fontWeight: "600", mb: 1 }}>
                           Productos vendidos
                         </Typography>
-                        <Typography
-                          variant="h4"
-                          sx={{ color: "#1A1A40", fontWeight: "700" }}
-                        >
+                        <Typography variant="h4" sx={{ color: "#1A1A40", fontWeight: "700" }}>
                           0
                         </Typography>
                         <Box
@@ -1824,9 +1624,7 @@ const Dashboard = () => {
                             padding: "8px",
                           }}
                         >
-                          <FiShoppingCart
-                            style={{ color: "#FFA726", fontSize: "24px" }}
-                          />
+                          <FiShoppingCart style={{ color: "#FFA726", fontSize: "24px" }} />
                         </Box>
                         <Box sx={{ mt: 2, width: "100%" }}>
                           <Typography variant="body2" sx={{ color: "#1A1A40", textAlign: "center" }}>
@@ -1851,8 +1649,7 @@ const Dashboard = () => {
                           bgcolor: "#ffffff",
                           borderRadius: 3,
                           boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
-                          transition:
-                            "transform 0.3s ease, box-shadow 0.3s ease",
+                          transition: "transform 0.3s ease, box-shadow 0.3s ease",
                           "&:hover": {
                             transform: "translateY(-5px)",
                             boxShadow: "0 8px 20px rgba(0, 0, 0, 0.2)",
@@ -1861,22 +1658,13 @@ const Dashboard = () => {
                           position: "relative",
                         }}
                       >
-                        <Typography
-                          variant="subtitle1"
-                          sx={{ color: "#1A1A40", fontWeight: "600", mb: 1 }}
-                        >
+                        <Typography variant="subtitle1" sx={{ color: "#1A1A40", fontWeight: "600", mb: 1 }}>
                           Devoluciones de clientes
                         </Typography>
-                        <Typography
-                          variant="body2"
-                          sx={{ color: "#888", mb: 1 }}
-                        >
+                        <Typography variant="body2" sx={{ color: "#888", mb: 1 }}>
                           Incluye impuestos
                         </Typography>
-                        <Typography
-                          variant="h4"
-                          sx={{ color: "#1A1A40", fontWeight: "700" }}
-                        >
+                        <Typography variant="h4" sx={{ color: "#1A1A40", fontWeight: "700" }}>
                           €0,00
                         </Typography>
                         <Box
@@ -1889,9 +1677,7 @@ const Dashboard = () => {
                             padding: "8px",
                           }}
                         >
-                          <FiRefreshCcw
-                            style={{ color: "#E53935", fontSize: "24px" }}
-                          />
+                          <FiRefreshCcw style={{ color: "#E53935", fontSize: "24px" }} />
                         </Box>
                         <Box sx={{ mt: 2, width: "100%" }}>
                           <Typography variant="body2" sx={{ color: "#888" }}>
@@ -1931,8 +1717,7 @@ const Dashboard = () => {
                           bgcolor: "#ffffff",
                           borderRadius: 3,
                           boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
-                          transition:
-                            "transform 0.3s ease, box-shadow 0.3s ease",
+                          transition: "transform 0.3s ease, box-shadow 0.3s ease",
                           "&:hover": {
                             transform: "translateY(-5px)",
                             boxShadow: "0 8px 20px rgba(0, 0, 0, 0.2)",
@@ -1941,16 +1726,10 @@ const Dashboard = () => {
                           position: "relative",
                         }}
                       >
-                        <Typography
-                          variant="subtitle1"
-                          sx={{ color: "#1A1A40", fontWeight: "600", mb: 1 }}
-                        >
+                        <Typography variant="subtitle1" sx={{ color: "#1A1A40", fontWeight: "600", mb: 1 }}>
                           Clientes con ventas
                         </Typography>
-                        <Typography
-                          variant="h4"
-                          sx={{ color: "#1A1A40", fontWeight: "700" }}
-                        >
+                        <Typography variant="h4" sx={{ color: "#1A1A40", fontWeight: "700" }}>
                           0
                         </Typography>
                         <Box
@@ -1963,9 +1742,7 @@ const Dashboard = () => {
                             padding: "8px",
                           }}
                         >
-                          <FiUser
-                            style={{ color: "#43A047", fontSize: "24px" }}
-                          />
+                          <FiUser style={{ color: "#43A047", fontSize: "24px" }} />
                         </Box>
                         <Box sx={{ mt: 2, width: "100%" }}>
                           <Typography variant="body2" sx={{ color: "#888" }}>
@@ -2007,9 +1784,8 @@ const Dashboard = () => {
           formErrors={formErrors}
           handleChange={handleChange}
           handleFormSubmit={handleFormSubmit}
-          loading={loading} // Pasar la prop de carga
+          loading={loading}
         />
-
       </UserChecker>
     </Box>
   );
