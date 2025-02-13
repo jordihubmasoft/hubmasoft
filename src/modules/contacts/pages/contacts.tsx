@@ -26,7 +26,6 @@ import useAuthStore from "../../../store/useAuthStore";
 
 // Función para transformar el contacto local (con campos en español)
 // al objeto que el API espera (con claves en inglés)
-// Se agrega la propiedad forceCreate: true para forzar la creación
 function transformLocalToBackendPayload(contact: Omit<Contact, "id" | "userId">): any {
   return {
     name: contact.nombre,
@@ -43,9 +42,14 @@ function transformLocalToBackendPayload(contact: Omit<Contact, "id" | "userId">)
     vatIdentification: contact.identificacionVAT,
     commercialName: contact.nombreComercial,
     tags: contact.tags,
-    contactType: contact.tipoContacto === "Cliente" ? 1 : contact.tipoContacto === "Proveedor" ? 2 : 0,
+    contactType:
+      contact.tipoContacto === "Cliente"
+        ? 1
+        : contact.tipoContacto === "Proveedor"
+        ? 2
+        : 0,
     extraInformation: contact.extraInformation,
-    forceCreate: true
+    forceCreate: true,
   };
 }
 
@@ -176,29 +180,54 @@ const Contacts = () => {
     pais: "",
   });
   const [linkedContacts, setLinkedContacts] = useState<LinkedContact[]>([]);
-  const [loadingLinkedContacts, setLoadingLinkedContacts] = useState<boolean>(true);
+  const [loadingLinkedContacts, setLoadingLinkedContacts] = useState<boolean>(false);
+  const [loadingContacts, setLoadingContacts] = useState<boolean>(false);
 
   const token = useAuthStore((state) => state.token);
-  // El ownerContactId (id del usuario en sesión) debe ser una cadena (ejemplo: "7236c626-6085-49f3-746c-08dd08aab7e4")
   const ownerContactId = useAuthStore((state) => state.contactId);
   const router = useRouter();
 
-  // 1. Carga de todos los contactos (sin filtrar)
-  useEffect(() => {
+  // Función para refrescar la lista de contactos desde el API
+  const fetchContacts = async () => {
     if (token) {
-      ContactService.getAllContacts(token)
-        .then((response) => {
-          const fetchedContacts: Contact[] = response.data.map((serviceContact: any) =>
-            transformServiceContactToLocal(serviceContact)
-          );
-          setContacts(fetchedContacts);
-          setFilteredPeople(fetchedContacts);
-        })
-        .catch((error) => console.error("Error al obtener contactos:", error));
+      setLoadingContacts(true);
+      try {
+        const response = await ContactService.getAllContacts(token);
+        const fetchedContacts: Contact[] = response.data.map((serviceContact: any) =>
+          transformServiceContactToLocal(serviceContact)
+        );
+        setContacts(fetchedContacts);
+        setFilteredPeople(fetchedContacts);
+      } catch (error) {
+        console.error("Error al obtener contactos:", error);
+      } finally {
+        setLoadingContacts(false);
+      }
     }
+  };
+
+  // Función para refrescar los contactos vinculados
+  const fetchLinkedContacts = async () => {
+    if (ownerContactId && token) {
+      setLoadingLinkedContacts(true);
+      try {
+        const response = await LinkedContactsService.getByContactId(ownerContactId, token);
+        const allLinkedContacts = response.data || [];
+        setLinkedContacts(allLinkedContacts);
+      } catch (error) {
+        console.error("Error al obtener contactos vinculados:", error);
+      } finally {
+        setLoadingLinkedContacts(false);
+      }
+    }
+  };
+
+  // Cargar contactos al iniciar
+  useEffect(() => {
+    fetchContacts();
   }, [token]);
 
-  // 2. Actualización de columnas visibles (LocalStorage)
+  // Actualizar columnas visibles desde localStorage
   useEffect(() => {
     const savedColumns =
       JSON.parse(localStorage.getItem("visibleColumns") || "[]") ||
@@ -210,7 +239,7 @@ const Contacts = () => {
     localStorage.setItem("visibleColumns", JSON.stringify(visibleColumns));
   }, [visibleColumns]);
 
-  // 3. Actualizar datos de edición cuando cambia el contacto seleccionado
+  // Actualizar datos de edición cuando cambia el contacto seleccionado
   useEffect(() => {
     setEditData(selectedContact);
   }, [selectedContact]);
@@ -232,27 +261,12 @@ const Contacts = () => {
     }
   }, [selectedContact]);
 
-  // 4. Carga de los LinkedContacts del usuario en sesión (usando ownerContactId)
+  // Cargar contactos vinculados al cambiar ownerContactId/token
   useEffect(() => {
-    const fetchLinkedContacts = async () => {
-      if (ownerContactId && token) {
-        try {
-          setLoadingLinkedContacts(true);
-          const response = await LinkedContactsService.getByContactId(ownerContactId, token);
-          // Incluimos todos los registros que tengan un linkedContactId (sin filtrar por isApproved)
-          const allLinkedContacts = response.data || [];
-          setLinkedContacts(allLinkedContacts);
-        } catch (error) {
-          console.error("Error al obtener contactos vinculados:", error);
-        } finally {
-          setLoadingLinkedContacts(false);
-        }
-      }
-    };
     fetchLinkedContacts();
   }, [ownerContactId, token]);
 
-  // 5. Manejo de la búsqueda
+  // Manejo de la búsqueda
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     const term = event.target.value.toLowerCase();
     setSearchTerm(term);
@@ -283,7 +297,7 @@ const Contacts = () => {
     setSelectedContact(null);
   };
 
-  // 6. Función para vincular un contacto
+  // Función para vincular un contacto
   const handleLinkContact = async (personId: string) => {
     if (!ownerContactId || !token) return;
     try {
@@ -293,85 +307,116 @@ const Contacts = () => {
         token
       );
       if (response.data) {
-        setLinkedContacts((prev) => [...prev, response.data]);
+        // Refrescamos los contactos vinculados
+        await fetchLinkedContacts();
       }
     } catch (error) {
       console.error("Error al vincular contacto:", error);
     }
   };
 
-  // 7. Función para desvincular un contacto
+  // Función para desvincular un contacto
   const handleUnlinkContact = async (linkedContactId: string) => {
     if (!ownerContactId || !token) return;
     try {
       await LinkedContactsService.deleteLinkedContact(ownerContactId, linkedContactId, token);
-      setLinkedContacts((prev) =>
-        prev.filter((lc) => lc.linkedContactId !== linkedContactId)
-      );
+      await fetchLinkedContacts();
     } catch (error) {
       console.error("Error al eliminar contacto vinculado:", error);
     }
   };
 
-  // 8. Abrir el drawer para ver detalles del contacto
+  // Abrir el drawer para ver detalles del contacto
   const handleOpenDrawer = (contact: Contact) => {
     setSelectedContact(contact);
     setEditData(contact);
     setIsDrawerOpen(true);
   };
 
-  // 9. Función para guardar (crear/actualizar) un contacto
+  // Función para guardar (crear/actualizar) un contacto y refrescar la tabla
   const handleSave = async (contact: Contact) => {
     if (!token || !ownerContactId) {
       console.error("No hay token o ownerContactId disponible");
       return;
     }
+    setLoadingContacts(true);
     try {
-      let response: CommonResponse<Contact>;
       if (contact.id) {
         // Actualización del contacto
-        response = await ContactService.updateContact(
+        const updateResponse = await ContactService.updateContact(
           { ...contact, contactId: contact.id },
           token
         );
-        const updatedContact = transformServiceContactToLocal(response.data);
-        setContacts((prev) =>
-          prev.map((c) => (c.id === updatedContact.id ? updatedContact : c))
-        );
-        setSelectedContact(updatedContact);
-      } else {
-        // Para crear un contacto nuevo, eliminamos 'id' y 'userId'
-        const { id, userId, ...contactToCreate } = contact;
-        // Transformamos los datos al formato que espera el API
-        const backendPayload = transformLocalToBackendPayload(contactToCreate);
-        response = await ContactService.createContact(backendPayload, token);
-        const newContact = transformServiceContactToLocal(response.data);
-        if (!newContact.id) {
-          console.error("El nuevo contacto tiene un ID inválido:", newContact);
+        if (!updateResponse || !updateResponse.data) {
+          console.error("Error al actualizar el contacto");
+          return;
         }
-        setContacts((prev) => [...prev, newContact]);
-        setSelectedContact(newContact);
-        if (newContact.id) {
-          // Vinculamos el nuevo contacto al usuario en sesión
-          const linkedResponse = await LinkedContactsService.addLinkedContact(
-            ownerContactId,
-            newContact.id,
-            token
-          );
-          if (linkedResponse.data) {
-            setLinkedContacts((prev) => [...prev, linkedResponse.data]);
+      } else {
+        // Crear un nuevo contacto
+        const { id, userId, ...contactToCreate } = contact;
+        const backendPayload = transformLocalToBackendPayload(contactToCreate);
+        const createResponse = await ContactService.createContact(backendPayload, token);
+        if (createResponse && createResponse.data) {
+          const newContact = transformServiceContactToLocal(createResponse.data);
+          if (newContact.id) {
+            // Espera a que se vincule el contacto
+            const linkResponse = await LinkedContactsService.addLinkedContact(
+              ownerContactId,
+              newContact.id,
+              token
+            );
+            if (!linkResponse || !linkResponse.data) {
+              console.error("Error al vincular el contacto");
+              return;
+            }
+            // Actualizamos manualmente el estado para forzar la recarga de la tabla
+            setContacts(prevContacts => [...prevContacts, newContact]);
+            setLinkedContacts(prevLinked => [
+              ...prevLinked,
+              { ownerContactId: ownerContactId, linkedContactId: newContact.id }
+            ]);
+          } else {
+            console.error("No se puede vincular el contacto debido a un ID inválido.");
+            return;
           }
         } else {
-          console.error("No se puede vincular el contacto debido a un ID inválido.");
+          console.error("Error al crear el contacto");
+          return;
         }
       }
-    } catch (error: any) {
+      // Una vez recibida la respuesta exitosa, se refetch la lista completa para garantizar datos actualizados
+      await fetchContacts();
+      await fetchLinkedContacts();
+      setOpen(false); // Cierra el formulario
+    } catch (error) {
       console.error("Error al guardar el contacto:", error);
+    } finally {
+      setLoadingContacts(false);
     }
   };
 
-  // 10. Función para transformar el objeto del servicio al formato interno
-  // Se adapta tanto para contactos completos como para los que vienen de la consulta de LinkedContacts
+  // Función para eliminar un contacto y refrescar la tabla
+  const handleDelete = async (contactId: string) => {
+    if (!token || !ownerContactId) {
+      console.error("No hay token o ownerContactId disponible");
+      return;
+    }
+    setLoadingContacts(true);
+    try {
+      // Se asume que existe un método en ContactService para eliminar el contacto.
+      await ContactService.deleteContact(contactId, token);
+      // Actualizamos los estados locales eliminando el contacto borrado
+      setContacts((prev) => prev.filter((contact) => contact.id !== contactId));
+      setFilteredPeople((prev) => prev.filter((contact) => contact.id !== contactId));
+      await fetchLinkedContacts();
+    } catch (error) {
+      console.error("Error al eliminar el contacto:", error);
+    } finally {
+      setLoadingContacts(false);
+    }
+  };
+
+  // Función para transformar el objeto del servicio al formato interno
   function transformServiceContactToLocal(serviceContact: any): Contact {
     return {
       id: serviceContact.id ? serviceContact.id.toString() : "",
@@ -411,7 +456,7 @@ const Contacts = () => {
     };
   }
 
-  // 11. Función para gestionar el menú de columnas
+  // Función para gestionar el menú de columnas
   const handleColumnToggle = (column: string) => {
     setVisibleColumns((prev) =>
       prev.includes(column) ? prev.filter((col) => col !== column) : [...prev, column]
@@ -426,8 +471,7 @@ const Contacts = () => {
     setAnchorEl(null);
   };
 
-  // 12. Función para obtener los contactos vinculados
-  // Se filtra el arreglo de contactos para devolver aquellos cuyo id coincida (ignorando mayúsculas) con algún linkedContactId
+  // Función para obtener los contactos vinculados
   const getLinkedContacts = (): Contact[] => {
     return contacts.filter((contact) =>
       linkedContacts.some(
@@ -436,7 +480,7 @@ const Contacts = () => {
     );
   };
 
-  // Luego se aplica la búsqueda y/o el filtro adicional (clientes, proveedores, etc.)
+  // Se aplica la búsqueda y/o el filtro adicional
   const getFilteredContacts = () => {
     const linkedContactsList = getLinkedContacts();
     return linkedContactsList.filter((contact) => {
@@ -460,10 +504,6 @@ const Contacts = () => {
 
   const handleEdit = (contact: Contact) => {
     handleOpen(contact);
-  };
-
-  const handleDelete = (contactId: string) => {
-    setContacts(contacts.filter((c) => c.id !== contactId));
   };
 
   return (
@@ -524,8 +564,16 @@ const Contacts = () => {
             <Typography variant="h4" sx={{ mb: 3, color: "#2666CF", fontWeight: "600" }}>
               Contactos Vinculados
             </Typography>
-            {loadingLinkedContacts ? (
-              <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100px" }}>
+
+            {(loadingContacts || loadingLinkedContacts) ? (
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  height: "100px",
+                }}
+              >
                 <CircularProgress size={60} />
               </Box>
             ) : (
@@ -533,7 +581,7 @@ const Contacts = () => {
                 contacts={getFilteredContacts()}
                 visibleColumns={visibleColumns}
                 allColumns={allColumns}
-                onEdit={handleEdit}
+                onEdit={handleOpen}
                 onDelete={handleDelete}
                 onRowClick={handleOpenDrawer}
               />
