@@ -345,16 +345,7 @@ const ContactDetailsDrawer: React.FC<ContactDetailsDrawerProps> = ({
           <Button variant="outlined" sx={{ textTransform: "none", mb: 3 }} onClick={handleOpenDialog}>
             Relacionar persona
           </Button>
-          <List>
-            {linkedContacts.map((lc) => (
-              <ListItem key={lc.linkedContactId}>
-                <ListItemText primary={`Contacto ID: ${lc.linkedContactId}`} />
-                <IconButton onClick={() => onUnlinkContact(lc.linkedContactId)}>
-                  <DeleteIcon />
-                </IconButton>
-              </ListItem>
-            ))}
-          </List>
+          
 
           <Box sx={{ mb: 2 }}>
             <Typography variant="body1" sx={{ fontWeight: "bold", mb: 2 }}>

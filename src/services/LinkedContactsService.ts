@@ -50,8 +50,6 @@ export default class LinkedContactsService {
       if (!baseURL) throw new Error("Base URL no está definido en las variables de entorno.");
       const url = `${baseURL}/LinkedContact`;
 
-      // Se envían las propiedades requeridas por el backend, 
-      // y ahora se agrega isApproved: true para que siempre se cree como aprobado.
       const body = { 
         OwnerContactId: ownerContactId, 
         LinekdContactId: linkedContactId,

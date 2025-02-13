@@ -147,4 +147,44 @@ export default class ContactService {
       throw new Error("Ocurrió un problema al actualizar el contacto.");
     }
   }
+
+  static async deleteContact(contactId: string, token: string): Promise<CommonResponse<null>> {
+    try {
+      const baseURL = process.env.NEXT_PUBLIC_API?.replace(/\/+$/, '');
+      if (!baseURL) throw new Error("Base URL no está definido en las variables de entorno.");
+      const url = `${baseURL}/Contact/${contactId}`;
+      
+      const response = await fetch(url, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+      });
+      
+      if (response.ok) {
+        const resultData = await response.json();
+        return {
+          result: {
+            resultNumber: resultData.result.resultNumber,
+            errorMessage: resultData.result.errorMessage,
+          },
+          data: null,
+        };
+      } else {
+        let errorMessage = `Error al eliminar el contacto. Código de estado: ${response.status}`;
+        try {
+          const errorResponse = await response.json();
+          errorMessage = errorResponse.result?.errorMessage || errorMessage;
+        } catch {
+          const errorText = await response.text();
+          errorMessage = `Error al eliminar el contacto: ${errorText}`;
+        }
+        throw new Error(errorMessage);
+      }
+    } catch (err: any) {
+      console.error("Error en deleteContact:", err.message || err);
+      throw new Error("Ocurrió un problema al eliminar el contacto.");
+    }
+  }
 }
