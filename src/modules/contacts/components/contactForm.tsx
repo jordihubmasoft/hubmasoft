@@ -1,5 +1,5 @@
 // components/ContactForm.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -9,8 +9,6 @@ import {
   TextField,
   Button,
   Grid,
-  Checkbox,
-  FormControlLabel,
   FormControl,
   InputLabel,
   Select,
@@ -18,11 +16,14 @@ import {
   FormHelperText,
   Typography,
   IconButton,
+  Autocomplete,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 import { SelectChangeEvent } from '@mui/material/Select';
 import { Contact, ShippingAddress, ExtraInformation } from '../../../types/Contact';
+import ContactService from '../../../services/ContactService';
+import useAuthStore from '../../../store/useAuthStore';
 
 // Objeto inicial usando los nombres en español
 const initialFormData: Contact = {
@@ -98,34 +99,75 @@ interface ContactFormProps {
 }
 
 const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, handleSave }) => {
+  const token = useAuthStore((state) => state.token);
   const [formData, setFormData] = useState<Contact>(initialFormData);
   const [errors, setErrors] = useState<Partial<Record<keyof Contact | keyof ExtraInformation, string>>>({});
+
+  // Estados para el Autocomplete en el campo "Nombre"
+  const [suggestions, setSuggestions] = useState<Contact[]>([]);
+  const [nombreInput, setNombreInput] = useState<string>(formData.nombre);
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (contact) {
       setFormData(contact);
+      setNombreInput(contact.nombre);
     } else {
       setFormData(initialFormData);
+      setNombreInput('');
     }
-  }, [contact]);
+  }, [contact, open]);
 
+  // Efecto para buscar sugerencias cuando se escribe en "Nombre" (debounce de 300ms)
+  useEffect(() => {
+    if (nombreInput) {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+      debounceTimerRef.current = setTimeout(() => {
+        if (token) {
+          // Se asume que el endpoint espera { searchTerm: string }
+          ContactService.getContactsWithFiltersV2({ searchTerm: nombreInput }, token)
+            .then((response) => {
+              if (response && response.data) {
+                console.log('Sugerencias recibidas:', response.data);
+                setSuggestions(response.data);
+              }
+            })
+            .catch((error) => {
+              console.error('Error fetching suggestions:', error);
+              setSuggestions([]);
+            });
+        }
+      }, 300);
+    } else {
+      setSuggestions([]);
+    }
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, [nombreInput, token]);
+
+  // Actualiza el formulario al escribir (incluyendo el campo "nombre")
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = event.target;
     if (!name) return;
     // Si el campo pertenece a extraInformation
     if (name.startsWith('extraInformation.')) {
       const field = name.split('.')[1];
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         extraInformation: {
           ...prev.extraInformation!,
           [field]: value,
         },
       }));
-      setErrors(prev => ({ ...prev, [field]: '' }));
+      setErrors((prev) => ({ ...prev, [field]: '' }));
     } else {
-      setFormData(prev => ({ ...prev, [name]: value }));
-      setErrors(prev => ({ ...prev, [name]: '' }));
+      setFormData((prev) => ({ ...prev, [name]: value }));
+      setErrors((prev) => ({ ...prev, [name]: '' }));
     }
   };
 
@@ -134,17 +176,17 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, h
     if (!name) return;
     if (name.startsWith('extraInformation.')) {
       const field = name.split('.')[1];
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         extraInformation: {
           ...prev.extraInformation!,
           [field]: value,
         },
       }));
-      setErrors(prev => ({ ...prev, [field]: '' }));
+      setErrors((prev) => ({ ...prev, [field]: '' }));
     } else {
-      setFormData(prev => ({ ...prev, [name]: value }));
-      setErrors(prev => ({ ...prev, [name]: '' }));
+      setFormData((prev) => ({ ...prev, [name]: value }));
+      setErrors((prev) => ({ ...prev, [name]: '' }));
     }
   };
 
@@ -153,22 +195,22 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, h
     if (!name) return;
     if (name.startsWith('extraInformation.')) {
       const field = name.split('.')[1];
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         extraInformation: {
           ...prev.extraInformation!,
           [field]: value as string[],
         },
       }));
-      setErrors(prev => ({ ...prev, [field]: '' }));
+      setErrors((prev) => ({ ...prev, [field]: '' }));
     } else {
-      setFormData(prev => ({ ...prev, [name]: value as string[] }));
-      setErrors(prev => ({ ...prev, [name]: '' }));
+      setFormData((prev) => ({ ...prev, [name]: value as string[] }));
+      setErrors((prev) => ({ ...prev, [name]: '' }));
     }
   };
 
   const addShippingAddress = () => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       extraInformation: {
         ...prev.extraInformation!,
@@ -183,7 +225,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, h
   const removeShippingAddress = (index: number) => {
     const updatedAddresses = [...formData.extraInformation!.shippingAddress];
     updatedAddresses.splice(index, 1);
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       extraInformation: {
         ...prev.extraInformation!,
@@ -200,13 +242,24 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, h
     if (!name) return;
     const updatedAddresses = [...formData.extraInformation!.shippingAddress];
     updatedAddresses[index] = { ...updatedAddresses[index], [name]: value };
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       extraInformation: {
         ...prev.extraInformation!,
         shippingAddress: updatedAddresses,
       },
     }));
+  };
+
+  // Al seleccionar una sugerencia, se completan otros campos del formulario
+  const handleSuggestionSelect = (event: any, value: Contact | null) => {
+    if (value) {
+      setFormData((prev) => ({
+        ...prev,
+        ...value,
+      }));
+      setNombreInput(value.nombre);
+    }
   };
 
   // Validación adaptada a las claves en español
@@ -256,16 +309,32 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, h
         </Typography>
         <Grid container spacing={2}>
           <Grid item xs={12} sm={6}>
-            <TextField
-              margin="dense"
-              label="Nombre"
-              name="nombre"
-              fullWidth
-              variant="outlined"
-              value={formData.nombre}
-              onChange={handleInputChange}
-              error={Boolean(errors.nombre)}
-              helperText={errors.nombre}
+            {/* Campo "Nombre" con Autocomplete */}
+            <Autocomplete
+              freeSolo
+              options={suggestions}
+              getOptionLabel={(option) =>
+                typeof option === 'string' ? option : option.nombre
+              }
+              onChange={handleSuggestionSelect}
+              inputValue={nombreInput}
+              onInputChange={(event, newInputValue) => {
+                setNombreInput(newInputValue);
+                // Se actualiza el campo "nombre" en el formulario
+                handleInputChange({
+                  target: { name: 'nombre', value: newInputValue },
+                } as React.ChangeEvent<HTMLInputElement>);
+              }}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Nombre"
+                  margin="dense"
+                  fullWidth
+                  error={Boolean(errors.nombre)}
+                  helperText={errors.nombre}
+                />
+              )}
             />
           </Grid>
           <Grid item xs={12} sm={6}>

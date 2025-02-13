@@ -1,113 +1,71 @@
-// src/services/SubFamilyService.ts
+// src/services/subFamilyService.ts
+import { SubFamily } from '../types/subFamily';
 
-import { SubFamily, CreateSubFamilyPayload, UpdateSubFamilyPayload } from "../types/subFamily";
+const BASE_URL = process.env.NEXT_PUBLIC_API?.replace(/\/+$/, '');
 
-export default class SubFamilyService {
-  private static baseURL: string = process.env.NEXT_PUBLIC_API?.replace(/\/+$/, '') || '';
-
-  // Obtener todas las sub-familias
-  static async getAllSubFamilies(token: string): Promise<SubFamily[]> {
-    try {
-      const url = `${this.baseURL}/Family/subfamilies`;
-
-      const response = await fetch(url, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
-        },
-      });
-
-      if (response.ok) {
-        const subFamilias: SubFamily[] = await response.json();
-        return subFamilias;
-      } else {
-        const errorResponse = await response.json();
-        throw new Error(errorResponse.message || "Error al obtener las sub-familias");
-      }
-    } catch (err: any) {
-      console.error("Error en la solicitud:", err.message || err);
-      throw new Error("Ocurrió un problema al obtener las sub-familias.");
+const SubFamilyService = {
+  getSubFamiliesByFamilyId: async (familyId: string, token: string): Promise<SubFamily[]> => {
+    const response = await fetch(`${BASE_URL}/Family/${familyId}/subfamilies`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    if (!response.ok) {
+      throw new Error(`Error fetching sub-families: ${response.statusText}`);
     }
-  }
+    return await response.json();
+  },
 
-  // Obtener sub-familias por ID de familia
-  static async getSubFamiliesByFamilyId(familyId: string, token: string): Promise<SubFamily[]> {
-    try {
-      const url = `${this.baseURL}/Family/${familyId}/subfamilies`;
-
-      const response = await fetch(url, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
-        },
-      });
-
-      if (response.ok) {
-        const subFamilias: SubFamily[] = await response.json();
-        return subFamilias;
-      } else {
-        const errorResponse = await response.json();
-        throw new Error(errorResponse.message || "Error al obtener las sub-familias de la familia");
-      }
-    } catch (err: any) {
-      console.error("Error en la solicitud:", err.message || err);
-      throw new Error("Ocurrió un problema al obtener las sub-familias de la familia.");
+  createSubFamily: async (
+    subFamilyData: { familyId: string; name: string },
+    token: string
+  ): Promise<SubFamily> => {
+    const response = await fetch(`${BASE_URL}/Family/subfamilies`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(subFamilyData),
+    });
+    if (!response.ok) {
+      throw new Error(`Error creating sub-family: ${response.statusText}`);
     }
-  }
+    return await response.json();
+  },
 
-  // Crear una nueva sub-familia
-  static async createSubFamily(payload: CreateSubFamilyPayload, token: string): Promise<SubFamily> {
-    try {
-      const url = `${this.baseURL}/Family/subfamilies`;
-
-      const response = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (response.ok) {
-        const nuevaSubFamilia: SubFamily = await response.json();
-        return nuevaSubFamilia;
-      } else {
-        const errorResponse = await response.json();
-        throw new Error(errorResponse.message || "Error al crear la sub-familia");
-      }
-    } catch (err: any) {
-      console.error("Error en la solicitud:", err.message || err);
-      throw new Error("Ocurrió un problema al crear la sub-familia.");
+  updateSubFamily: async (
+    subFamilyData: { subfamilyId: string; name: string },
+    token: string
+  ): Promise<SubFamily> => {
+    const response = await fetch(`${BASE_URL}/Family/subfamilies/`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(subFamilyData),
+    });
+    if (!response.ok) {
+      throw new Error(`Error updating sub-family: ${response.statusText}`);
     }
-  }
+    return await response.json();
+  },
 
-  // Actualizar una sub-familia existente
-  static async updateSubFamily(payload: UpdateSubFamilyPayload, token: string): Promise<SubFamily> {
-    try {
-      const url = `${this.baseURL}/Family/subfamilies`;
-
-      const response = await fetch(url, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (response.ok) {
-        const subFamiliaActualizada: SubFamily = await response.json();
-        return subFamiliaActualizada;
-      } else {
-        const errorResponse = await response.json();
-        throw new Error(errorResponse.message || "Error al actualizar la sub-familia");
-      }
-    } catch (err: any) {
-      console.error("Error en la solicitud:", err.message || err);
-      throw new Error("Ocurrió un problema al actualizar la sub-familia.");
+  deleteSubFamily: async (subFamilyId: string, token: string): Promise<void> => {
+    const response = await fetch(`${BASE_URL}/Family/subfamilies/${subFamilyId}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    if (!response.ok) {
+      throw new Error(`Error deleting sub-family: ${response.statusText}`);
     }
-  }
-}
+  },
+};
+
+export default SubFamilyService;

@@ -1,117 +1,79 @@
-// src/services/FamilyService.ts
+// src/services/familyService.ts
+import { Family } from '../types/family';
 
-import { Family, CreateFamilyPayload, UpdateFamilyPayload } from "../types/family";
+const BASE_URL = process.env.NEXT_PUBLIC_API?.replace(/\/+$/, '');
 
-export default class FamilyService {
-  private static baseURL: string = process.env.NEXT_PUBLIC_API?.replace(/\/+$/, '') || '';
-
-  // Obtener todas las familias
-  static async getAllFamilies(token: string): Promise<Family[]> {
-    try {
-      const url = `${this.baseURL}/Family`;
-
-      const response = await fetch(url, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
-        },
-      });
-
-      if (response.ok) {
-        const familias: Family[] = await response.json();
-        return familias;
-      } else {
-        const errorResponse = await response.json();
-        throw new Error(errorResponse.message || "Error al obtener las familias");
-      }
-    } catch (err: any) {
-      console.error("Error en la solicitud:", err.message || err);
-      throw new Error("Ocurrió un problema al obtener las familias.");
+const FamilyService = {
+  getAllFamilies: async (token: string): Promise<Family[]> => {
+    const response = await fetch(`${BASE_URL}/Family`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    if (!response.ok) {
+      throw new Error(`Error fetching families: ${response.statusText}`);
     }
-  }
+    return await response.json();
+  },
 
-  // Crear una nueva familia
-  static async createFamily(payload: CreateFamilyPayload, token: string): Promise<Family> {
-    try {
-      const url = `${this.baseURL}/Family`;
-
-      const response = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (response.ok) {
-        const nuevaFamilia: Family = await response.json();
-        return nuevaFamilia;
-      } else {
-        const errorResponse = await response.json();
-        throw new Error(errorResponse.message || "Error al crear la familia");
-      }
-    } catch (err: any) {
-      console.error("Error en la solicitud:", err.message || err);
-      throw new Error("Ocurrió un problema al crear la familia.");
+  getFamilyById: async (id: string, token: string): Promise<Family> => {
+    const response = await fetch(`${BASE_URL}/Family/${id}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    if (!response.ok) {
+      throw new Error(`Error fetching family by id: ${response.statusText}`);
     }
-  }
+    return await response.json();
+  },
 
-
-  // Obtener una familia por su ID
-  static async getFamilyById(id: string, token: string): Promise<Family> {
-    try {
-      const url = `${this.baseURL}/Family/${id}`;
-
-      const response = await fetch(url, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
-        },
-      });
-
-      if (response.ok) {
-        const familia: Family = await response.json();
-        return familia;
-      } else {
-        const errorResponse = await response.json();
-        throw new Error(errorResponse.message || "Error al obtener la familia");
-      }
-    } catch (err: any) {
-      console.error("Error en la solicitud:", err.message || err);
-      throw new Error("Ocurrió un problema al obtener la familia.");
+  createFamily: async (familyData: { name: string }, token: string): Promise<Family> => {
+    const response = await fetch(`${BASE_URL}/Family`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(familyData),
+    });
+    if (!response.ok) {
+      throw new Error(`Error creating family: ${response.statusText}`);
     }
-  }
+    return await response.json();
+  },
 
-  // Crear una nueva familia
-  
-
-  // Actualizar una familia existente
-  static async updateFamily(payload: UpdateFamilyPayload, token: string): Promise<Family> {
-    try {
-      const url = `${this.baseURL}/Family`;
-
-      const response = await fetch(url, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (response.ok) {
-        const familiaActualizada: Family = await response.json();
-        return familiaActualizada;
-      } else {
-        const errorResponse = await response.json();
-        throw new Error(errorResponse.message || "Error al actualizar la familia");
-      }
-    } catch (err: any) {
-      console.error("Error en la solicitud:", err.message || err);
-      throw new Error("Ocurrió un problema al actualizar la familia.");
+  updateFamily: async (familyData: Family, token: string): Promise<Family> => {
+    const response = await fetch(`${BASE_URL}/Family`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(familyData),
+    });
+    if (!response.ok) {
+      throw new Error(`Error updating family: ${response.statusText}`);
     }
-  }
-}
+    return await response.json();
+  },
+
+  deleteFamily: async (id: string, token: string): Promise<void> => {
+    const response = await fetch(`${BASE_URL}/Family/${id}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    if (!response.ok) {
+      throw new Error(`Error deleting family: ${response.statusText}`);
+    }
+  },
+};
+
+export default FamilyService;

@@ -70,7 +70,7 @@ export default class ContactService {
     }
   }
 
-  // Modificado: ahora se envía el payload directamente (sin envolverlo en "request")
+  // Modificado: se envía el payload directamente para crear un contacto
   static async createContact(contactData: Omit<Contact, "id" | "userId">, token: string): Promise<CommonResponse<Contact>> {
     try {
       const baseURL = process.env.NEXT_PUBLIC_API?.replace(/\/+$/, '');
@@ -85,7 +85,6 @@ export default class ContactService {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`,
         },
-        // Se envía el payload directamente
         body: JSON.stringify(payload),
       });
 
@@ -185,6 +184,41 @@ export default class ContactService {
     } catch (err: any) {
       console.error("Error en deleteContact:", err.message || err);
       throw new Error("Ocurrió un problema al eliminar el contacto.");
+    }
+  }
+
+  // NUEVO: Función para obtener sugerencias usando el endpoint WithFiltersV2
+  static async getContactsWithFiltersV2(filterPayload: any, token: string): Promise<CommonResponse<Contact[]>> {
+    try {
+      const baseURL = process.env.NEXT_PUBLIC_API?.replace(/\/+$/, '');
+      if (!baseURL) throw new Error("Base URL no está definido en las variables de entorno.");
+      const url = `${baseURL}/Contact/WithFiltersV2`;
+
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+        body: JSON.stringify(filterPayload),
+      });
+
+      if (response.ok) {
+        const resultData = await response.json();
+        return {
+          result: {
+            resultNumber: resultData.result.resultNumber,
+            errorMessage: resultData.result.errorMessage,
+          },
+          data: resultData.data as Contact[],
+        };
+      } else {
+        const errorResponse = await response.json();
+        throw new Error(errorResponse.result?.errorMessage || "Error al obtener contactos con filtros");
+      }
+    } catch (err: any) {
+      console.error("Error en la solicitud de getContactsWithFiltersV2:", err.message || err);
+      throw new Error("Ocurrió un problema al obtener contactos con filtros.");
     }
   }
 }
