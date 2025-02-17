@@ -1,5 +1,4 @@
-// src/modules/auth/components/ShippingAddressForm.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, Typography, Grid, TextField, MenuItem, Button, Box } from '@mui/material';
 
 const provinces = [
@@ -16,16 +15,33 @@ const countries = [
 
 interface ShippingAddressFormProps {
   onAddAddress: (data: any) => void;
+  initialData?: {
+    address: string;
+    city: string;
+    province: string;
+    postalCode: string;
+    country: string;
+  };
 }
 
-const ShippingAddressForm: React.FC<ShippingAddressFormProps> = ({ onAddAddress }) => {
+const ShippingAddressForm: React.FC<ShippingAddressFormProps> = ({ onAddAddress, initialData }) => {
   const [formData, setFormData] = useState({
-    address: '',
-    city: '',
-    province: '',
-    postalCode: '',
-    country: '',
+    address: initialData?.address || '',
+    city: initialData?.city || '',
+    province: initialData?.province || '',
+    postalCode: initialData?.postalCode || '',
+    country: initialData?.country || '',
   });
+
+  useEffect(() => {
+    setFormData({
+      address: initialData?.address || '',
+      city: initialData?.city || '',
+      province: initialData?.province || '',
+      postalCode: initialData?.postalCode || '',
+      country: initialData?.country || '',
+    });
+  }, [initialData]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));

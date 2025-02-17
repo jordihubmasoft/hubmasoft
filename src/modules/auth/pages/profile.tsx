@@ -1,21 +1,23 @@
-// src/pages/Profile.tsx
-import React, { useState, useEffect, useCallback } from 'react';
-import {
-  Box,
-  Container,
-  Typography,
-  Divider,
-  Grid,
-  Button,
-  Snackbar,
-  Alert,
-} from '@mui/material';
+// src/modules/auth/pages/Profile.tsx
+import React, { useState, useEffect } from 'react';
+import { Box, Container, Typography, Divider, Grid } from '@mui/material';
+
 import Header from '../../../components/Header';
 import Sidebar from '../../../components/Sidebar';
+
+// IMPORTANTE: Usa useAuthStore para sacar token, contactId, agentId
+import useAuthStore from '../../../store/useAuthStore';
 import { useAuth } from '../context/AuthContext';
 import { useRouter } from 'next/router';
-import ProfileCard from '../components/ProfileCard';
+
+// Traemos nuestros servicios
+import ContactService from '../../../services/ContactService';
+
+// Importamos el formulario que mostrará y editará los datos:
 import EditProfileForm from '../components/EditProfileForm';
+
+// (Resto de componentes que ya tenías)
+import ProfileCard from '../components/ProfileCard';
 import FiscalDataForm from '../components/FiscalDataForm';
 import ContactDataForm from '../components/ContactDataForm';
 import ShippingAddressForm from '../components/ShippingAddressForm';
@@ -26,105 +28,280 @@ import Imports from '../components/Imports';
 import Polls from '../components/Polls';
 import Signout from '../components/Signout';
 import Taxes from '../components/Taxes';
-import useAuthStore from '../../../store/useAuthStore';
 
 const Profile: React.FC = () => {
-  const { user, logout } = useAuth();
   const router = useRouter();
-  const token = useAuthStore((state) => state.token);
+  // De tu store y contexto de auth
+  const { token, contactId, agentId } = useAuthStore();
+  const { user, logout } = useAuth();
 
-  // Espera a que se hidrate el token
+  // Para controlar cuándo ya está todo “hidratado”
   const [hydrated, setHydrated] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(true);
+  const [refresh, setRefresh] = useState(false);
+
+  // Flag para saber si el contacto ya existe en BD
+  const [hasContact, setHasContact] = useState(false);
+  // Para indicar si estamos cargando datos del contacto o guardando cambios
+  const [loading, setLoading] = useState(false);
+
+  // State con todos los campos de contacto que quieras mostrar/editar
+  const [formData, setFormData] = useState({
+    name: "",
+    surname: "",
+    email: "",
+    country: "",
+    city: "",
+    userType: "",
+    phone: "",
+    address: "",
+    postalCode: "",
+    nie: "",
+    commercialName: "",
+    province: "",
+    mobile: "",
+    website: "",
+    contactId: "",
+    shippingAddress: "",
+    shippingCity: "",
+    shippingProvince: "",
+    shippingPostalCode: "",
+    shippingCountry: "",
+    userId: "",
+    skills: "",
+    experience: "",
+    companyName: "",
+    companySize: "",
+    phone1: "",
+    vatIdentification: "",
+    salesTax: 0,
+    equivalenceSurcharge: 0,
+    shoppingTax: 0,
+    paymentDay: 0,
+    tags: "",
+    vatType: "",
+    internalReference: "",
+    language: "",
+    currency: "",
+    paymentMethod: "",
+    paymentExpirationDays: "",
+    paymentExpirationDay: "",
+    rate: "",
+    discount: "",
+    swift: "",
+    iban: "",
+    shippingAddresses: [
+      {
+        direction: "",
+        city: "",
+        postalCode: "",
+        province: "",
+        country: ""
+      }
+    ]
+  });
+
+  // 1. useEffect para "hidratar" y hacer checks
   useEffect(() => {
     setHydrated(true);
   }, []);
+
   useEffect(() => {
     if (hydrated && !token) {
       router.push('/auth/login');
     }
   }, [hydrated, token, router]);
 
-  const [isMenuOpen, setIsMenuOpen] = useState(true);
-  // Estado para la sección activa
-  const [activeSection, setActiveSection] = useState<string>('profile');
-
-  const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);
-  };
-
-  // Funciones simuladas para manejo de formularios
-  const handleSaveProfile = (data: any) => {
-    console.log('Guardar Perfil:', data);
-  };
-  const handleChangePassword = () => {
-    alert('Funcionalidad para cambiar contraseña');
-  };
-  const handleSaveFiscalData = (data: any) => {
-    console.log('Guardar Datos Fiscales:', data);
-  };
-  const handleSaveContactData = (data: any) => {
-    console.log('Guardar Datos de Contacto:', data);
-  };
-  const handleAddShippingAddress = (data: any) => {
-    console.log('Añadir Dirección de Envío:', data);
-  };
-  const handlePreferences = (data: any) => {
-    console.log('Preferencias guardadas:', data);
-  };
-
-  // Definición de las secciones de la página (en orden de aparición)
-  const sections = [
-    { id: 'profile', label: 'Perfil' },
-    { id: 'preferences', label: 'Preferencias' },
-    { id: 'documentTemplates', label: 'Plantillas de Documentos' },
-    { id: 'paymentMethods', label: 'Formas de Pago' },
-    { id: 'taxes', label: 'Impuestos' },
-    { id: 'subscription', label: 'Suscripción' },
-    { id: 'imports', label: 'Importar' },
-    { id: 'polls', label: 'Votar Mejoras' },
-    { id: 'account', label: 'Añadir Cuenta' },
-  ];
-
-  // Usamos IntersectionObserver para actualizar la sección activa
+  // 2. useEffect para obtener datos del contacto
   useEffect(() => {
-    const observerOptions = { threshold: 0.6 };
-    const observerCallback: IntersectionObserverCallback = (entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting && entry.target.id) {
-          setActiveSection(entry.target.id);
+    const fetchContact = async () => {
+      if (!contactId || !token) return;
+  
+      setLoading(true);
+      try {
+        const response = await ContactService.getContactById(contactId, token);
+  
+        if (response?.data?.length > 0) {
+          const contactData = response.data[0] as any;
+          setFormData((prev) => ({
+            ...prev,
+            name: contactData.name || "",
+            surname: contactData.surname || "",
+            email: contactData.email || "",
+            country: contactData.country || "",
+            city: contactData.city || "",
+            userType: contactData.userType || "",
+            phone: contactData.phone || "",
+            address: contactData.address || "",
+            postalCode: contactData.postalCode || "",
+            nie: contactData.nie || "",
+            commercialName: contactData.commercialName || "",
+            province: contactData.province || "",
+            mobile: contactData.mobile || "",
+            website: contactData.website || "",
+            contactId: contactData.id ? contactData.id.toString() : "",
+            userId: agentId || "",
+            skills: contactData.skills || "",
+            experience: contactData.experience || "",
+            companyName: contactData.companyName || "",
+            companySize: contactData.companySize || "",
+            shippingAddress: contactData.extraInformation?.shippingAddress?.[0]?.direccion || "",
+            shippingCity: contactData.extraInformation?.shippingAddress?.[0]?.poblacion || "",
+            shippingProvince: contactData.extraInformation?.shippingAddress?.[0]?.provincia || "",
+            shippingPostalCode: contactData.extraInformation?.shippingAddress?.[0]?.codigoPostal || "",
+            shippingCountry: contactData.extraInformation?.shippingAddress?.[0]?.pais || "",
+          }));
+          setHasContact(true);
+        } else {
+          resetFormData();
         }
-      });
+      } catch (error) {
+        console.error("Error fetching contact:", error);
+        resetFormData();
+      } finally {
+        setLoading(false);
+      }
     };
-    const observer = new IntersectionObserver(observerCallback, observerOptions);
-    sections.forEach((section) => {
-      const element = document.getElementById(section.id);
-      if (element) observer.observe(element);
-    });
-    return () => observer.disconnect();
-  }, [sections]);
+  
+    const resetFormData = () => {
+      setFormData((prev) => ({
+        ...prev,
+        name: "",
+        surname: "",
+        email: "",
+        country: "",
+        city: "",
+        userType: "",
+        phone: "",
+        address: "",
+        postalCode: "",
+        nie: "",
+        commercialName: "",
+        province: "",
+        mobile: "",
+        website: "",
+        contactId: "",
+        shippingAddress: "",
+        shippingCity: "",
+        shippingProvince: "",
+        shippingPostalCode: "",
+        shippingCountry: "",
+        userId: agentId || "",
+        skills: "",
+        experience: "",
+        companyName: "",
+        companySize: "",
+      }));
+      setHasContact(false);
+    };
+  
+    fetchContact();
+  }, [contactId, token, agentId, refresh]);
 
-  // Desplazamiento suave a una sección
-  const scrollToSection = useCallback((id: string) => {
-    const element = document.getElementById(id);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  // 3. Handler para guardar el formulario principal
+  const handleSubmitProfile = async () => {
+    if (!token || !agentId) {
+      console.error('No hay token o agentId, no se puede guardar.');
+      return;
     }
-  }, []);
+    try {
+      setLoading(true);
 
+      // Preparamos el payload
+      const contactData: any = {
+        userId: agentId,
+        contactId: contactId,
+        name: formData.name,
+        nie: formData.nie,
+        address: formData.address,
+        province: formData.province,
+        country: formData.country,
+        city: formData.city,
+        postalCode: formData.postalCode,
+        email: formData.email,
+        phone: formData.phone,
+        phone1: formData.phone1 || "",
+        website: formData.website,
+        vatIdentification: formData.vatIdentification || "",
+        salesTax: formData.salesTax || 0,
+        equivalenceSurcharge: formData.equivalenceSurcharge || 0,
+        shoppingTax: formData.shoppingTax || 0,
+        paymentDay: formData.paymentDay || 0,
+        tags: formData.tags || "",
+        vatType: formData.vatType || "",
+        internalReference: formData.internalReference || "",
+        language: formData.language || "",
+        currency: formData.currency || "",
+        paymentMethod: formData.paymentMethod || "",
+        paymentExpirationDays: formData.paymentExpirationDays || "",
+        paymentExpirationDay: formData.paymentExpirationDay || "",
+        rate: formData.rate || "",
+        discount: formData.discount || "",
+        swift: formData.swift || "",
+        iban: formData.iban || "",
+        shippingAddress: [
+          {
+            direction: formData.shippingAddress,
+            city: formData.shippingCity,
+            postalCode: formData.shippingPostalCode,
+            province: formData.shippingProvince,
+            country: formData.shippingCountry,
+          },
+        ],
+      };
+
+      let response;
+      if (hasContact) {
+        // Update
+        response = await ContactService.updateContact(contactData, token);
+        console.log('Contacto actualizado:', response);
+      } else {
+        // Create
+        const { contactId, ...createPayload } = contactData;
+        response = await ContactService.createContact(createPayload, token);
+        console.log('Contacto creado:', response);
+      }
+
+      if (response?.data) {
+        setHasContact(true);
+        const updated = response.data;
+        setFormData((prev) => ({
+          ...prev,
+          name: updated.name || prev.name,
+          surname: updated.surname || prev.surname,
+          email: updated.email || prev.email,
+          // Actualiza otros campos según lo que devuelva el backend
+        }));
+      }
+    } catch (error) {
+      console.error('Error al crear/actualizar el contacto:', error);
+      alert('Hubo un problema al guardar el contacto.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 4. Handler para cambios en el formulario: se lo pasamos al formulario hijo
+  const handleChangeProfileForm = (fieldName: string, value: string) => {
+    setFormData((prev) => ({ ...prev, [fieldName]: value }));
+  };
+
+  const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
+
+  // Render condicional si no se ha hidratado
+  if (!hydrated) {
+    return (
+      <Box>
+        <Typography>Cargando...</Typography>
+      </Box>
+    );
+  }
+
+  // Render condicional si no hay usuario
   if (!user) {
     return (
-      <Box
-        sx={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          height: '100vh',
-          bgcolor: '#F3F4F6',
-        }}
-      >
-        <Typography variant="h6" sx={{ color: '#1A1A40' }}>
-          Redirigiendo al login...
-        </Typography>
+      <Box>
+        <Typography>Redirigiendo al login...</Typography>
       </Box>
     );
   }
@@ -132,8 +309,9 @@ const Profile: React.FC = () => {
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', bgcolor: '#F3F4F6' }}>
       <Header isMenuOpen={isMenuOpen} />
+
       <Box sx={{ display: 'flex', flexGrow: 1, mt: '64px' }}>
-        {/* Sidebar principal */}
+        {/* Sidebar */}
         <Box
           component="nav"
           sx={{
@@ -153,221 +331,58 @@ const Profile: React.FC = () => {
           <Sidebar isMenuOpen={isMenuOpen} toggleMenu={toggleMenu} />
         </Box>
 
-        {/* Área de contenido principal */}
+        {/* Contenido principal */}
         <Box
           component="main"
           sx={{
             flexGrow: 1,
             p: { xs: 2, sm: 3, md: 4 },
             ml: isMenuOpen ? '240px' : '70px',
-            mr: { xs: 0, md: '250px' }, // Deja espacio para la nav flotante en pantallas grandes
+            mr: { xs: 0, md: '250px' },
             transition: 'margin-left 0.3s ease, margin-right 0.3s ease',
             bgcolor: '#F3F4F6',
           }}
         >
-          {/* Container que ocupa el ancho completo respetando márgenes */}
           <Container maxWidth="xl" sx={{ px: { xs: 2, sm: 3, md: 5 } }}>
-            {/* Navegación vertical flotante (solo en md en adelante) */}
-            <Box
-              sx={{
-                display: { xs: 'none', md: 'block' },
-                position: 'fixed',
-                top: '50%',
-                right: 24,
-                transform: 'translateY(-50%)',
-                bgcolor: 'rgba(255,255,255,0.9)',
-                borderRadius: '16px',
-                boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
-                p: 2,
-                zIndex: 1300,
-                backdropFilter: 'blur(8px)',
-              }}
-            >
-              {sections.map((section) => (
-                <Box
-                  key={section.id}
-                  onClick={() => scrollToSection(section.id)}
-                  sx={{
-                    cursor: 'pointer',
-                    my: 0.5,
-                    px: 2,
-                    py: 1,
-                    borderRadius: '8px',
-                    transition: 'background-color 0.3s, transform 0.3s',
-                    bgcolor: activeSection === section.id ? 'primary.main' : 'transparent',
-                    color: activeSection === section.id ? '#fff' : '#333',
-                    '&:hover': {
-                      bgcolor: activeSection === section.id ? 'primary.dark' : 'rgba(0,0,0,0.1)',
-                      transform: 'scale(1.05)',
-                    },
-                  }}
-                >
-                  {section.label}
-                </Box>
-              ))}
-              <Box sx={{ mt: 2 }}>
-                <Button
-                  onClick={logout}
-                  variant="contained"
-                  fullWidth
-                  sx={{
-                    background: 'linear-gradient(90deg, #2666CF, #6A82FB)',
-                    color: '#fff',
-                    fontWeight: 'bold',
-                    textTransform: 'none',
-                    '&:hover': { background: 'linear-gradient(90deg, #6A82FB, #2666CF)' },
-                  }}
-                >
-                  Cerrar Sesión
-                </Button>
-              </Box>
-            </Box>
+            <Typography variant="h4" gutterBottom sx={{ color: '#1A1A40', fontWeight: 'bold' }}>
+              Configuración de Perfil
+            </Typography>
 
-            {/* Sección Perfil */}
-            <Box id="profile" sx={{ mb: 8 }}>
-              <Typography variant="h4" gutterBottom sx={{ color: '#1A1A40', fontWeight: 'bold' }}>
-                Configuración de Perfil
-              </Typography>
-              <Grid container spacing={3}>
-                <Grid item xs={12} md={4}>
-                  <ProfileCard
-                    onChangePhoto={() => alert('Cambiar foto')}
-                    onDeleteAccount={() => logout()}
-                  />
-                </Grid>
-                <Grid item xs={12} md={8}>
-                  <EditProfileForm onSave={handleSaveProfile} onChangePassword={handleChangePassword} />
-                </Grid>
+            <Grid container spacing={3}>
+              {/* Card con la foto y otros datos */}
+              <Grid item xs={12} md={4}>
+                <ProfileCard
+                  onChangePhoto={() => alert('Cambiar foto')}
+                  onDeleteAccount={() => logout()}
+                />
               </Grid>
-              <FiscalDataForm onSave={handleSaveFiscalData} />
-              <ContactDataForm onSave={handleSaveContactData} />
-              <ShippingAddressForm onAddAddress={handleAddShippingAddress} />
-              <Divider sx={{ my: 4 }} />
-            </Box>
 
-            {/* Sección Preferencias */}
-            <Box id="preferences" sx={{ mb: 8 }}>
-              <Box
-                sx={{
-                  bgcolor: '#F7F9FC',
-                  p: 4,
-                  borderRadius: 2,
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                }}
-              >
-                <Typography variant="h5" gutterBottom sx={{ color: '#1A1A40', fontWeight: '600' }}>
-                  Preferencias
-                </Typography>
-                <Divider sx={{ mb: 3 }} />
-                <PreferencesForm onSave={handlePreferences} />
-              </Box>
-            </Box>
+              {/* Formulario para editar perfil */}
+              <Grid item xs={12} md={8}>
+                <EditProfileForm
+                  loading={loading}
+                  hasContact={hasContact}
+                  formData={formData}
+                  onChange={handleChangeProfileForm}
+                  onSubmit={handleSubmitProfile}
+                  onChangePassword={() => alert('Cambiar Contraseña')}
+                />
+              </Grid>
+            </Grid>
 
-            {/* Sección Plantillas de Documentos */}
-            <Box id="documentTemplates" sx={{ mb: 8 }}>
-              <Box
-                sx={{
-                  bgcolor: '#F7F9FC',
-                  p: 2,
-                  borderRadius: 2,
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                }}
-              >
-                <DocumentTemplates />
-              </Box>
-            </Box>
+            {/* Otros formularios */}
+            <FiscalDataForm /* ... */ onSave={() => {}}  />
+            <ContactDataForm /* ... */ onSave={() => {}}  />
+            <ShippingAddressForm /* ... */ onAddAddress={() => {}} />
+            <Divider sx={{ my: 4 }} />
 
-            {/* Sección Formas de Pago */}
-            <Box id="paymentMethods" sx={{ mb: 8 }}>
-              <Box
-                sx={{
-                  bgcolor: '#F7F9FC',
-                  p: 3,
-                  borderRadius: 2,
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                }}
-              >
-                <PaymentMethodComponent />
-              </Box>
-            </Box>
-
-            {/* Sección Impuestos */}
-            <Box id="taxes" sx={{ mb: 8, maxWidth: '900px', mx: 'auto' }}>
-              <Box
-                sx={{
-                  bgcolor: '#F7F9FC',
-                  p: 4,
-                  borderRadius: 2,
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                }}
-              >
-                <Taxes />
-              </Box>
-            </Box>
-
-            {/* Sección Suscripción */}
-            <Box id="subscription" sx={{ mb: 8, maxWidth: '800px', mx: 'auto' }}>
-              <Box
-                sx={{
-                  bgcolor: '#F7F9FC',
-                  p: 4,
-                  borderRadius: 2,
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                }}
-              >
-                <Typography variant="h5" gutterBottom sx={{ color: '#1A1A40', fontWeight: '600' }}>
-                  Suscripción
-                </Typography>
-                <Divider sx={{ mb: 3 }} />
-                <Signout />
-              </Box>
-            </Box>
-
-            {/* Sección Importar */}
-            <Box id="imports" sx={{ mb: 8, maxWidth: '900px', mx: 'auto' }}>
-              <Box
-                sx={{
-                  bgcolor: '#F7F9FC',
-                  p: 4,
-                  borderRadius: 2,
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                }}
-              >
-                <Imports />
-              </Box>
-            </Box>
-
-            {/* Sección Votar Mejoras */}
-            <Box id="polls" sx={{ mb: 8, maxWidth: '900px', mx: 'auto' }}>
-              <Box
-                sx={{
-                  bgcolor: '#F7F9FC',
-                  p: 4,
-                  borderRadius: 2,
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                }}
-              >
-                <Polls />
-              </Box>
-            </Box>
-
-            {/* Sección Agregar / Cambiar Cuenta */}
-            <Box id="account" sx={{ mb: 8, maxWidth: '900px', mx: 'auto' }}>
-              <Box
-                sx={{
-                  bgcolor: '#F7F9FC',
-                  p: 4,
-                  borderRadius: 2,
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                }}
-              >
-                <Typography variant="h5" gutterBottom sx={{ color: '#1A1A40', fontWeight: '600' }}>
-                  Agregar / Cambiar Cuenta
-                </Typography>
-                <Divider sx={{ mb: 3 }} />
-                <Signout />
-              </Box>
-            </Box>
+            <PreferencesForm /* ... */ onSave={() => {}} />
+            <DocumentTemplates /* ... */ />
+            <PaymentMethodComponent /* ... */ />
+            <Imports /* ... */ />
+            <Polls /* ... */ />
+            <Signout /* ... */ />
+            <Taxes /* ... */ />
           </Container>
         </Box>
       </Box>
