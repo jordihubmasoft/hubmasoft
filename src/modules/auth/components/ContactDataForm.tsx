@@ -1,18 +1,35 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, Typography, Grid, TextField, Button, Box } from '@mui/material';
 
 interface ContactDataFormProps {
   onSave: (data: any) => void;
+  initialData?: {
+    email: string;
+    phone: string;
+    website: string;
+    mobile: string;
+    shippingAddress: string;
+  };
 }
 
-const ContactDataForm: React.FC<ContactDataFormProps> = ({ onSave }) => {
+const ContactDataForm: React.FC<ContactDataFormProps> = ({ onSave, initialData }) => {
   const [formData, setFormData] = useState({
-    email: '',
-    phone: '',
-    website: '',
-    mobile: '',
-    shippingAddress: '',
+    email: initialData?.email || '',
+    phone: initialData?.phone || '',
+    website: initialData?.website || '',
+    mobile: initialData?.mobile || '',
+    shippingAddress: initialData?.shippingAddress || '',
   });
+
+  useEffect(() => {
+    setFormData({
+      email: initialData?.email || '',
+      phone: initialData?.phone || '',
+      website: initialData?.website || '',
+      mobile: initialData?.mobile || '',
+      shippingAddress: initialData?.shippingAddress || '',
+    });
+  }, [initialData]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));

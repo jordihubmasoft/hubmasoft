@@ -1,8 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, Typography, Grid, TextField, MenuItem, Button } from '@mui/material';
 
 interface FiscalDataFormProps {
   onSave: (data: any) => void;
+  initialData?: {
+    companyName: string;
+    nif: string;
+    commercialName: string;
+    vatIdentifier: string;
+    address: string;
+    postalCode: string;
+    province: string;
+    country: string;
+  };
 }
 
 const provinces = [
@@ -17,17 +27,31 @@ const countries = [
   // Añade más países según sea necesario
 ];
 
-const FiscalDataForm: React.FC<FiscalDataFormProps> = ({ onSave }) => {
+const FiscalDataForm: React.FC<FiscalDataFormProps> = ({ onSave, initialData }) => {
   const [formData, setFormData] = useState({
-    companyName: '',
-    nif: '',
-    commercialName: '',
-    vatIdentifier: '',
-    address: '',
-    postalCode: '',
-    province: '',
-    country: '',
+    companyName: initialData?.companyName || '',
+    nif: initialData?.nif || '',
+    commercialName: initialData?.commercialName || '',
+    vatIdentifier: initialData?.vatIdentifier || '',
+    address: initialData?.address || '',
+    postalCode: initialData?.postalCode || '',
+    province: initialData?.province || '',
+    country: initialData?.country || '',
   });
+
+  // Actualizamos el estado si cambia initialData
+  useEffect(() => {
+    setFormData({
+      companyName: initialData?.companyName || '',
+      nif: initialData?.nif || '',
+      commercialName: initialData?.commercialName || '',
+      vatIdentifier: initialData?.vatIdentifier || '',
+      address: initialData?.address || '',
+      postalCode: initialData?.postalCode || '',
+      province: initialData?.province || '',
+      country: initialData?.country || '',
+    });
+  }, [initialData]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
