@@ -1,6 +1,6 @@
 // src/pages/Dashboard.tsx
-
 import { useState, useEffect } from "react";
+import { useRouter } from "next/router";
 import {
   Box,
   Container,
@@ -113,6 +113,16 @@ const initialChartData = {
 };
 
 const Dashboard = () => {
+  const router = useRouter();
+  const { token, contactId, agentId } = useAuthStore();
+
+  // Flag de hidratación: se inicializa en false y se actualiza en useEffect
+  const [hydrated, setHydrated] = useState(false);
+  useEffect(() => {
+    setHydrated(true);
+  }, []);
+
+  // Declaramos el resto de hooks siempre (sin condicionales)
   const [open, setOpen] = useState(true);
   const [userType, setUserType] = useState("");
   const [isMenuOpen, setIsMenuOpen] = useState(true);
@@ -122,11 +132,10 @@ const Dashboard = () => {
   const { t } = useTranslation();
   const [chartData, setChartData] = useState(initialChartData);
   const [hasContact, setHasContact] = useState(false);
-  const { contactId, token, agentId } = useAuthStore();
-  const [loading, setLoading] = useState(false);
+  const [loadingState, setLoadingState] = useState(false);
   const [refresh, setRefresh] = useState(false);
 
-  // Estado del formulario (se mantienen las propiedades en inglés)
+  // Estado del formulario (propiedades en inglés)
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -181,89 +190,92 @@ const Dashboard = () => {
     ]
   });
   
-  // Inicializa formErrors
+  // Inicializamos formErrors
   const [formErrors, setFormErrors] = useState<FormErrors>({});
+
+  // useEffect para redirigir al login si ya se hidrató y no hay token
+  useEffect(() => {
+    if (hydrated && !token) {
+      router.push("/auth/login");
+    }
+  }, [hydrated, token, router]);
 
   useEffect(() => {
     const fetchContact = async () => {
       if (!open || !contactId || !token) return;
   
-      setLoading(true);
+      setLoadingState(true);
       try {
         const response = await ContactService.getContactById(contactId, token);
   
         if (response?.data?.length > 0) {
-          // Para evitar errores de tipado (dado que en Contact el campo se llama "nombre")
-          // se realiza un casting a any y se utilizan las propiedades que devuelve la API.
           const contactData = response.data[0] as any;
           setFormData((prev) => ({
             ...prev,
-            // Mantenemos "name" en el estado porque es lo que usa el formulario
-            name: contactData.name || '',
-            email: contactData.email || '',
-            country: contactData.country || '',
-            city: contactData.city || '',
-            userType: contactData.userType || '',
-            phone: contactData.phone || '',
-            address: contactData.address || '',
-            postalCode: contactData.postalCode || '',
-            nie: contactData.nie || '',
-            commercialName: contactData.commercialName || '',
-            province: contactData.province || '',
-            mobile: contactData.mobile || '',
-            website: contactData.website || '',
-            contactId: contactData.id ? contactData.id.toString() : '',
-            userId: agentId || '',
-            skills: contactData.skills || '',
-            experience: contactData.experience || '',
-            companyName: contactData.companyName || '',
-            companySize: contactData.companySize || '',
-            // Para la dirección de envío se sigue usando la estructura interna
-            shippingAddress: contactData.extraInformation?.shippingAddress?.[0]?.direccion || '',
-            shippingCity: contactData.extraInformation?.shippingAddress?.[0]?.poblacion || '',
-            shippingProvince: contactData.extraInformation?.shippingAddress?.[0]?.provincia || '',
-            shippingPostalCode: contactData.extraInformation?.shippingAddress?.[0]?.codigoPostal || '',
-            shippingCountry: contactData.extraInformation?.shippingAddress?.[0]?.pais || '',
+            name: contactData.name || "",
+            email: contactData.email || "",
+            country: contactData.country || "",
+            city: contactData.city || "",
+            userType: contactData.userType || "",
+            phone: contactData.phone || "",
+            address: contactData.address || "",
+            postalCode: contactData.postalCode || "",
+            nie: contactData.nie || "",
+            commercialName: contactData.commercialName || "",
+            province: contactData.province || "",
+            mobile: contactData.mobile || "",
+            website: contactData.website || "",
+            contactId: contactData.id ? contactData.id.toString() : "",
+            userId: agentId || "",
+            skills: contactData.skills || "",
+            experience: contactData.experience || "",
+            companyName: contactData.companyName || "",
+            companySize: contactData.companySize || "",
+            shippingAddress: contactData.extraInformation?.shippingAddress?.[0]?.direccion || "",
+            shippingCity: contactData.extraInformation?.shippingAddress?.[0]?.poblacion || "",
+            shippingProvince: contactData.extraInformation?.shippingAddress?.[0]?.provincia || "",
+            shippingPostalCode: contactData.extraInformation?.shippingAddress?.[0]?.codigoPostal || "",
+            shippingCountry: contactData.extraInformation?.shippingAddress?.[0]?.pais || "",
           }));
           setHasContact(true);
         } else {
           resetFormData();
         }
       } catch (error) {
-        console.error('Error fetching contact:', error);
+        console.error("Error fetching contact:", error);
         resetFormData();
       } finally {
-        setLoading(false);
+        setLoadingState(false);
       }
     };
   
     const resetFormData = () => {
       setFormData((prev) => ({
         ...prev,
-        name: '',
-        email: '',
-        country: '',
-        city: '',
-        userType: '',
-        phone: '',
-        address: '',
-        postalCode: '',
-        nie: '',
-        commercialName: '',
-        province: '',
-        mobile: '',
-        website: '',
-        contactId: '',
-        shippingAddress: '',
-        shippingCity: '',
-        shippingProvince: '',
-        shippingPostalCode: '',
-        shippingCountry: '',
-        userId: agentId || '',
-        skills: '',
-        experience: '',
-        companyName: '',
-        companySize: '',
+        name: "",
+        email: "",
+        country: "",
+        city: "",
+        userType: "",
+        phone: "",
+        address: "",
+        postalCode: "",
+        nie: "",
+        commercialName: "",
+        province: "",
+        mobile: "",
+        website: "",
+        contactId: "",
+        shippingAddress: "",
+        shippingCity: "",
+        shippingProvince: "",
+        shippingPostalCode: "",
+        shippingCountry: "",
+        userId: agentId || "",
+        skills: "",
+        experience: "",
+        companyName: "",
+        companySize: "",
       }));
       setHasContact(false);
     };
@@ -287,40 +299,40 @@ const Dashboard = () => {
     showDevolucionesClientes: true,
     showClientesConVentas: true,
   });
-
+  
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-
+  
   const handleMenuClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
   };
-
+  
   const handleMenuClose = () => {
     setAnchorEl(null);
   };
-
+  
   const handleWidgetChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setWidgets({
       ...widgets,
       [event.target.name]: event.target.checked,
     });
   };
-
+  
   const handleYearChange = (event: React.ChangeEvent<{ value: unknown }>) => {
     const newYear = event.target.value as string;
     setSelectedYear(newYear);
     updateChartData(newYear, selectedPeriod);
   };
-
+  
   const handlePeriodChange = (event: React.ChangeEvent<{ value: unknown }>) => {
     const newPeriod = event.target.value as string;
     setSelectedPeriod(newPeriod);
     updateChartData(selectedYear, newPeriod);
   };
-
+  
   const updateChartData = (year: string, period: string) => {
     let updatedData;
     let updatedAmount;
-
+  
     if (year === "2024" && period === "15 días") {
       updatedData = {
         labels: ["Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio"],
@@ -385,22 +397,22 @@ const Dashboard = () => {
       };
       updatedAmount = "€0,00";
     }
-
+  
     setAmount(updatedAmount);
     setChartData(updatedData);
   };
-
+  
   const handleClose = () => {
     setOpen(false);
   };
-
+  
   const handleUserTypeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setUserType(event.target.value);
   };
-
+  
   // Campos obligatorios
   const requiredFields = ["name", "email", "country", "city", "phone"];
-
+  
   const validateForm = (): FormErrors => {
     const errors: FormErrors = {};
     requiredFields.forEach((field) => {
@@ -408,34 +420,34 @@ const Dashboard = () => {
         errors[field] = `${t(`dashboard.${field}`)} es requerido`;
       }
     });
-
-    if (formData.userType === 'freelancer') {
+  
+    if (formData.userType === "freelancer") {
       if (!formData.skills) {
-        errors.skills = `${t('dashboard.skills')} es requerido`;
+        errors.skills = `${t("dashboard.skills")} es requerido`;
       }
       if (!formData.experience) {
-        errors.experience = `${t('dashboard.experience')} es requerido`;
+        errors.experience = `${t("dashboard.experience")} es requerido`;
       }
     }
-
-    if (formData.userType === 'company') {
+  
+    if (formData.userType === "company") {
       if (!formData.companyName) {
-        errors.companyName = `${t('dashboard.companyName')} es requerido`;
+        errors.companyName = `${t("dashboard.companyName")} es requerido`;
       }
       if (!formData.companySize) {
-        errors.companySize = `${t('dashboard.companySize')} es requerido`;
+        errors.companySize = `${t("dashboard.companySize")} es requerido`;
       }
     }
-
+  
     return errors;
   };
-
+  
   const handleChange = (event: any) => {
     const name = event.target.name;
     const value = event.target.value;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
-
+  
   const handleFormSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
   
@@ -446,7 +458,7 @@ const Dashboard = () => {
     }
   
     if (!agentId) {
-      console.error('UserId no disponible. El usuario no ha iniciado sesión correctamente.');
+      console.error("UserId no disponible. El usuario no ha iniciado sesión correctamente.");
       return;
     }
   
@@ -487,24 +499,23 @@ const Dashboard = () => {
           city: formData.shippingCity,
           postalCode: formData.shippingPostalCode,
           province: formData.shippingProvince,
-          country: formData.shippingCountry
-        }
-      ]
+          country: formData.shippingCountry,
+        },
+      ],
     };
     
     try {
       let response;
       if (hasContact && contactId) {
         response = await ContactService.updateContact(contactData, token);
-        console.log('Contacto actualizado exitosamente.');
+        console.log("Contacto actualizado exitosamente.");
       } else {
         response = await ContactService.createContact(contactData, token);
-        console.log('Contacto creado exitosamente.');
+        console.log("Contacto creado exitosamente.");
       }
   
       if (response && response.data) {
         const updatedContact = response.data as any;
-        // Mapeamos la respuesta usando las propiedades en inglés (tal y como el formulario lo espera)
         setFormData({
           ...formData,
           name: updatedContact.name || formData.name,
@@ -514,11 +525,16 @@ const Dashboard = () => {
           userType: updatedContact.userType || formData.userType,
           phone: updatedContact.phone || formData.phone,
           address: updatedContact.address || formData.address,
-          shippingAddress: updatedContact.shippingAddress?.[0]?.direction || formData.shippingAddress,
-          shippingCity: updatedContact.shippingAddress?.[0]?.city || formData.shippingCity,
-          shippingProvince: updatedContact.shippingAddress?.[0]?.province || formData.shippingProvince,
-          shippingPostalCode: updatedContact.shippingAddress?.[0]?.postalCode || formData.shippingPostalCode,
-          shippingCountry: updatedContact.shippingAddress?.[0]?.country || formData.shippingCountry,
+          shippingAddress:
+            updatedContact.shippingAddress?.[0]?.direction || formData.shippingAddress,
+          shippingCity:
+            updatedContact.shippingAddress?.[0]?.city || formData.shippingCity,
+          shippingProvince:
+            updatedContact.shippingAddress?.[0]?.province || formData.shippingProvince,
+          shippingPostalCode:
+            updatedContact.shippingAddress?.[0]?.postalCode || formData.shippingPostalCode,
+          shippingCountry:
+            updatedContact.shippingAddress?.[0]?.country || formData.shippingCountry,
           postalCode: updatedContact.postalCode || formData.postalCode,
           nie: updatedContact.nie || formData.nie,
           commercialName: updatedContact.commercialName || formData.commercialName,
@@ -555,7 +571,7 @@ const Dashboard = () => {
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
-
+  
   const data = {
     labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul"],
     datasets: [
@@ -575,7 +591,7 @@ const Dashboard = () => {
       },
     ],
   };
-
+  
   const options = {
     responsive: true,
     plugins: {
@@ -614,6 +630,12 @@ const Dashboard = () => {
     },
   };
 
+  // Ahora, una vez que se han llamado todos los hooks, si aún no se ha hidratado,
+  // mostramos un indicador de carga.
+  if (!hydrated) {
+    return <div></div>;
+  }
+  
   return (
     <Box
       sx={{
@@ -778,7 +800,7 @@ const Dashboard = () => {
                   <ListItemText primary="Clientes con Ventas" />
                 </MenuItem>
               </Menu>
-
+  
               <Grid container spacing={3}>
                 {widgets.showVentas && (
                   <Grid item xs={12} md={3}>
@@ -1775,7 +1797,7 @@ const Dashboard = () => {
             </Container>
           </Box>
         </Box>
-
+  
         <UserInfoDialog
           open={open}
           handleClose={handleClose}
@@ -1784,11 +1806,11 @@ const Dashboard = () => {
           formErrors={formErrors}
           handleChange={handleChange}
           handleFormSubmit={handleFormSubmit}
-          loading={loading}
+          loading={loadingState}
         />
       </UserChecker>
     </Box>
   );
 };
-
+  
 export default Dashboard;

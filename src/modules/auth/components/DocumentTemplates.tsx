@@ -1,4 +1,3 @@
-// src/modules/auth/components/DocumentTemplates.tsx
 import React, { useState, ChangeEvent } from 'react';
 import {
   Box,
@@ -31,55 +30,54 @@ import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 
-// Definición de la interfaz para una plantilla
+// Interfaz para las plantillas predefinidas
 interface Template {
   id: number;
   name: string;
-  preview: string; // URL de la miniatura
-}
-
-// Definición de la interfaz para los datos del formulario
-interface FormData {
-  name: string;
   preview: string;
-  documentFormat: string;
-  logoSize: string;
-  font: string;
-  textColor: string;
-  orientation: string;
-  watermark: string;
-  footerInfo: string;
-  columnSettings: string;
-  tableConfig: string;
-  legalFields: string;
-  companyInfo: string;
-  productInfo: string;
-  documentName: string;
-  customHTML: string;
 }
 
-// Esquema de validación utilizando Yup
-const schema = yup.object().shape({
-  name: yup.string().required('El nombre de la plantilla es obligatorio'),
-  documentFormat: yup.string().required('El formato de documento es obligatorio'),
-  logoSize: yup.string().required('El tamaño del logo es obligatorio'),
-  font: yup.string().required('La tipografía es obligatoria'),
-  textColor: yup.string().required('El color de texto es obligatorio'),
-  orientation: yup.string().required('La orientación es obligatoria'),
-  // Otros campos pueden tener validaciones opcionales o requeridas según sea necesario
-});
+// Definimos el esquema de validación con Yup
+// Usamos .defined() en cada campo para asegurar que el tipo generado tenga todas las propiedades definidas
+const schema = yup
+  .object({
+    name: yup.string().required('El nombre de la plantilla es obligatorio').defined(),
+    preview: yup.string().defined(),
+    documentFormat: yup.string().required('El formato de documento es obligatorio').defined(),
+    logoSize: yup.string().required('El tamaño del logo es obligatorio').defined(),
+    font: yup.string().required('La tipografía es obligatoria').defined(),
+    textColor: yup.string().required('El color de texto es obligatorio').defined(),
+    orientation: yup.string().required('La orientación es obligatoria').defined(),
+    watermark: yup.string().defined(),
+    footerInfo: yup.string().defined(),
+    columnSettings: yup.string().defined(),
+    tableConfig: yup.string().defined(),
+    legalFields: yup.string().defined(),
+    companyInfo: yup.string().defined(),
+    productInfo: yup.string().defined(),
+    documentName: yup.string().defined(),
+    customHTML: yup.string().defined(),
+  })
+  .defined();
 
+// Inferimos el tipo FormData a partir del esquema
+type FormData = yup.InferType<typeof schema>;
+
+// Plantillas predefinidas
 const predefinedTemplates: Template[] = [
   { id: 1, name: 'Factura Básica', preview: '/templates/factura_basica.png' },
   { id: 2, name: 'Presupuesto', preview: '/templates/presupuesto.png' },
-  // Añade más plantillas predefinidas según sea necesario
 ];
 
 const DocumentTemplates: React.FC = () => {
   const [templates, setTemplates] = useState<Template[]>(predefinedTemplates);
   const [open, setOpen] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState<Template | null>(null);
-  const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({
+  const [snackbar, setSnackbar] = useState<{
+    open: boolean;
+    message: string;
+    severity: 'success' | 'error';
+  }>({
     open: false,
     message: '',
     severity: 'success',
@@ -92,7 +90,6 @@ const DocumentTemplates: React.FC = () => {
     setValue,
     formState: { errors },
   } = useForm<FormData>({
-    
     defaultValues: {
       name: '',
       preview: '',
@@ -111,6 +108,7 @@ const DocumentTemplates: React.FC = () => {
       documentName: '',
       customHTML: '',
     },
+    resolver: yupResolver(schema),
   });
 
   const handleOpen = (template?: Template) => {
@@ -156,7 +154,6 @@ const DocumentTemplates: React.FC = () => {
 
   const onSubmit = (data: FormData) => {
     if (editingTemplate) {
-      // Actualizar plantilla existente
       setTemplates(
         templates.map((template) =>
           template.id === editingTemplate.id
@@ -166,11 +163,10 @@ const DocumentTemplates: React.FC = () => {
       );
       setSnackbar({ open: true, message: 'Plantilla actualizada exitosamente', severity: 'success' });
     } else {
-      // Añadir nueva plantilla
       const newTemplate: Template = {
         id: Date.now(),
         name: data.name,
-        preview: data.preview || '/templates/default.png', // Ruta por defecto
+        preview: data.preview || '/templates/default.png',
       };
       setTemplates([...templates, newTemplate]);
       setSnackbar({ open: true, message: 'Plantilla añadida exitosamente', severity: 'success' });
@@ -196,7 +192,11 @@ const DocumentTemplates: React.FC = () => {
 
   return (
     <Box sx={{ mt: 4, px: { xs: 2, sm: 4, md: 6 }, bgcolor: '#f9f9fc', minHeight: '100vh' }}>
-      <Typography variant="h4" gutterBottom sx={{ color: '#1A1A40', fontWeight: '700' }}>
+      <Typography
+        variant="h4"
+        gutterBottom
+        sx={{ color: '#1A1A40', fontWeight: '700', fontFamily: 'Roboto, sans-serif' }}
+      >
         Plantillas de Documento
       </Typography>
       <Divider sx={{ mb: 3 }} />
@@ -211,12 +211,10 @@ const DocumentTemplates: React.FC = () => {
             bgcolor: '#1A1A40',
             color: '#FFFFFF',
             fontWeight: 'bold',
-            '&:hover': {
-              bgcolor: '#333366',
-            },
+            '&:hover': { bgcolor: '#333366' },
             borderRadius: 2,
-            paddingX: 3,
-            paddingY: 1.5,
+            px: 3,
+            py: 1.5,
             textTransform: 'none',
           }}
         >
@@ -230,16 +228,16 @@ const DocumentTemplates: React.FC = () => {
           <Grid item xs={12} sm={6} md={4} key={template.id}>
             <Card
               sx={{
-                padding: 2,
-                borderRadius: 3,
-                boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)',
+                p: 2,
+                borderRadius: 2,
+                boxShadow: '0 3px 10px rgba(0, 0, 0, 0.1)',
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
-                transition: 'transform 0.2s',
+                transition: 'transform 0.2s ease, box-shadow 0.2s ease',
                 '&:hover': {
-                  transform: 'scale(1.02)',
-                  boxShadow: '0px 6px 18px rgba(0, 0, 0, 0.15)',
+                  transform: 'translateY(-3px)',
+                  boxShadow: '0 6px 15px rgba(0, 0, 0, 0.15)',
                 },
               }}
             >
@@ -251,7 +249,7 @@ const DocumentTemplates: React.FC = () => {
                   width: '100%',
                   height: '180px',
                   objectFit: 'cover',
-                  borderRadius: 2,
+                  borderRadius: 1,
                   mb: 2,
                 }}
               />
@@ -265,9 +263,7 @@ const DocumentTemplates: React.FC = () => {
                   aria-label="editar plantilla"
                   sx={{
                     bgcolor: '#e3f2fd',
-                    '&:hover': {
-                      bgcolor: '#bbdefb',
-                    },
+                    '&:hover': { bgcolor: '#bbdefb' },
                   }}
                 >
                   <Edit />
@@ -278,9 +274,7 @@ const DocumentTemplates: React.FC = () => {
                   aria-label="eliminar plantilla"
                   sx={{
                     bgcolor: '#ffebee',
-                    '&:hover': {
-                      bgcolor: '#ffcdd2',
-                    },
+                    '&:hover': { bgcolor: '#ffcdd2' },
                   }}
                 >
                   <Delete />
@@ -291,7 +285,7 @@ const DocumentTemplates: React.FC = () => {
         ))}
       </Grid>
 
-      {/* Dialog para añadir/editar plantilla */}
+      {/* Diálogo para añadir/editar plantilla */}
       <Dialog open={open} onClose={handleClose} fullWidth maxWidth="md">
         <DialogTitle sx={{ bgcolor: '#1A1A40', color: '#FFFFFF' }}>
           {editingTemplate ? 'Editar Plantilla' : 'Añadir Nueva Plantilla'}
@@ -324,7 +318,6 @@ const DocumentTemplates: React.FC = () => {
               </AccordionSummary>
               <AccordionDetails>
                 <Grid container spacing={2}>
-                  {/* Nombre de plantilla */}
                   <Grid item xs={12}>
                     <Controller
                       name="name"
@@ -341,8 +334,6 @@ const DocumentTemplates: React.FC = () => {
                       )}
                     />
                   </Grid>
-
-                  {/* Plantillas predefinidas */}
                   <Grid item xs={12}>
                     <FormControl fullWidth variant="outlined">
                       <InputLabel>Seleccionar plantilla predefinida</InputLabel>
@@ -350,10 +341,7 @@ const DocumentTemplates: React.FC = () => {
                         name="preview"
                         control={control}
                         render={({ field }) => (
-                          <Select
-                            {...field}
-                            label="Seleccionar plantilla predefinida"
-                          >
+                          <Select {...field} label="Seleccionar plantilla predefinida">
                             <MenuItem value="">
                               <em>Ninguna</em>
                             </MenuItem>
@@ -370,7 +358,6 @@ const DocumentTemplates: React.FC = () => {
                 </Grid>
               </AccordionDetails>
             </Accordion>
-
             {/* Diseño y Formato */}
             <Accordion>
               <AccordionSummary expandIcon={<ExpandMore />}>
@@ -378,7 +365,6 @@ const DocumentTemplates: React.FC = () => {
               </AccordionSummary>
               <AccordionDetails>
                 <Grid container spacing={2}>
-                  {/* Formato de documento */}
                   <Grid item xs={12} sm={6}>
                     <Controller
                       name="documentFormat"
@@ -399,8 +385,6 @@ const DocumentTemplates: React.FC = () => {
                       )}
                     />
                   </Grid>
-
-                  {/* Logo */}
                   <Grid item xs={12} sm={6}>
                     <Button
                       variant="outlined"
@@ -411,22 +395,13 @@ const DocumentTemplates: React.FC = () => {
                         textTransform: 'none',
                         bgcolor: '#f5f5f5',
                         color: '#1A1A40',
-                        '&:hover': {
-                          bgcolor: '#e0e0e0',
-                        },
+                        '&:hover': { bgcolor: '#e0e0e0' },
                       }}
                     >
                       Cargar Logo
-                      <input
-                        type="file"
-                        accept="image/*"
-                        hidden
-                        onChange={handleLogoUpload}
-                      />
+                      <input type="file" accept="image/*" hidden onChange={handleLogoUpload} />
                     </Button>
                   </Grid>
-
-                  {/* Tamaño del logo */}
                   <Grid item xs={12} sm={6}>
                     <Controller
                       name="logoSize"
@@ -452,7 +427,6 @@ const DocumentTemplates: React.FC = () => {
                 </Grid>
               </AccordionDetails>
             </Accordion>
-
             {/* Personalización */}
             <Accordion>
               <AccordionSummary expandIcon={<ExpandMore />}>
@@ -460,7 +434,6 @@ const DocumentTemplates: React.FC = () => {
               </AccordionSummary>
               <AccordionDetails>
                 <Grid container spacing={2}>
-                  {/* Tipografía */}
                   <Grid item xs={12} sm={4}>
                     <Controller
                       name="font"
@@ -483,8 +456,6 @@ const DocumentTemplates: React.FC = () => {
                       )}
                     />
                   </Grid>
-
-                  {/* Color de texto */}
                   <Grid item xs={12} sm={4}>
                     <Controller
                       name="textColor"
@@ -496,17 +467,13 @@ const DocumentTemplates: React.FC = () => {
                           label="Color de texto"
                           type="color"
                           variant="outlined"
-                          InputLabelProps={{
-                            shrink: true,
-                          }}
+                          InputLabelProps={{ shrink: true }}
                           error={!!errors.textColor}
                           helperText={errors.textColor?.message}
                         />
                       )}
                     />
                   </Grid>
-
-                  {/* Orientación */}
                   <Grid item xs={12} sm={4}>
                     <Controller
                       name="orientation"
@@ -527,8 +494,6 @@ const DocumentTemplates: React.FC = () => {
                       )}
                     />
                   </Grid>
-
-                  {/* Marcas de agua */}
                   <Grid item xs={12}>
                     <Controller
                       name="watermark"
@@ -547,7 +512,6 @@ const DocumentTemplates: React.FC = () => {
                 </Grid>
               </AccordionDetails>
             </Accordion>
-
             {/* Campos */}
             <Accordion>
               <AccordionSummary expandIcon={<ExpandMore />}>
@@ -555,7 +519,6 @@ const DocumentTemplates: React.FC = () => {
               </AccordionSummary>
               <AccordionDetails>
                 <Grid container spacing={2}>
-                  {/* Información en el pie de página */}
                   <Grid item xs={12}>
                     <Controller
                       name="footerInfo"
@@ -573,8 +536,6 @@ const DocumentTemplates: React.FC = () => {
                       )}
                     />
                   </Grid>
-
-                  {/* Orden y visibilidad de columnas */}
                   <Grid item xs={12}>
                     <Controller
                       name="columnSettings"
@@ -595,15 +556,13 @@ const DocumentTemplates: React.FC = () => {
                 </Grid>
               </AccordionDetails>
             </Accordion>
-
-            {/* Opciones avanzadas */}
+            {/* Opciones Avanzadas */}
             <Accordion>
               <AccordionSummary expandIcon={<ExpandMore />}>
                 <Typography sx={{ fontWeight: '600' }}>Opciones Avanzadas</Typography>
               </AccordionSummary>
               <AccordionDetails>
                 <Grid container spacing={2}>
-                  {/* Configuración de la tabla */}
                   <Grid item xs={12}>
                     <Controller
                       name="tableConfig"
@@ -621,8 +580,6 @@ const DocumentTemplates: React.FC = () => {
                       )}
                     />
                   </Grid>
-
-                  {/* Campos legales */}
                   <Grid item xs={12}>
                     <Controller
                       name="legalFields"
@@ -640,8 +597,6 @@ const DocumentTemplates: React.FC = () => {
                       )}
                     />
                   </Grid>
-
-                  {/* Información de la empresa */}
                   <Grid item xs={12}>
                     <Controller
                       name="companyInfo"
@@ -659,8 +614,6 @@ const DocumentTemplates: React.FC = () => {
                       )}
                     />
                   </Grid>
-
-                  {/* Información del producto */}
                   <Grid item xs={12}>
                     <Controller
                       name="productInfo"
@@ -678,8 +631,6 @@ const DocumentTemplates: React.FC = () => {
                       )}
                     />
                   </Grid>
-
-                  {/* Nombre del documento */}
                   <Grid item xs={12} sm={6}>
                     <Controller
                       name="documentName"
@@ -695,8 +646,6 @@ const DocumentTemplates: React.FC = () => {
                       )}
                     />
                   </Grid>
-
-                  {/* HTML personalizado */}
                   <Grid item xs={12} sm={6}>
                     <Controller
                       name="customHTML"
@@ -730,9 +679,7 @@ const DocumentTemplates: React.FC = () => {
               bgcolor: '#1A1A40',
               color: '#FFFFFF',
               fontWeight: 'bold',
-              '&:hover': {
-                bgcolor: '#333366',
-              },
+              '&:hover': { bgcolor: '#333366' },
               textTransform: 'none',
             }}
           >
@@ -741,7 +688,6 @@ const DocumentTemplates: React.FC = () => {
         </DialogActions>
       </Dialog>
 
-      {/* Snackbar para notificaciones */}
       <Snackbar
         open={snackbar.open}
         autoHideDuration={6000}

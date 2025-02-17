@@ -43,14 +43,19 @@ const ShippingAddressForm: React.FC<ShippingAddressFormProps> = ({ onAddAddress 
   return (
     <Card
       sx={{
-        borderRadius: 5,
-        boxShadow: '0px 10px 30px rgba(0,0,0,0.15)',
+        borderRadius: 3,
+        boxShadow: '0 3px 10px rgba(0, 0, 0, 0.1)',
         bgcolor: '#FFFFFF',
         p: 3,
         mb: 4,
+        transition: 'transform 0.3s, box-shadow 0.3s',
+        '&:hover': {
+          transform: 'translateY(-3px)',
+          boxShadow: '0 6px 15px rgba(0, 0, 0, 0.15)',
+        },
       }}
     >
-      <Typography variant="h5" gutterBottom sx={{ color: '#1A1A40', fontWeight: '500', mb: 3 }}>
+      <Typography variant="h5" gutterBottom sx={{ color: '#1A1A40', fontWeight: 600, mb: 3 }}>
         Dirección de Envío
       </Typography>
       <form onSubmit={handleSubmit}>
@@ -132,7 +137,15 @@ const ShippingAddressForm: React.FC<ShippingAddressFormProps> = ({ onAddAddress 
             type="button"
             variant="outlined"
             onClick={() => onAddAddress(formData)}
-            sx={{ color: '#0066cc', borderColor: '#0066cc' }}
+            sx={{
+              textTransform: 'none',
+              borderColor: '#2666CF',
+              color: '#2666CF',
+              '&:hover': {
+                backgroundColor: 'rgba(38, 102, 207, 0.1)',
+                borderColor: '#6A82FB',
+              },
+            }}
           >
             Añadir Dirección de Envío
           </Button>

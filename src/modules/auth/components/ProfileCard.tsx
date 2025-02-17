@@ -15,10 +15,15 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ onChangePhoto, onDeleteAccoun
     <Card
       sx={{
         textAlign: 'center',
-        padding: '30px',
-        borderRadius: 5,
-        boxShadow: '0px 10px 30px rgba(0,0,0,0.15)',
-        bgcolor: '#f0f0f0',
+        p: 3,
+        borderRadius: 2,
+        boxShadow: '0 3px 10px rgba(0,0,0,0.1)',
+        bgcolor: '#ffffff',
+        transition: '0.3s',
+        '&:hover': {
+          transform: 'translateY(-3px)',
+          boxShadow: '0 6px 15px rgba(0,0,0,0.15)',
+        },
       }}
     >
       <Avatar
@@ -34,23 +39,39 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ onChangePhoto, onDeleteAccoun
       >
         {user?.name?.charAt(0).toUpperCase() || 'NA'}
       </Avatar>
-      <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
+      <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: '#1A1A40' }}>
         {user?.name || "Nombre no disponible"}
       </Typography>
-      <Typography variant="body2" color="textSecondary" sx={{ mb: 3 }}>
+      <Typography variant="body2" sx={{ mb: 3, color: '#555' }}>
         {user?.email || "Email no disponible"}
       </Typography>
-      <Button variant="outlined" fullWidth sx={{ mb: 2 }} onClick={onChangePhoto}>
+      <Button
+        variant="outlined"
+        fullWidth
+        onClick={onChangePhoto}
+        sx={{
+          mb: 2,
+          textTransform: 'none',
+          borderColor: '#2666CF',
+          color: '#2666CF',
+          '&:hover': {
+            backgroundColor: 'rgba(38, 102, 207, 0.1)',
+            borderColor: '#6A82FB',
+          },
+        }}
+      >
         Cambiar Foto
       </Button>
       <Button
         variant="text"
-        color="error"
         fullWidth
         onClick={onDeleteAccount}
         sx={{
+          textTransform: 'none',
+          color: '#E53935',
+          fontWeight: 'bold',
           '&:hover': {
-            color: '#ff4d4f',
+            backgroundColor: 'rgba(229,57,53,0.1)',
           },
         }}
       >

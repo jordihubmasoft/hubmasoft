@@ -1,5 +1,5 @@
 // components/ContactsSearchFilters.tsx
-import React from "react";
+import React, { useState } from "react";
 import {
   Box,
   TextField,
@@ -53,6 +53,14 @@ const ContactsSearchFilters: React.FC<ContactsSearchFiltersProps> = ({
   onColumnToggle,
   allColumns,
 }) => {
+  // Estado para filtrar columnas dentro del dropdown
+  const [dropdownSearch, setDropdownSearch] = useState("");
+
+  // Filtra las columnas según lo que se escriba en el buscador interno
+  const filteredColumns = allColumns.filter((column) =>
+    column.label.toLowerCase().includes(dropdownSearch.toLowerCase())
+  );
+
   return (
     <Box
       sx={{
@@ -150,6 +158,7 @@ const ContactsSearchFilters: React.FC<ContactsSearchFiltersProps> = ({
         >
           Portal
         </Button>
+        {/* Botón amarillo para desplegar el selector de columnas */}
         <IconButton
           sx={{
             bgcolor: "#FFA500",
@@ -165,27 +174,58 @@ const ContactsSearchFilters: React.FC<ContactsSearchFiltersProps> = ({
         >
           <ViewColumnIcon />
         </IconButton>
+        {/* Dropdown mejorado */}
         <Menu
           anchorEl={anchorEl}
           open={Boolean(anchorEl)}
           onClose={onColumnsMenuClose}
           PaperProps={{
-            style: { maxHeight: "400px", width: "250px" },
+            sx: {
+              maxHeight: 400,
+              width: 300,
+              borderRadius: 2,
+              p: 1,
+              boxShadow: "0px 3px 12px rgba(0,0,0,0.15)",
+            },
           }}
         >
-          {allColumns.map((column) => (
-            <MenuItem key={column.id}>
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={visibleColumns.includes(column.id)}
-                    onChange={() => onColumnToggle(column.id)}
-                  />
-                }
-                label={column.label}
-              />
-            </MenuItem>
-          ))}
+          {/* Campo de búsqueda interno */}
+          <Box sx={{ px: 1, pb: 1 }}>
+            <TextField
+              variant="outlined"
+              placeholder="Buscar columnas..."
+              value={dropdownSearch}
+              onChange={(e) => setDropdownSearch(e.target.value)}
+              size="small"
+              fullWidth
+              InputProps={{
+                sx: {
+                  backgroundColor: "#f9f9f9",
+                },
+              }}
+            />
+          </Box>
+          {/* Lista de columnas filtradas */}
+          {filteredColumns.length === 0 ? (
+            <Box sx={{ px: 2, py: 1, color: "text.secondary" }}>
+              No se encontraron columnas.
+            </Box>
+          ) : (
+            filteredColumns.map((column) => (
+              <MenuItem
+                key={column.id}
+                onClick={() => {
+                  onColumnToggle(column.id);
+                }}
+              >
+                <Checkbox
+                  checked={visibleColumns.includes(column.id)}
+                  sx={{ marginRight: 1 }}
+                />
+                {column.label}
+              </MenuItem>
+            ))
+          )}
         </Menu>
       </Box>
     </Box>

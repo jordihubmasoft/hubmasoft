@@ -152,9 +152,7 @@ const PaymentMethodComponent: React.FC = () => {
       // Actualizar método de pago existente
       setPaymentMethods(
         paymentMethods.map((method) =>
-          method.id === editingMethod.id
-            ? { ...method, ...data }
-            : method
+          method.id === editingMethod.id ? { ...method, ...data } : method
         )
       );
       setSnackbar({
@@ -181,9 +179,6 @@ const PaymentMethodComponent: React.FC = () => {
   // Función para manejar la carga del logo (opcional)
   const handleLogoUpload = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      // Aquí puedes implementar la lógica para manejar la carga del logo
-      // Por ejemplo, subir la imagen a un servidor y obtener la URL
-      // Para este ejemplo, simplemente asignaremos un valor simulado
       const file = e.target.files[0];
       const logoURL = URL.createObjectURL(file);
       setValue('bank', logoURL, { shouldValidate: true });
@@ -196,7 +191,7 @@ const PaymentMethodComponent: React.FC = () => {
   };
 
   return (
-    <Box sx={{ mt: 4, px: { xs: 2, sm: 4, md: 6 }, bgcolor: '#f9f9fc', minHeight: '100vh' }}>
+    <Box sx={{ mt: 4, px: { xs: 2, sm: 4, md: 6 }, bgcolor: '#F3F4F6', minHeight: '100vh' }}>
       <Typography variant="h4" gutterBottom sx={{ color: '#1A1A40', fontWeight: '700' }}>
         Métodos de Pago
       </Typography>
@@ -209,15 +204,15 @@ const PaymentMethodComponent: React.FC = () => {
           startIcon={<Add />}
           onClick={() => handleOpen()}
           sx={{
-            bgcolor: '#1A1A40',
+            background: 'linear-gradient(90deg, #2666CF, #6A82FB)',
             color: '#FFFFFF',
             fontWeight: 'bold',
             '&:hover': {
-              bgcolor: '#333366',
+              background: 'linear-gradient(90deg, #6A82FB, #2666CF)',
             },
             borderRadius: 2,
-            paddingX: 3,
-            paddingY: 1.5,
+            px: 3,
+            py: 1.5,
             textTransform: 'none',
           }}
         >
@@ -238,17 +233,17 @@ const PaymentMethodComponent: React.FC = () => {
             <Grid item xs={12} sm={6} md={4} key={method.id}>
               <Card
                 sx={{
-                  padding: 2,
+                  p: 2,
                   borderRadius: 3,
-                  boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)',
+                  boxShadow: '0 3px 10px rgba(0, 0, 0, 0.1)',
                   display: 'flex',
                   flexDirection: 'column',
                   justifyContent: 'space-between',
                   height: '100%',
-                  transition: 'transform 0.2s',
+                  transition: 'transform 0.2s, box-shadow 0.2s',
                   '&:hover': {
                     transform: 'scale(1.02)',
-                    boxShadow: '0px 6px 18px rgba(0, 0, 0, 0.15)',
+                    boxShadow: '0 6px 18px rgba(0, 0, 0, 0.15)',
                   },
                 }}
               >
@@ -364,10 +359,7 @@ const PaymentMethodComponent: React.FC = () => {
                     name="bank"
                     control={control}
                     render={({ field }) => (
-                      <Select
-                        {...field}
-                        label="Banco"
-                      >
+                      <Select {...field} label="Banco">
                         <MenuItem value="">
                           <em>Ninguno</em>
                         </MenuItem>
@@ -419,7 +411,7 @@ const PaymentMethodComponent: React.FC = () => {
             </Grid>
           </Box>
         </DialogContent>
-        <DialogActions sx={{ paddingX: 3, paddingBottom: 3 }}>
+        <DialogActions sx={{ px: 3, pb: 3 }}>
           <Button onClick={handleClose} sx={{ color: '#555', textTransform: 'none' }}>
             Cancelar
           </Button>
@@ -427,11 +419,11 @@ const PaymentMethodComponent: React.FC = () => {
             onClick={handleSubmit(onSubmit)}
             variant="contained"
             sx={{
-              bgcolor: '#1A1A40',
+              background: 'linear-gradient(90deg, #2666CF, #6A82FB)',
               color: '#FFFFFF',
               fontWeight: 'bold',
               '&:hover': {
-                bgcolor: '#333366',
+                background: 'linear-gradient(90deg, #6A82FB, #2666CF)',
               },
               textTransform: 'none',
             }}

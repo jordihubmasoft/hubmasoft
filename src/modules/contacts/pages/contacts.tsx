@@ -148,7 +148,26 @@ const initialFormData: Contact = {
 };
 
 const Contacts = () => {
-  // Estados principales
+  const router = useRouter();
+  // Obtenemos token y ownerContactId del store
+  const token = useAuthStore((state) => state.token);
+  const ownerContactId = useAuthStore((state) => state.contactId);
+
+  // -------------------------------
+  // Lógica de hidratación y redirección
+  // -------------------------------
+  const [hydrated, setHydrated] = useState(false);
+  useEffect(() => {
+    setHydrated(true);
+  }, []);
+  useEffect(() => {
+    if (hydrated && !token) {
+      router.push("/auth/login");
+    }
+  }, [hydrated, token, router]);
+  // -------------------------------
+
+  // Aquí se declaran TODOS los hooks, sin retornos condicionales
   const [open, setOpen] = useState(false);
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [contacts, setContacts] = useState<Contact[]>([]);
@@ -182,10 +201,6 @@ const Contacts = () => {
   const [linkedContacts, setLinkedContacts] = useState<LinkedContact[]>([]);
   const [loadingLinkedContacts, setLoadingLinkedContacts] = useState<boolean>(false);
   const [loadingContacts, setLoadingContacts] = useState<boolean>(false);
-
-  const token = useAuthStore((state) => state.token);
-  const ownerContactId = useAuthStore((state) => state.contactId);
-  const router = useRouter();
 
   // Función para refrescar la lista de contactos desde el API
   const fetchContacts = async () => {
@@ -307,7 +322,6 @@ const Contacts = () => {
         token
       );
       if (response.data) {
-        // Refrescamos los contactos vinculados
         await fetchLinkedContacts();
       }
     } catch (error) {
@@ -342,7 +356,6 @@ const Contacts = () => {
     setLoadingContacts(true);
     try {
       if (contact.id) {
-        // Actualización del contacto
         const updateResponse = await ContactService.updateContact(
           { ...contact, contactId: contact.id },
           token
@@ -352,14 +365,12 @@ const Contacts = () => {
           return;
         }
       } else {
-        // Crear un nuevo contacto
         const { id, userId, ...contactToCreate } = contact;
         const backendPayload = transformLocalToBackendPayload(contactToCreate);
         const createResponse = await ContactService.createContact(backendPayload, token);
         if (createResponse && createResponse.data) {
           const newContact = transformServiceContactToLocal(createResponse.data);
           if (newContact.id) {
-            // Espera a que se vincule el contacto
             const linkResponse = await LinkedContactsService.addLinkedContact(
               ownerContactId,
               newContact.id,
@@ -369,11 +380,10 @@ const Contacts = () => {
               console.error("Error al vincular el contacto");
               return;
             }
-            // Actualizamos manualmente el estado para forzar la recarga de la tabla
-            setContacts(prevContacts => [...prevContacts, newContact]);
-            setLinkedContacts(prevLinked => [
+            setContacts((prevContacts) => [...prevContacts, newContact]);
+            setLinkedContacts((prevLinked) => [
               ...prevLinked,
-              { ownerContactId: ownerContactId, linkedContactId: newContact.id }
+              { ownerContactId: ownerContactId, linkedContactId: newContact.id },
             ]);
           } else {
             console.error("No se puede vincular el contacto debido a un ID inválido.");
@@ -384,10 +394,9 @@ const Contacts = () => {
           return;
         }
       }
-      // Una vez recibida la respuesta exitosa, se refetch la lista completa para garantizar datos actualizados
       await fetchContacts();
       await fetchLinkedContacts();
-      setOpen(false); // Cierra el formulario
+      setOpen(false);
     } catch (error) {
       console.error("Error al guardar el contacto:", error);
     } finally {
@@ -403,9 +412,7 @@ const Contacts = () => {
     }
     setLoadingContacts(true);
     try {
-      // Se asume que existe un método en ContactService para eliminar el contacto.
       await ContactService.deleteContact(contactId, token);
-      // Actualizamos los estados locales eliminando el contacto borrado
       setContacts((prev) => prev.filter((contact) => contact.id !== contactId));
       setFilteredPeople((prev) => prev.filter((contact) => contact.id !== contactId));
       await fetchLinkedContacts();
@@ -507,134 +514,142 @@ const Contacts = () => {
   };
 
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", height: "100vh", bgcolor: "#F3F4F6" }}>
-      <Header isMenuOpen={isMenuOpen} />
-      <Box sx={{ display: "flex", flexGrow: 1, mt: 8 }}>
-        <Box
-          component="nav"
-          sx={{
-            width: isMenuOpen ? "240px" : "70px",
-            flexShrink: 0,
-            bgcolor: "#1A1A40",
-            borderRight: "none",
-            borderRadius: 2,
-            overflow: "hidden",
-            boxShadow: "0 3px 10px rgba(0, 0, 0, 0.1)",
-            zIndex: 1201,
-            position: "fixed",
-            height: "100%",
-            transition: "width 0.3s ease",
-          }}
-        >
-          <Sidebar isMenuOpen={isMenuOpen} toggleMenu={() => setIsMenuOpen(!isMenuOpen)} />
+    <>
+      {/* Condicionalmente mostramos un Loading si no se ha hidratado */}
+      {!hydrated ? (
+        <div></div>
+      ) : (
+        <Box sx={{ display: "flex", flexDirection: "column", height: "100vh", bgcolor: "#F3F4F6" }}>
+          <Header isMenuOpen={isMenuOpen} />
+          <Box sx={{ display: "flex", flexGrow: 1, mt: 8 }}>
+            <Box
+              component="nav"
+              sx={{
+                width: isMenuOpen ? "240px" : "70px",
+                flexShrink: 0,
+                bgcolor: "#1A1A40",
+                borderRight: "none",
+                borderRadius: 2,
+                overflow: "hidden",
+                boxShadow: "0 3px 10px rgba(0, 0, 0, 0.1)",
+                zIndex: 1201,
+                position: "fixed",
+                height: "100%",
+                transition: "width 0.3s ease",
+              }}
+            >
+              <Sidebar isMenuOpen={isMenuOpen} toggleMenu={() => setIsMenuOpen(!isMenuOpen)} />
+            </Box>
+            <Box
+              component="main"
+              sx={{
+                flexGrow: 1,
+                bgcolor: "#F3F4F6",
+                p: 3,
+                transition: "margin-left 0.3s ease",
+                marginLeft: isMenuOpen ? "240px" : "70px",
+                maxWidth: "calc(100% - 240px)",
+                minHeight: "calc(100vh - 64px)",
+              }}
+            >
+              <Container maxWidth="xl">
+                <Typography variant="h3" gutterBottom sx={{ color: "#1A1A40", fontWeight: "600" }}>
+                  Contactos
+                </Typography>
+  
+                <ContactsSearchFilters
+                  searchTerm={searchTerm}
+                  onSearchChange={handleSearch}
+                  filter={filter}
+                  setFilter={setFilter}
+                  onAdd={() => handleOpen()}
+                  onImportExport={() => {}}
+                  onPortal={handlePortalClick}
+                  anchorEl={anchorEl}
+                  onColumnsMenuOpen={handleMenuOpen}
+                  onColumnsMenuClose={handleMenuClose}
+                  visibleColumns={visibleColumns}
+                  onColumnToggle={handleColumnToggle}
+                  allColumns={allColumns}
+                />
+  
+                <Typography variant="h4" sx={{ mb: 3, color: "#2666CF", fontWeight: "600" }}>
+                  Contactos Vinculados
+                </Typography>
+  
+                {(loadingContacts || loadingLinkedContacts) ? (
+                  <Box
+                    sx={{
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      height: "100px",
+                    }}
+                  >
+                    <CircularProgress size={60} />
+                  </Box>
+                ) : (
+                  <ContactTable
+                    contacts={getFilteredContacts()}
+                    visibleColumns={visibleColumns}
+                    allColumns={allColumns}
+                    onEdit={handleOpen}
+                    onDelete={handleDelete}
+                    onRowClick={handleOpenDrawer}
+                  />
+                )}
+  
+                <ContactDetailsDrawer
+                  selectedContact={selectedContact}
+                  isDrawerOpen={isDrawerOpen}
+                  isDrawerExpanded={isDrawerExpanded}
+                  setIsDrawerExpanded={setIsDrawerExpanded}
+                  onCloseDrawer={() => setIsDrawerOpen(false)}
+                  isEditing={isEditing}
+                  setIsEditing={setIsEditing}
+                  editData={editData}
+                  setEditData={setEditData}
+                  isEditingClient={isEditingClient}
+                  setIsEditingClient={setIsEditingClient}
+                  editClientData={editClientData}
+                  setEditClientData={setEditClientData}
+                  selectedTab={selectedTab}
+                  setSelectedTab={setSelectedTab}
+                  linkedContacts={linkedContacts}
+                  onLinkContact={handleLinkContact}
+                  onUnlinkContact={handleUnlinkContact}
+                  onPortalClick={handlePortalClick}
+                  handleSaveContact={handleSave}
+                  handleOpenDialog={handleOpenDialog}
+                />
+  
+                <PasswordDialog
+                  open={isPasswordDialogOpen}
+                  onClose={() => setIsPasswordDialogOpen(false)}
+                  isPasswordEnabled={isPasswordEnabled}
+                  setIsPasswordEnabled={setIsPasswordEnabled}
+                  password={password}
+                  setPassword={setPassword}
+                />
+  
+                <LinkPersonDialog
+                  open={isDialogOpen}
+                  onClose={handleCloseDialog}
+                  searchTerm={searchTerm}
+                  onSearchChange={handleSearch}
+                  filteredPeople={filteredPeople}
+                  onLinkContact={handleLinkContact}
+                />
+  
+                <ContactForm open={open} handleClose={handleClose} contact={selectedContact} handleSave={handleSave} />
+              </Container>
+            </Box>
+          </Box>
         </Box>
-        <Box
-          component="main"
-          sx={{
-            flexGrow: 1,
-            bgcolor: "#F3F4F6",
-            p: 3,
-            transition: "margin-left 0.3s ease",
-            marginLeft: isMenuOpen ? "240px" : "70px",
-            maxWidth: "calc(100% - 240px)",
-            minHeight: "calc(100vh - 64px)",
-          }}
-        >
-          <Container maxWidth="xl">
-            <Typography variant="h3" gutterBottom sx={{ color: "#1A1A40", fontWeight: "600" }}>
-              Contactos
-            </Typography>
-
-            <ContactsSearchFilters
-              searchTerm={searchTerm}
-              onSearchChange={handleSearch}
-              filter={filter}
-              setFilter={setFilter}
-              onAdd={() => handleOpen()}
-              onImportExport={() => {}}
-              onPortal={handlePortalClick}
-              anchorEl={anchorEl}
-              onColumnsMenuOpen={handleMenuOpen}
-              onColumnsMenuClose={handleMenuClose}
-              visibleColumns={visibleColumns}
-              onColumnToggle={handleColumnToggle}
-              allColumns={allColumns}
-            />
-
-            <Typography variant="h4" sx={{ mb: 3, color: "#2666CF", fontWeight: "600" }}>
-              Contactos Vinculados
-            </Typography>
-
-            {(loadingContacts || loadingLinkedContacts) ? (
-              <Box
-                sx={{
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  height: "100px",
-                }}
-              >
-                <CircularProgress size={60} />
-              </Box>
-            ) : (
-              <ContactTable
-                contacts={getFilteredContacts()}
-                visibleColumns={visibleColumns}
-                allColumns={allColumns}
-                onEdit={handleOpen}
-                onDelete={handleDelete}
-                onRowClick={handleOpenDrawer}
-              />
-            )}
-
-            <ContactDetailsDrawer
-              selectedContact={selectedContact}
-              isDrawerOpen={isDrawerOpen}
-              isDrawerExpanded={isDrawerExpanded}
-              setIsDrawerExpanded={setIsDrawerExpanded}
-              onCloseDrawer={() => setIsDrawerOpen(false)}
-              isEditing={isEditing}
-              setIsEditing={setIsEditing}
-              editData={editData}
-              setEditData={setEditData}
-              isEditingClient={isEditingClient}
-              setIsEditingClient={setIsEditingClient}
-              editClientData={editClientData}
-              setEditClientData={setEditClientData}
-              selectedTab={selectedTab}
-              setSelectedTab={setSelectedTab}
-              linkedContacts={linkedContacts}
-              onLinkContact={handleLinkContact}
-              onUnlinkContact={handleUnlinkContact}
-              onPortalClick={handlePortalClick}
-              handleSaveContact={handleSave}
-              handleOpenDialog={handleOpenDialog}
-            />
-
-            <PasswordDialog
-              open={isPasswordDialogOpen}
-              onClose={() => setIsPasswordDialogOpen(false)}
-              isPasswordEnabled={isPasswordEnabled}
-              setIsPasswordEnabled={setIsPasswordEnabled}
-              password={password}
-              setPassword={setPassword}
-            />
-
-            <LinkPersonDialog
-              open={isDialogOpen}
-              onClose={handleCloseDialog}
-              searchTerm={searchTerm}
-              onSearchChange={handleSearch}
-              filteredPeople={filteredPeople}
-              onLinkContact={handleLinkContact}
-            />
-
-            <ContactForm open={open} handleClose={handleClose} contact={selectedContact} handleSave={handleSave} />
-          </Container>
-        </Box>
-      </Box>
-    </Box>
+      )}
+    </>
   );
 };
 
 export default Contacts;
+
