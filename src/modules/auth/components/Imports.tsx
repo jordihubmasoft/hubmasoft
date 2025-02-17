@@ -1,5 +1,4 @@
 // src/modules/auth/components/Imports.tsx
-
 import React, { useState } from 'react';
 import {
   Box,
@@ -56,8 +55,8 @@ const schema = yup.object().shape({
     .mixed()
     .required('El archivo es obligatorio')
     .test('fileType', 'Solo se permiten archivos Excel', (value) => {
-      
-      return false;
+      // Puedes agregar la validación de tipo de archivo aquí
+      return true; // Por ahora, acepta cualquier archivo
     }),
   updateExisting: yup.boolean(),
 });
@@ -354,7 +353,6 @@ const Imports: React.FC = () => {
     formData.append('updateExisting', data.updateExisting.toString());
 
     try {
-      // Aquí debes reemplazar la URL por la de tu backend
       const response = await fetch(selectedSubcategory.apiEndpoint, {
         method: 'POST',
         body: formData,
@@ -395,7 +393,7 @@ const Imports: React.FC = () => {
   };
 
   return (
-    <Box sx={{ mt: 4, px: { xs: 2, sm: 4, md: 6 }, bgcolor: '#f5f5f5', minHeight: '100vh' }}>
+    <Box sx={{ mt: 4, px: { xs: 2, sm: 4, md: 6 }, bgcolor: '#F3F4F6', minHeight: '100vh' }}>
       <Typography variant="h4" gutterBottom sx={{ color: '#1A1A40', fontWeight: '700' }}>
         Módulo de Importación de Datos
       </Typography>
@@ -405,64 +403,66 @@ const Imports: React.FC = () => {
       <Grid container spacing={3}>
         {categories.map((category) => (
           <Grid item xs={12} md={6} key={category.name}>
-            <Typography variant="h6" sx={{ color: '#333', mb: 2 }}>
+            <Typography variant="h6" sx={{ color: '#1A1A40', mb: 2, fontWeight: 600 }}>
               {category.name}
             </Typography>
             {category.subcategories.map((subcategory) => (
-              <Accordion key={subcategory.name} sx={{ mb: 1 }}>
-                <AccordionSummary expandIcon={<ExpandMore />}>
-                  <Typography variant="subtitle1" sx={{ fontWeight: '600', color: '#555' }}>
-                    {subcategory.name}
-                  </Typography>
-                </AccordionSummary>
-                <AccordionDetails>
-                  <Typography variant="body2" sx={{ color: '#777', mb: 2 }}>
-                    {subcategory.description}
-                  </Typography>
-                  <Grid container spacing={2}>
-                    {/* Descargar Plantilla */}
-                    <Grid item xs={12} sm={6}>
-                      <Button
-                        variant="outlined"
-                        startIcon={<Download />}
-                        fullWidth
-                        onClick={() => handleDownloadTemplate(subcategory.templateUrl, `${subcategory.name}.xlsx`)}
-                        sx={{
-                          textTransform: 'none',
-                          borderColor: '#1A1A40',
-                          color: '#1A1A40',
-                          '&:hover': {
-                            borderColor: '#333366',
-                            backgroundColor: '#e3f2fd',
-                          },
-                        }}
-                      >
-                        Descargar Plantilla
-                      </Button>
-                    </Grid>
+              <Paper key={subcategory.name} sx={{ mb: 2, p: 2, borderRadius: 2, boxShadow: '0 3px 10px rgba(0, 0, 0, 0.1)', transition: '0.3s', '&:hover': { transform: 'translateY(-2px)', boxShadow: '0 6px 15px rgba(0, 0, 0, 0.15)' } }}>
+                <Accordion elevation={0} sx={{ backgroundColor: 'transparent', boxShadow: 'none' }}>
+                  <AccordionSummary expandIcon={<ExpandMore />} sx={{ padding: 0 }}>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#1A1A40' }}>
+                      {subcategory.name}
+                    </Typography>
+                  </AccordionSummary>
+                  <AccordionDetails sx={{ p: 0 }}>
+                    <Typography variant="body2" sx={{ color: '#555', mb: 2 }}>
+                      {subcategory.description}
+                    </Typography>
+                    <Grid container spacing={2}>
+                      {/* Descargar Plantilla */}
+                      <Grid item xs={12} sm={6}>
+                        <Button
+                          variant="outlined"
+                          startIcon={<Download />}
+                          fullWidth
+                          onClick={() => handleDownloadTemplate(subcategory.templateUrl, `${subcategory.name}.xlsx`)}
+                          sx={{
+                            textTransform: 'none',
+                            borderColor: '#2666CF',
+                            color: '#2666CF',
+                            '&:hover': {
+                              borderColor: '#6A82FB',
+                              backgroundColor: 'rgba(38, 102, 207, 0.1)',
+                            },
+                          }}
+                        >
+                          Descargar Plantilla
+                        </Button>
+                      </Grid>
 
-                    {/* Subir Archivo */}
-                    <Grid item xs={12} sm={6}>
-                      <Button
-                        variant="contained"
-                        startIcon={<Upload />}
-                        fullWidth
-                        onClick={() => handleOpenDialog(subcategory)}
-                        sx={{
-                          bgcolor: '#1A1A40',
-                          color: '#FFFFFF',
-                          textTransform: 'none',
-                          '&:hover': {
-                            bgcolor: '#333366',
-                          },
-                        }}
-                      >
-                        Subir Archivo
-                      </Button>
+                      {/* Subir Archivo */}
+                      <Grid item xs={12} sm={6}>
+                        <Button
+                          variant="contained"
+                          startIcon={<Upload />}
+                          fullWidth
+                          onClick={() => handleOpenDialog(subcategory)}
+                          sx={{
+                            textTransform: 'none',
+                            background: 'linear-gradient(90deg, #2666CF, #6A82FB)',
+                            color: '#FFFFFF',
+                            '&:hover': {
+                              background: 'linear-gradient(90deg, #6A82FB, #2666CF)',
+                            },
+                          }}
+                        >
+                          Subir Archivo
+                        </Button>
+                      </Grid>
                     </Grid>
-                  </Grid>
-                </AccordionDetails>
-              </Accordion>
+                  </AccordionDetails>
+                </Accordion>
+              </Paper>
             ))}
           </Grid>
         ))}
@@ -470,7 +470,7 @@ const Imports: React.FC = () => {
 
       {/* Diálogo de Importación */}
       <Dialog open={openDialog} onClose={handleCloseDialog} fullWidth maxWidth="sm">
-        <DialogTitle sx={{ bgcolor: '#1A1A40', color: '#FFFFFF' }}>
+        <DialogTitle sx={{ bgcolor: 'linear-gradient(90deg, #2666CF, #6A82FB)', color: '#FFFFFF' }}>
           {selectedSubcategory ? `Importar ${selectedSubcategory.name}` : 'Importar Datos'}
         </DialogTitle>
         <DialogContent>
@@ -495,7 +495,11 @@ const Imports: React.FC = () => {
                         }}
                       >
                         Seleccionar Archivo
-                        
+                        <input
+                          type="file"
+                          hidden
+                          onChange={(e) => field.onChange(e.target.files)}
+                        />
                       </Button>
                     )}
                   />
@@ -525,7 +529,7 @@ const Imports: React.FC = () => {
             </Box>
           )}
         </DialogContent>
-        <DialogActions sx={{ paddingX: 3, paddingBottom: 3 }}>
+        <DialogActions sx={{ px: 3, pb: 3 }}>
           <Button onClick={handleCloseDialog} sx={{ color: '#555', textTransform: 'none' }}>
             Cancelar
           </Button>
@@ -533,13 +537,13 @@ const Imports: React.FC = () => {
             onClick={handleSubmit(onSubmit)}
             variant="contained"
             sx={{
-              bgcolor: '#1A1A40',
+              textTransform: 'none',
+              background: 'linear-gradient(90deg, #2666CF, #6A82FB)',
               color: '#FFFFFF',
               fontWeight: 'bold',
               '&:hover': {
-                bgcolor: '#333366',
+                background: 'linear-gradient(90deg, #6A82FB, #2666CF)',
               },
-              textTransform: 'none',
             }}
           >
             Importar

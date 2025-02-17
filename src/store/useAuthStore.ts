@@ -1,7 +1,7 @@
 // src/store/useAuthStore.ts
 import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
 
-// Define the interface for the state
 interface AuthState {
   agentId: string | null;
   token: string | null;
@@ -22,41 +22,44 @@ interface AuthState {
   clearUser: () => void;
 }
 
-// Create the store using create from 'zustand'
-const useAuthStore = create<AuthState>((set) => ({
-  agentId: null,
-  contactId: null,
-  token: null,
-  refreshToken: null,
-  refreshTokenExpiryTime: null,
-  email: null,
-  password: null,
-  resetPasswordToken: null,
-
-  setAgentId: (agentId) => set({ agentId }),
-  setContactId: (contactId) => set({ contactId }),
-  setToken: (token) => set({ token }),
-  setRefreshToken: (refreshToken) => set({ refreshToken }),
-  setRefreshTokenExpiryTime: (expiryTime) =>
-    set({ refreshTokenExpiryTime: expiryTime }),
-  setEmail: (email) => set({ email }),
-  setPassword: (password) => set({ password }),
-  setResetPasswordToken: (token) => set({ resetPasswordToken: token }),
-
-  clearUser: () => {
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('user');
-    }
-    set({
+const useAuthStore = create<AuthState, [['zustand/persist', AuthState]]>(
+  persist(
+    (set) => ({
       agentId: null,
       token: null,
+      contactId: null,
       refreshToken: null,
       refreshTokenExpiryTime: null,
       email: null,
       password: null,
       resetPasswordToken: null,
-    });
-  },
-}));
+
+      setAgentId: (agentId) => set({ agentId }),
+      setContactId: (contactId) => set({ contactId }),
+      setToken: (token) => set({ token }),
+      setRefreshToken: (refreshToken) => set({ refreshToken }),
+      setRefreshTokenExpiryTime: (expiryTime) =>
+        set({ refreshTokenExpiryTime: expiryTime }),
+      setEmail: (email) => set({ email }),
+      setPassword: (password) => set({ password }),
+      setResetPasswordToken: (token) => set({ resetPasswordToken: token }),
+      clearUser: () =>
+        set({
+          agentId: null,
+          token: null,
+          contactId: null,
+          refreshToken: null,
+          refreshTokenExpiryTime: null,
+          email: null,
+          password: null,
+          resetPasswordToken: null,
+        }),
+    }),
+    {
+      name: 'user', // Clave única en localStorage
+      storage: createJSONStorage(() => localStorage),
+    }
+  )
+);
 
 export default useAuthStore;

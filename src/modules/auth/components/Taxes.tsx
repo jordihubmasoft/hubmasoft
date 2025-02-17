@@ -34,7 +34,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 
-// Definición de la interfaz para un impuesto
+// Interfaz para un impuesto
 interface Tax {
   id: number;
   name: string;
@@ -48,7 +48,7 @@ interface Tax {
   showInDocuments: boolean;
 }
 
-// Definición de la interfaz para los datos del formulario
+// Interfaz para los datos del formulario
 interface FormData {
   name: string;
   key: string;
@@ -83,7 +83,6 @@ const scopes = [
   { value: 'Ventas', label: 'Ventas' },
   { value: 'Compras', label: 'Compras' },
   { value: 'Servicios', label: 'Servicios' },
-  // Añade más ámbitos según sea necesario
 ];
 
 // Opciones de grupos de impuestos predefinidos
@@ -91,15 +90,13 @@ const taxGroups = [
   { value: 'IVA', label: 'IVA' },
   { value: 'Retención', label: 'Retención' },
   { value: 'Otros', label: 'Otros' },
-  // Añade más grupos según sea necesario
 ];
 
-// Opciones de cuentas contables predefinidas (puedes obtenerlas dinámicamente desde tu backend)
+// Opciones de cuentas contables predefinidas
 const accounts = [
   { value: 'Cuenta1', label: 'Cuenta 1' },
   { value: 'Cuenta2', label: 'Cuenta 2' },
   { value: 'Cuenta3', label: 'Cuenta 3' },
-  // Añade más cuentas según sea necesario
 ];
 
 const Taxes: React.FC = () => {
@@ -204,9 +201,7 @@ const Taxes: React.FC = () => {
       // Actualizar impuesto existente
       setTaxes(
         taxes.map((tax) =>
-          tax.id === editingTax.id
-            ? { ...tax, ...data }
-            : tax
+          tax.id === editingTax.id ? { ...tax, ...data } : tax
         )
       );
       setSnackbar({
@@ -230,13 +225,13 @@ const Taxes: React.FC = () => {
     handleClose();
   };
 
-  // Función para cerrar el snackbar
+  // Función para cerrar el Snackbar
   const handleSnackbarClose = () => {
     setSnackbar({ ...snackbar, open: false });
   };
 
   return (
-    <Box sx={{ mt: 4, px: { xs: 2, sm: 4, md: 6 }, bgcolor: '#f9f9fc', minHeight: '100vh' }}>
+    <Box sx={{ mt: 4, px: { xs: 2, sm: 4, md: 6 }, bgcolor: '#F3F4F6', minHeight: '100vh' }}>
       <Typography variant="h4" gutterBottom sx={{ color: '#1A1A40', fontWeight: '700' }}>
         Gestión de Impuestos
       </Typography>
@@ -249,15 +244,13 @@ const Taxes: React.FC = () => {
           startIcon={<Add />}
           onClick={() => handleOpen()}
           sx={{
-            bgcolor: '#1A1A40',
+            background: 'linear-gradient(90deg, #2666CF, #6A82FB)',
             color: '#FFFFFF',
             fontWeight: 'bold',
-            '&:hover': {
-              bgcolor: '#333366',
-            },
+            '&:hover': { background: 'linear-gradient(90deg, #6A82FB, #2666CF)' },
             borderRadius: 2,
-            paddingX: 3,
-            paddingY: 1.5,
+            px: 3,
+            py: 1.5,
             textTransform: 'none',
           }}
         >
@@ -309,9 +302,7 @@ const Taxes: React.FC = () => {
                       aria-label="editar impuesto"
                       sx={{
                         bgcolor: '#e3f2fd',
-                        '&:hover': {
-                          bgcolor: '#bbdefb',
-                        },
+                        '&:hover': { bgcolor: '#bbdefb' },
                         mr: 1,
                       }}
                     >
@@ -323,9 +314,7 @@ const Taxes: React.FC = () => {
                       aria-label="eliminar impuesto"
                       sx={{
                         bgcolor: '#ffebee',
-                        '&:hover': {
-                          bgcolor: '#ffcdd2',
-                        },
+                        '&:hover': { bgcolor: '#ffcdd2' },
                       }}
                     >
                       <Delete />
@@ -364,7 +353,6 @@ const Taxes: React.FC = () => {
                   )}
                 />
               </Grid>
-
               {/* Clave */}
               <Grid item xs={12}>
                 <Controller
@@ -383,7 +371,6 @@ const Taxes: React.FC = () => {
                   )}
                 />
               </Grid>
-
               {/* Ámbito */}
               <Grid item xs={12}>
                 <FormControl fullWidth variant="outlined" required>
@@ -392,11 +379,7 @@ const Taxes: React.FC = () => {
                     name="scope"
                     control={control}
                     render={({ field }) => (
-                      <Select
-                        {...field}
-                        label="Ámbito"
-                        error={!!errors.scope}
-                      >
+                      <Select {...field} label="Ámbito" error={!!errors.scope}>
                         {scopes.map((scope) => (
                           <MenuItem key={scope.value} value={scope.value}>
                             {scope.label}
@@ -412,7 +395,6 @@ const Taxes: React.FC = () => {
                   )}
                 </FormControl>
               </Grid>
-
               {/* Tipo */}
               <Grid item xs={12}>
                 <FormControl fullWidth variant="outlined" required>
@@ -421,11 +403,7 @@ const Taxes: React.FC = () => {
                     name="type"
                     control={control}
                     render={({ field }) => (
-                      <Select
-                        {...field}
-                        label="Tipo"
-                        error={!!errors.type}
-                      >
+                      <Select {...field} label="Tipo" error={!!errors.type}>
                         <MenuItem value="percentage">Porcentaje</MenuItem>
                         <MenuItem value="fixed">Valor Fijo</MenuItem>
                       </Select>
@@ -438,8 +416,7 @@ const Taxes: React.FC = () => {
                   )}
                 </FormControl>
               </Grid>
-
-              {/* Importe % */}
+              {/* Importe */}
               <Grid item xs={12}>
                 <Controller
                   name="amount"
@@ -459,7 +436,6 @@ const Taxes: React.FC = () => {
                   )}
                 />
               </Grid>
-
               {/* Cuenta de impuestos */}
               <Grid item xs={12}>
                 <FormControl fullWidth variant="outlined" required>
@@ -468,11 +444,7 @@ const Taxes: React.FC = () => {
                     name="account"
                     control={control}
                     render={({ field }) => (
-                      <Select
-                        {...field}
-                        label="Cuenta de Impuestos"
-                        error={!!errors.account}
-                      >
+                      <Select {...field} label="Cuenta de Impuestos" error={!!errors.account}>
                         {accounts.map((account) => (
                           <MenuItem key={account.value} value={account.value}>
                             {account.label}
@@ -488,7 +460,6 @@ const Taxes: React.FC = () => {
                   )}
                 </FormControl>
               </Grid>
-
               {/* Grupo de impuestos */}
               <Grid item xs={12}>
                 <FormControl fullWidth variant="outlined" required>
@@ -497,11 +468,7 @@ const Taxes: React.FC = () => {
                     name="group"
                     control={control}
                     render={({ field }) => (
-                      <Select
-                        {...field}
-                        label="Grupo de Impuestos"
-                        error={!!errors.group}
-                      >
+                      <Select {...field} label="Grupo de Impuestos" error={!!errors.group}>
                         {taxGroups.map((group) => (
                           <MenuItem key={group.value} value={group.value}>
                             {group.label}
@@ -517,7 +484,6 @@ const Taxes: React.FC = () => {
                   )}
                 </FormControl>
               </Grid>
-
               {/* Impuesto activo */}
               <Grid item xs={12}>
                 <Controller
@@ -531,8 +497,7 @@ const Taxes: React.FC = () => {
                   )}
                 />
               </Grid>
-
-              {/* Mostrar este impuesto al crear documentos */}
+              {/* Mostrar en documentos */}
               <Grid item xs={12}>
                 <Controller
                   name="showInDocuments"
@@ -548,7 +513,7 @@ const Taxes: React.FC = () => {
             </Grid>
           </Box>
         </DialogContent>
-        <DialogActions sx={{ paddingX: 3, paddingBottom: 3 }}>
+        <DialogActions sx={{ px: 3, pb: 3 }}>
           <Button onClick={handleClose} sx={{ color: '#555', textTransform: 'none' }}>
             Cancelar
           </Button>
@@ -556,12 +521,10 @@ const Taxes: React.FC = () => {
             onClick={handleSubmit(onSubmit)}
             variant="contained"
             sx={{
-              bgcolor: '#1A1A40',
+              background: 'linear-gradient(90deg, #2666CF, #6A82FB)',
               color: '#FFFFFF',
               fontWeight: 'bold',
-              '&:hover': {
-                bgcolor: '#333366',
-              },
+              '&:hover': { background: 'linear-gradient(90deg, #6A82FB, #2666CF)' },
               textTransform: 'none',
             }}
           >

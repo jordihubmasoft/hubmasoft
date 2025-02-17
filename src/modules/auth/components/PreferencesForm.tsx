@@ -7,11 +7,8 @@ import {
   TextField,
   MenuItem,
   Button,
+  Box,
 } from '@mui/material';
-
-interface PreferencesFormProps {
-  onSave: (data: PreferencesData) => void;
-}
 
 export interface PreferencesData {
   currency: string;
@@ -23,11 +20,14 @@ export interface PreferencesData {
   corporateColor: string;
 }
 
+interface PreferencesFormProps {
+  onSave: (data: PreferencesData) => void;
+}
+
 const currencies = [
   { value: 'EUR', label: 'Euro (EUR)' },
   { value: 'USD', label: 'Dólar (USD)' },
   { value: 'GBP', label: 'Libra (GBP)' },
-  // Añade más monedas según sea necesario
 ];
 
 const numberFormats = [
@@ -45,14 +45,12 @@ const timezones = [
   { value: 'Europe/Madrid', label: 'Europe/Madrid' },
   { value: 'America/New_York', label: 'America/New_York' },
   { value: 'Asia/Tokyo', label: 'Asia/Tokyo' },
-  // Añade más zonas horarias según sea necesario
 ];
 
 const languages = [
   { value: 'es', label: 'Español' },
   { value: 'en', label: 'Inglés' },
   { value: 'fr', label: 'Francés' },
-  // Añade más idiomas según sea necesario
 ];
 
 const dateFormats = [
@@ -78,10 +76,7 @@ const PreferencesForm: React.FC<PreferencesFormProps> = ({ onSave }) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]:
-        name === 'decimals'
-          ? parseInt(value, 10)
-          : value,
+      [name]: name === 'decimals' ? parseInt(value, 10) : value,
     }));
   };
 
@@ -96,11 +91,16 @@ const PreferencesForm: React.FC<PreferencesFormProps> = ({ onSave }) => {
         bgcolor: '#FFFFFF',
         p: 4,
         borderRadius: 3,
-        boxShadow: '0px 10px 30px rgba(0,0,0,0.15)',
+        boxShadow: '0 3px 10px rgba(0, 0, 0, 0.1)',
         mb: 4,
+        transition: 'transform 0.3s, box-shadow 0.3s',
+        '&:hover': {
+          transform: 'translateY(-3px)',
+          boxShadow: '0 6px 15px rgba(0, 0, 0, 0.15)',
+        },
       }}
     >
-      <Typography variant="h5" gutterBottom sx={{ color: '#1A1A40', fontWeight: 500, mb: 3 }}>
+      <Typography variant="h5" gutterBottom sx={{ color: '#1A1A40', fontWeight: 600, mb: 3 }}>
         Preferencias
       </Typography>
       <form onSubmit={handleSubmit}>
@@ -245,16 +245,16 @@ const PreferencesForm: React.FC<PreferencesFormProps> = ({ onSave }) => {
         <Button
           type="submit"
           variant="contained"
+          fullWidth
           sx={{
             mt: 4,
-            bgcolor: '#1A1A40',
+            background: 'linear-gradient(90deg, #2666CF, #6A82FB)',
             color: '#FFFFFF',
             fontWeight: 'bold',
             '&:hover': {
-              bgcolor: '#333366',
+              background: 'linear-gradient(90deg, #6A82FB, #2666CF)',
             },
           }}
-          fullWidth
         >
           Guardar Cambios
         </Button>

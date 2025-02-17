@@ -102,6 +102,9 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, h
   const token = useAuthStore((state) => state.token);
   const [formData, setFormData] = useState<Contact>(initialFormData);
   const [errors, setErrors] = useState<Partial<Record<keyof Contact | keyof ExtraInformation, string>>>({});
+  
+  // Estado para controlar si el formulario fue autorrellenado
+  const [isAutoFilled, setIsAutoFilled] = useState(false);
 
   // Estados para el Autocomplete en el campo "Nombre"
   const [suggestions, setSuggestions] = useState<Contact[]>([]);
@@ -116,6 +119,8 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, h
       setFormData(initialFormData);
       setNombreInput('');
     }
+    // Si se abre el formulario de nuevo, se resetea el estado de autorrelleno
+    setIsAutoFilled(false);
   }, [contact, open]);
 
   // Efecto para buscar sugerencias cuando se escribe en "Nombre" (debounce de 300ms)
@@ -127,7 +132,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, h
       debounceTimerRef.current = setTimeout(() => {
         if (token) {
           // Se asume que el endpoint espera { searchTerm: string }
-          ContactService.getContactsWithFiltersV2({ searchTerm: nombreInput }, token)
+          ContactService.getContactsWithFiltersV2({ text: nombreInput }, token)
             .then((response) => {
               if (response && response.data) {
                 console.log('Sugerencias recibidas:', response.data);
@@ -154,7 +159,11 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, h
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = event.target;
     if (!name) return;
-    // Si el campo pertenece a extraInformation
+    // Si se trata del campo "nombre" y el usuario intenta editar manualmente,
+    // se deshabilita el modo autorrellenado para permitir la edición
+    if (name === 'nombre' && isAutoFilled) {
+      setIsAutoFilled(false);
+    }
     if (name.startsWith('extraInformation.')) {
       const field = name.split('.')[1];
       setFormData((prev) => ({
@@ -252,6 +261,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, h
   };
 
   // Al seleccionar una sugerencia, se completan otros campos del formulario
+  // y se bloquea la edición
   const handleSuggestionSelect = (event: any, value: Contact | null) => {
     if (value) {
       setFormData((prev) => ({
@@ -259,6 +269,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, h
         ...value,
       }));
       setNombreInput(value.nombre);
+      setIsAutoFilled(true);
     }
   };
 
@@ -312,6 +323,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, h
             {/* Campo "Nombre" con Autocomplete */}
             <Autocomplete
               freeSolo
+              disabled={isAutoFilled} // Se deshabilita si se autorrellena
               options={suggestions}
               getOptionLabel={(option) =>
                 typeof option === 'string' ? option : option.nombre
@@ -331,6 +343,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, h
                   label="Nombre"
                   margin="dense"
                   fullWidth
+                  disabled={isAutoFilled}
                   error={Boolean(errors.nombre)}
                   helperText={errors.nombre}
                 />
@@ -346,6 +359,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, h
               variant="outlined"
               value={formData.nombreComercial}
               onChange={handleInputChange}
+              disabled={isAutoFilled}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
@@ -359,6 +373,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, h
               onChange={handleInputChange}
               error={Boolean(errors.nif)}
               helperText={errors.nif}
+              disabled={isAutoFilled}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
@@ -372,6 +387,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, h
               onChange={handleInputChange}
               error={Boolean(errors.direccion)}
               helperText={errors.direccion}
+              disabled={isAutoFilled}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
@@ -385,6 +401,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, h
               onChange={handleInputChange}
               error={Boolean(errors.codigoPostal)}
               helperText={errors.codigoPostal}
+              disabled={isAutoFilled}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
@@ -396,6 +413,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, h
               variant="outlined"
               value={formData.poblacion}
               onChange={handleInputChange}
+              disabled={isAutoFilled}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
@@ -406,6 +424,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, h
                 value={formData.provincia}
                 onChange={handleSelectChange}
                 label="Provincia"
+                disabled={isAutoFilled}
               >
                 <MenuItem value="Madrid">Madrid</MenuItem>
                 <MenuItem value="Barcelona">Barcelona</MenuItem>
@@ -421,6 +440,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, h
                 value={formData.pais}
                 onChange={handleSelectChange}
                 label="País"
+                disabled={isAutoFilled}
               >
                 <MenuItem value="España">España</MenuItem>
                 <MenuItem value="Portugal">Portugal</MenuItem>
@@ -445,6 +465,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, h
               value={formData.email}
               onChange={handleInputChange}
               type="email"
+              disabled={isAutoFilled}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
@@ -457,6 +478,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, h
               value={formData.telefono}
               onChange={handleInputChange}
               type="tel"
+              disabled={isAutoFilled}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
@@ -469,6 +491,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, h
               value={formData.movil}
               onChange={handleInputChange}
               type="tel"
+              disabled={isAutoFilled}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
@@ -481,6 +504,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, h
               value={formData.sitioWeb}
               onChange={handleInputChange}
               type="url"
+              disabled={isAutoFilled}
             />
           </Grid>
         </Grid>
@@ -499,6 +523,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, h
               variant="outlined"
               value={formData.skills || ''}
               onChange={handleInputChange}
+              disabled={isAutoFilled}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
@@ -510,6 +535,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, h
               variant="outlined"
               value={formData.experience || ''}
               onChange={handleInputChange}
+              disabled={isAutoFilled}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
@@ -521,6 +547,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, h
               variant="outlined"
               value={formData.companyName || ''}
               onChange={handleInputChange}
+              disabled={isAutoFilled}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
@@ -532,6 +559,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, h
               variant="outlined"
               value={formData.companySize || ''}
               onChange={handleInputChange}
+              disabled={isAutoFilled}
             />
           </Grid>
         </Grid>
@@ -549,6 +577,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, h
                 value={formData.extraInformation?.vatType || ''}
                 onChange={handleSelectChange}
                 label="Tipo de IVA"
+                disabled={isAutoFilled}
               >
                 <MenuItem value="IVA 1">IVA 1</MenuItem>
                 <MenuItem value="IVA 2">IVA 2</MenuItem>
@@ -564,6 +593,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, h
                 value={formData.extraInformation?.language || ''}
                 onChange={handleSelectChange}
                 label="Idioma"
+                disabled={isAutoFilled}
               >
                 <MenuItem value="Español">Español</MenuItem>
                 <MenuItem value="Inglés">Inglés</MenuItem>
@@ -579,6 +609,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, h
                 value={formData.extraInformation?.currency || ''}
                 onChange={handleSelectChange}
                 label="Moneda"
+                disabled={isAutoFilled}
               >
                 <MenuItem value="EUR">EUR</MenuItem>
                 <MenuItem value="USD">USD</MenuItem>
@@ -594,6 +625,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, h
                 value={formData.extraInformation?.paymentMethod || ''}
                 onChange={handleSelectChange}
                 label="Método de Pago"
+                disabled={isAutoFilled}
               >
                 <MenuItem value="Transferencia">Transferencia</MenuItem>
                 <MenuItem value="Domiciliación Bancaria">Domiciliación Bancaria</MenuItem>
@@ -611,6 +643,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, h
               value={formData.extraInformation?.paymentDay || ''}
               onChange={handleInputChange}
               type="number"
+              disabled={isAutoFilled}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
@@ -623,6 +656,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, h
               value={formData.extraInformation?.paymentExpirationDays || ''}
               onChange={handleInputChange}
               type="number"
+              disabled={isAutoFilled}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
@@ -635,6 +669,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, h
               value={formData.extraInformation?.paymentExpirationDay || ''}
               onChange={handleInputChange}
               type="number"
+              disabled={isAutoFilled}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
@@ -646,6 +681,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, h
               variant="outlined"
               value={formData.extraInformation?.rate || ''}
               onChange={handleInputChange}
+              disabled={isAutoFilled}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
@@ -658,6 +694,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, h
               value={formData.extraInformation?.discount || ''}
               onChange={handleInputChange}
               type="number"
+              disabled={isAutoFilled}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
@@ -669,6 +706,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, h
               variant="outlined"
               value={formData.extraInformation?.swift || ''}
               onChange={handleInputChange}
+              disabled={isAutoFilled}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
@@ -680,6 +718,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, h
               variant="outlined"
               value={formData.extraInformation?.iban || ''}
               onChange={handleInputChange}
+              disabled={isAutoFilled}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
@@ -691,6 +730,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, h
               variant="outlined"
               value={formData.extraInformation?.internalReference || ''}
               onChange={handleInputChange}
+              disabled={isAutoFilled}
             />
           </Grid>
         </Grid>
@@ -708,6 +748,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, h
                 value={address.direccion}
                 onChange={(e) => handleShippingChange(index, e)}
                 fullWidth
+                disabled={isAutoFilled}
               />
             </Grid>
             <Grid item xs={12} sm={6}>
@@ -717,6 +758,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, h
                 value={address.poblacion}
                 onChange={(e) => handleShippingChange(index, e)}
                 fullWidth
+                disabled={isAutoFilled}
               />
             </Grid>
             <Grid item xs={12} sm={6}>
@@ -726,6 +768,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, h
                 value={address.codigoPostal}
                 onChange={(e) => handleShippingChange(index, e)}
                 fullWidth
+                disabled={isAutoFilled}
               />
             </Grid>
             <Grid item xs={12} sm={6}>
@@ -736,6 +779,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, h
                   value={address.provincia}
                   onChange={(e) => handleShippingChange(index, e)}
                   label="Provincia"
+                  disabled={isAutoFilled}
                 >
                   <MenuItem value="Madrid">Madrid</MenuItem>
                   <MenuItem value="Barcelona">Barcelona</MenuItem>
@@ -750,6 +794,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, h
                   value={address.pais}
                   onChange={(e) => handleShippingChange(index, e)}
                   label="País"
+                  disabled={isAutoFilled}
                 >
                   <MenuItem value="España">España</MenuItem>
                   <MenuItem value="Portugal">Portugal</MenuItem>
@@ -760,11 +805,11 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, h
               <IconButton
                 color="secondary"
                 onClick={() => removeShippingAddress(index)}
-                disabled={formData.extraInformation?.shippingAddress.length === 1}
+                disabled={formData.extraInformation?.shippingAddress.length === 1 || isAutoFilled}
               >
                 <RemoveIcon />
               </IconButton>
-              <IconButton color="primary" onClick={addShippingAddress}>
+              <IconButton color="primary" onClick={addShippingAddress} disabled={isAutoFilled}>
                 <AddIcon />
               </IconButton>
             </Grid>

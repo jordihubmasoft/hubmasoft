@@ -1,5 +1,4 @@
 // src/modules/auth/components/Signout.tsx
-
 import React, { useState } from 'react';
 import {
   Box,
@@ -42,7 +41,10 @@ interface NewAccountFormData {
 
 // Esquema de validación utilizando Yup
 const schema = yup.object().shape({
-  email: yup.string().email('Debe ser un correo electrónico válido').required('El correo es obligatorio'),
+  email: yup
+    .string()
+    .email('Debe ser un correo electrónico válido')
+    .required('El correo es obligatorio'),
   phone: yup
     .string()
     .matches(/^\d+$/, 'El teléfono solo debe contener números')
@@ -140,8 +142,7 @@ const Signout: React.FC = () => {
 
   // Función para manejar el cambio de cuenta
   const handleChangeAccount = (account: Account) => {
-    // Aquí deberías implementar la lógica para cambiar la cuenta actual
-    // Por ejemplo, actualizar el contexto de autenticación
+    // Aquí se implementaría la lógica para cambiar la cuenta actual
     setSnackbar({
       open: true,
       message: `Cuenta cambiada a ${account.email}`,
@@ -155,14 +156,12 @@ const Signout: React.FC = () => {
     event?: React.SyntheticEvent | Event,
     reason?: string
   ) => {
-    if (reason === 'clickaway') {
-      return;
-    }
+    if (reason === 'clickaway') return;
     setSnackbar({ ...snackbar, open: false });
   };
 
   return (
-    <Box>
+    <Box sx={{ mt: 4, px: { xs: 2, sm: 4, md: 6 }, bgcolor: '#F3F4F6' }}>
       {/* Botón para añadir/cambiar cuenta */}
       <Button
         variant="outlined"
@@ -196,14 +195,13 @@ const Signout: React.FC = () => {
           horizontal: 'left',
         }}
       >
-        {/* Listado de cuentas sincronizadas */}
         {accounts.map((account) => (
           <MenuItem
             key={account.id}
             onClick={() => handleChangeAccount(account)}
             sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}
           >
-            <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
+            <Typography variant="body1" sx={{ fontWeight: 'bold', color: '#1A1A40' }}>
               {account.email}
             </Typography>
             <Typography variant="body2" sx={{ color: '#555' }}>
@@ -214,9 +212,8 @@ const Signout: React.FC = () => {
 
         <Divider />
 
-        {/* Opción para añadir una nueva cuenta */}
         <MenuItem onClick={handleOpenDialog} sx={{ display: 'flex', alignItems: 'center' }}>
-          <AddIcon sx={{ marginRight: 1 }} />
+          <AddIcon sx={{ mr: 1 }} />
           <ListItemText primary="Añadir Cuenta" />
         </MenuItem>
       </Menu>
@@ -226,7 +223,6 @@ const Signout: React.FC = () => {
         <DialogTitle sx={{ bgcolor: '#1A1A40', color: '#FFFFFF' }}>Añadir Nueva Cuenta</DialogTitle>
         <DialogContent>
           <Box component="form" onSubmit={handleSubmit(onSubmit)} sx={{ mt: 2 }}>
-            {/* Campo de correo electrónico */}
             <Controller
               name="email"
               control={control}
@@ -243,8 +239,6 @@ const Signout: React.FC = () => {
                 />
               )}
             />
-
-            {/* Campo de teléfono */}
             <Controller
               name="phone"
               control={control}
@@ -263,7 +257,7 @@ const Signout: React.FC = () => {
             />
           </Box>
         </DialogContent>
-        <DialogActions sx={{ paddingX: 3, paddingBottom: 3 }}>
+        <DialogActions sx={{ px: 3, pb: 3 }}>
           <Button onClick={handleCloseDialog} sx={{ color: '#555', textTransform: 'none' }}>
             Cancelar
           </Button>

@@ -1,5 +1,4 @@
 // src/modules/auth/components/Polls.tsx
-
 import React, { useState } from 'react';
 import {
   Box,
@@ -29,7 +28,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 
-// Definición de la interfaz para una propuesta de mejora
+// Interfaz para una propuesta de mejora
 interface ImprovementProposal {
   id: number;
   description: string;
@@ -37,12 +36,12 @@ interface ImprovementProposal {
   isFavorite: boolean;
 }
 
-// Definición de la interfaz para los datos del formulario de nueva propuesta
+// Interfaz para los datos del formulario de nueva propuesta
 interface NewProposalFormData {
   description: string;
 }
 
-// Esquema de validación utilizando Yup
+// Esquema de validación con Yup
 const schema = yup.object().shape({
   description: yup
     .string()
@@ -51,7 +50,7 @@ const schema = yup.object().shape({
 });
 
 const Polls: React.FC = () => {
-  // Estado para almacenar las propuestas de mejora
+  // Estado de propuestas de mejora
   const [proposals, setProposals] = useState<ImprovementProposal[]>([
     {
       id: 1,
@@ -73,10 +72,8 @@ const Polls: React.FC = () => {
     },
   ]);
 
-  // Estado para controlar la apertura del diálogo
+  // Estado para controlar el diálogo y notificaciones
   const [openDialog, setOpenDialog] = useState<boolean>(false);
-
-  // Estado para manejar las notificaciones (Snackbar)
   const [snackbar, setSnackbar] = useState<{
     open: boolean;
     message: string;
@@ -100,7 +97,7 @@ const Polls: React.FC = () => {
     },
   });
 
-  // Función para manejar el envío del formulario de nueva propuesta
+  // Función para agregar nueva propuesta
   const onSubmit = (data: NewProposalFormData) => {
     const newProposal: ImprovementProposal = {
       id: proposals.length + 1,
@@ -118,14 +115,14 @@ const Polls: React.FC = () => {
     setOpenDialog(false);
   };
 
-  // Función para manejar la votación de una propuesta
+  // Función para votar
   const handleVote = (id: number) => {
     setProposals((prevProposals) =>
       prevProposals
         .map((proposal) =>
           proposal.id === id ? { ...proposal, votes: proposal.votes + 1 } : proposal
         )
-        .sort((a, b) => b.votes - a.votes) // Reordenar después de votar
+        .sort((a, b) => b.votes - a.votes)
     );
     setSnackbar({
       open: true,
@@ -134,7 +131,7 @@ const Polls: React.FC = () => {
     });
   };
 
-  // Función para manejar el marcado como favorito
+  // Función para marcar/desmarcar favorito
   const handleFavorite = (id: number) => {
     setProposals((prevProposals) =>
       prevProposals.map((proposal) =>
@@ -153,14 +150,12 @@ const Polls: React.FC = () => {
     event?: React.SyntheticEvent | Event,
     reason?: string
   ) => {
-    if (reason === 'clickaway') {
-      return;
-    }
+    if (reason === 'clickaway') return;
     setSnackbar({ ...snackbar, open: false });
   };
 
   return (
-    <Box sx={{ bgcolor: '#F5F5F5', minHeight: '100vh', padding: 4 }}>
+    <Box sx={{ bgcolor: '#F3F4F6', minHeight: '100vh', p: 4 }}>
       <Typography variant="h4" gutterBottom sx={{ color: '#1A1A40', fontWeight: '700' }}>
         Votar Mejoras
       </Typography>
@@ -173,15 +168,15 @@ const Polls: React.FC = () => {
           startIcon={<AddIcon />}
           onClick={() => setOpenDialog(true)}
           sx={{
-            bgcolor: '#1A1A40',
+            background: 'linear-gradient(90deg, #2666CF, #6A82FB)',
             color: '#FFFFFF',
             fontWeight: 'bold',
             '&:hover': {
-              bgcolor: '#333366',
+              background: 'linear-gradient(90deg, #6A82FB, #2666CF)',
             },
             borderRadius: 2,
-            paddingX: 3,
-            paddingY: 1.5,
+            px: 3,
+            py: 1.5,
             textTransform: 'none',
           }}
         >
@@ -195,14 +190,17 @@ const Polls: React.FC = () => {
           <Grid item xs={12} md={6} key={proposal.id}>
             <Card
               sx={{
-                cursor: 'pointer',
+                borderRadius: 2,
+                boxShadow: '0 3px 10px rgba(0, 0, 0, 0.1)',
+                transition: 'transform 0.3s, box-shadow 0.3s',
                 '&:hover': {
-                  boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.1)',
+                  transform: 'translateY(-3px)',
+                  boxShadow: '0 6px 15px rgba(0, 0, 0, 0.15)',
                 },
               }}
             >
               <CardContent>
-                <Typography variant="h6" sx={{ color: '#1A1A40', fontWeight: '600' }}>
+                <Typography variant="h6" sx={{ color: '#1A1A40', fontWeight: 600 }}>
                   {proposal.description}
                 </Typography>
               </CardContent>
@@ -210,27 +208,32 @@ const Polls: React.FC = () => {
                 sx={{
                   display: 'flex',
                   justifyContent: 'space-between',
-                  paddingX: 2,
-                  paddingBottom: 2,
+                  px: 2,
+                  pb: 2,
                 }}
               >
-                {/* Contador de votos y botón de votar */}
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <IconButton
                     aria-label="votar"
                     onClick={() => handleVote(proposal.id)}
                     color="primary"
+                    sx={{
+                      bgcolor: 'rgba(38, 102, 207, 0.1)',
+                      '&:hover': { bgcolor: 'rgba(38, 102, 207, 0.2)' },
+                    }}
                   >
                     <ThumbUpIcon />
                   </IconButton>
-                  <Typography variant="body2">{proposal.votes}</Typography>
+                  <Typography variant="body2" sx={{ color: '#1A1A40' }}>
+                    {proposal.votes}
+                  </Typography>
                 </Box>
-
-                {/* Ícono de favorito */}
                 <IconButton
                   aria-label="favorito"
                   onClick={() => handleFavorite(proposal.id)}
-                  color={proposal.isFavorite ? 'error' : 'default'}
+                  sx={{
+                    color: proposal.isFavorite ? '#E53935' : '#555',
+                  }}
                 >
                   {proposal.isFavorite ? <FavoriteIcon /> : <FavoriteBorderIcon />}
                 </IconButton>
@@ -242,7 +245,9 @@ const Polls: React.FC = () => {
 
       {/* Diálogo para agregar nueva propuesta */}
       <Dialog open={openDialog} onClose={() => setOpenDialog(false)} fullWidth maxWidth="sm">
-        <DialogTitle sx={{ bgcolor: '#1A1A40', color: '#FFFFFF' }}>Agregar Nueva Mejora</DialogTitle>
+        <DialogTitle sx={{ bgcolor: '#1A1A40', color: '#FFFFFF' }}>
+          Agregar Nueva Mejora
+        </DialogTitle>
         <DialogContent>
           <Box component="form" onSubmit={handleSubmit(onSubmit)} sx={{ mt: 2 }}>
             <Controller
@@ -265,7 +270,7 @@ const Polls: React.FC = () => {
             />
           </Box>
         </DialogContent>
-        <DialogActions sx={{ paddingX: 3, paddingBottom: 3 }}>
+        <DialogActions sx={{ px: 3, pb: 3 }}>
           <Button onClick={() => setOpenDialog(false)} sx={{ color: '#555', textTransform: 'none' }}>
             Cancelar
           </Button>
@@ -273,11 +278,11 @@ const Polls: React.FC = () => {
             onClick={handleSubmit(onSubmit)}
             variant="contained"
             sx={{
-              bgcolor: '#1A1A40',
+              background: 'linear-gradient(90deg, #2666CF, #6A82FB)',
               color: '#FFFFFF',
               fontWeight: 'bold',
               '&:hover': {
-                bgcolor: '#333366',
+                background: 'linear-gradient(90deg, #6A82FB, #2666CF)',
               },
               textTransform: 'none',
             }}

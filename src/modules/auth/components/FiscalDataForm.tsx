@@ -1,4 +1,3 @@
-// src/modules/auth/components/FiscalDataForm.tsx
 import React, { useState } from 'react';
 import { Card, Typography, Grid, TextField, MenuItem, Button } from '@mui/material';
 
@@ -34,10 +33,6 @@ const FiscalDataForm: React.FC<FiscalDataFormProps> = ({ onSave }) => {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  const handleSelectChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
-  };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSave(formData);
@@ -46,14 +41,19 @@ const FiscalDataForm: React.FC<FiscalDataFormProps> = ({ onSave }) => {
   return (
     <Card
       sx={{
-        borderRadius: 5,
-        boxShadow: '0px 10px 30px rgba(0,0,0,0.15)',
+        borderRadius: 2,
+        boxShadow: '0 3px 10px rgba(0, 0, 0, 0.1)',
         bgcolor: '#FFFFFF',
         p: 3,
         mb: 4,
+        transition: '0.3s',
+        '&:hover': {
+          transform: 'translateY(-5px)',
+          boxShadow: '0 6px 15px rgba(0, 0, 0, 0.15)',
+        },
       }}
     >
-      <Typography variant="h5" gutterBottom sx={{ color: '#1A1A40', fontWeight: '500', mb: 3 }}>
+      <Typography variant="h5" gutterBottom sx={{ color: '#1A1A40', fontWeight: '600', mb: 3 }}>
         Datos Fiscales
       </Typography>
       <form onSubmit={handleSubmit}>
@@ -67,6 +67,7 @@ const FiscalDataForm: React.FC<FiscalDataFormProps> = ({ onSave }) => {
               value={formData.companyName}
               onChange={handleChange}
               required
+              sx={{ bgcolor: '#F3F4F6', borderRadius: 1 }}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
@@ -78,6 +79,7 @@ const FiscalDataForm: React.FC<FiscalDataFormProps> = ({ onSave }) => {
               value={formData.nif}
               onChange={handleChange}
               required
+              sx={{ bgcolor: '#F3F4F6', borderRadius: 1 }}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
@@ -88,6 +90,7 @@ const FiscalDataForm: React.FC<FiscalDataFormProps> = ({ onSave }) => {
               name="commercialName"
               value={formData.commercialName}
               onChange={handleChange}
+              sx={{ bgcolor: '#F3F4F6', borderRadius: 1 }}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
@@ -98,6 +101,7 @@ const FiscalDataForm: React.FC<FiscalDataFormProps> = ({ onSave }) => {
               name="vatIdentifier"
               value={formData.vatIdentifier}
               onChange={handleChange}
+              sx={{ bgcolor: '#F3F4F6', borderRadius: 1 }}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
@@ -109,6 +113,7 @@ const FiscalDataForm: React.FC<FiscalDataFormProps> = ({ onSave }) => {
               value={formData.address}
               onChange={handleChange}
               required
+              sx={{ bgcolor: '#F3F4F6', borderRadius: 1 }}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
@@ -120,6 +125,7 @@ const FiscalDataForm: React.FC<FiscalDataFormProps> = ({ onSave }) => {
               value={formData.postalCode}
               onChange={handleChange}
               required
+              sx={{ bgcolor: '#F3F4F6', borderRadius: 1 }}
             />
           </Grid>
           <Grid item xs={12} sm={4}>
@@ -130,8 +136,9 @@ const FiscalDataForm: React.FC<FiscalDataFormProps> = ({ onSave }) => {
               name="province"
               select
               value={formData.province}
-              onChange={handleSelectChange}
+              onChange={handleChange}
               required
+              sx={{ bgcolor: '#F3F4F6', borderRadius: 1 }}
             >
               <MenuItem value="">Seleccionar provincia</MenuItem>
               {provinces.map((option) => (
@@ -149,8 +156,9 @@ const FiscalDataForm: React.FC<FiscalDataFormProps> = ({ onSave }) => {
               name="country"
               select
               value={formData.country}
-              onChange={handleSelectChange}
+              onChange={handleChange}
               required
+              sx={{ bgcolor: '#F3F4F6', borderRadius: 1 }}
             >
               <MenuItem value="">Seleccionar país</MenuItem>
               {countries.map((option) => (
@@ -166,12 +174,12 @@ const FiscalDataForm: React.FC<FiscalDataFormProps> = ({ onSave }) => {
           variant="contained"
           sx={{
             mt: 4,
+            py: 1.5,
             bgcolor: '#1A1A40',
             color: '#FFFFFF',
             fontWeight: 'bold',
-            '&:hover': {
-              bgcolor: '#333366',
-            },
+            textTransform: 'none',
+            '&:hover': { bgcolor: '#333366' },
           }}
         >
           Guardar Cambios
