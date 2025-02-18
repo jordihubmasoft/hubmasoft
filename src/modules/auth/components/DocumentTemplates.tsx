@@ -38,7 +38,6 @@ interface Template {
 }
 
 // Definimos el esquema de validación con Yup
-// Usamos .defined() en cada campo para asegurar que el tipo generado tenga todas las propiedades definidas
 const schema = yup
   .object({
     name: yup.string().required('El nombre de la plantilla es obligatorio').defined(),
@@ -148,7 +147,11 @@ const DocumentTemplates: React.FC = () => {
   const handleDelete = (id: number) => {
     if (window.confirm('¿Estás seguro de eliminar esta plantilla?')) {
       setTemplates(templates.filter((template) => template.id !== id));
-      setSnackbar({ open: true, message: 'Plantilla eliminada exitosamente', severity: 'success' });
+      setSnackbar({
+        open: true,
+        message: 'Plantilla eliminada exitosamente',
+        severity: 'success',
+      });
     }
   };
 
@@ -161,7 +164,11 @@ const DocumentTemplates: React.FC = () => {
             : template
         )
       );
-      setSnackbar({ open: true, message: 'Plantilla actualizada exitosamente', severity: 'success' });
+      setSnackbar({
+        open: true,
+        message: 'Plantilla actualizada exitosamente',
+        severity: 'success',
+      });
     } else {
       const newTemplate: Template = {
         id: Date.now(),
@@ -169,7 +176,11 @@ const DocumentTemplates: React.FC = () => {
         preview: data.preview || '/templates/default.png',
       };
       setTemplates([...templates, newTemplate]);
-      setSnackbar({ open: true, message: 'Plantilla añadida exitosamente', severity: 'success' });
+      setSnackbar({
+        open: true,
+        message: 'Plantilla añadida exitosamente',
+        severity: 'success',
+      });
     }
     handleClose();
   };
@@ -191,99 +202,120 @@ const DocumentTemplates: React.FC = () => {
   };
 
   return (
-    <Box sx={{ mt: 4, px: { xs: 2, sm: 4, md: 6 }, bgcolor: '#f9f9fc', minHeight: '100vh' }}>
-      <Typography
-        variant="h4"
-        gutterBottom
-        sx={{ color: '#1A1A40', fontWeight: '700', fontFamily: 'Roboto, sans-serif' }}
+    <Box sx={{ mt: 4, px: { xs: 2, sm: 4, md: 6 }, mb: 4 }}>
+      {/* Envolvemos todo en una Card para unificar estilos */}
+      <Card
+        sx={{
+          bgcolor: '#FFFFFF',
+          p: 4,
+          borderRadius: 3,
+          boxShadow: '0 3px 10px rgba(0, 0, 0, 0.1)',
+          transition: 'transform 0.3s, box-shadow 0.3s',
+          '&:hover': {
+            transform: 'translateY(-3px)',
+            boxShadow: '0 6px 15px rgba(0, 0, 0, 0.15)',
+          },
+        }}
       >
-        Plantillas de Documento
-      </Typography>
-      <Divider sx={{ mb: 3 }} />
-
-      {/* Botón para añadir nueva plantilla */}
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
-        <Button
-          variant="contained"
-          startIcon={<Add />}
-          onClick={() => handleOpen()}
-          sx={{
-            bgcolor: '#1A1A40',
-            color: '#FFFFFF',
-            fontWeight: 'bold',
-            '&:hover': { bgcolor: '#333366' },
-            borderRadius: 2,
-            px: 3,
-            py: 1.5,
-            textTransform: 'none',
-          }}
+        <Typography
+          variant="h5"
+          gutterBottom
+          sx={{ color: '#1A1A40', fontWeight: 600, mb: 3 }}
         >
-          Añadir Nueva Plantilla
-        </Button>
-      </Box>
+          Plantillas de Documento
+        </Typography>
 
-      {/* Lista de plantillas */}
-      <Grid container spacing={4}>
-        {templates.map((template) => (
-          <Grid item xs={12} sm={6} md={4} key={template.id}>
-            <Card
-              sx={{
-                p: 2,
-                borderRadius: 2,
-                boxShadow: '0 3px 10px rgba(0, 0, 0, 0.1)',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-                '&:hover': {
-                  transform: 'translateY(-3px)',
-                  boxShadow: '0 6px 15px rgba(0, 0, 0, 0.15)',
-                },
-              }}
-            >
-              <Box
-                component="img"
-                src={template.preview}
-                alt={template.name}
+        <Divider sx={{ mb: 3 }} />
+
+        {/* Botón para añadir nueva plantilla */}
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+          <Button
+                    variant="contained"
+                    startIcon={<Add />}
+                    onClick={() => handleOpen()}
+                    sx={{
+                      background: 'linear-gradient(90deg, #2666CF, #6A82FB)',
+                      color: '#FFFFFF',
+                      fontWeight: 'bold',
+                      '&:hover': {
+                        background: 'linear-gradient(90deg, #6A82FB, #2666CF)',
+                      },
+                      borderRadius: 2,
+                      px: 3,
+                      py: 1.5,
+                      textTransform: 'none',
+                    }}
+                  >
+                    Añadir Nueva Plantilla
+                  </Button>
+        </Box>
+
+        {/* Lista de plantillas */}
+        <Grid container spacing={4}>
+          {templates.map((template) => (
+            <Grid item xs={12} sm={6} md={4} key={template.id}>
+              <Card
                 sx={{
-                  width: '100%',
-                  height: '180px',
-                  objectFit: 'cover',
-                  borderRadius: 1,
-                  mb: 2,
+                  p: 3,
+                  bgcolor: '#FFFFFF',
+                  borderRadius: 3,
+                  boxShadow: '0 3px 10px rgba(0, 0, 0, 0.1)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  transition: 'transform 0.3s, box-shadow 0.3s',
+                  '&:hover': {
+                    transform: 'translateY(-3px)',
+                    boxShadow: '0 6px 15px rgba(0, 0, 0, 0.15)',
+                  },
                 }}
-              />
-              <Typography variant="h6" sx={{ mb: 1.5, textAlign: 'center', color: '#1A1A40', fontWeight: '600' }}>
-                {template.name}
-              </Typography>
-              <Box sx={{ display: 'flex', gap: 1 }}>
-                <IconButton
-                  color="primary"
-                  onClick={() => handleOpen(template)}
-                  aria-label="editar plantilla"
+              >
+                <Box
+                  component="img"
+                  src={template.preview}
+                  alt={template.name}
                   sx={{
-                    bgcolor: '#e3f2fd',
-                    '&:hover': { bgcolor: '#bbdefb' },
+                    width: '100%',
+                    height: '180px',
+                    objectFit: 'cover',
+                    borderRadius: 1,
+                    mb: 2,
                   }}
+                />
+                <Typography
+                  variant="h6"
+                  sx={{ mb: 1.5, textAlign: 'center', color: '#1A1A40', fontWeight: 600 }}
                 >
-                  <Edit />
-                </IconButton>
-                <IconButton
-                  color="error"
-                  onClick={() => handleDelete(template.id)}
-                  aria-label="eliminar plantilla"
-                  sx={{
-                    bgcolor: '#ffebee',
-                    '&:hover': { bgcolor: '#ffcdd2' },
-                  }}
-                >
-                  <Delete />
-                </IconButton>
-              </Box>
-            </Card>
-          </Grid>
-        ))}
-      </Grid>
+                  {template.name}
+                </Typography>
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                  <IconButton
+                    onClick={() => handleOpen(template)}
+                    aria-label="editar plantilla"
+                    sx={{
+                      bgcolor: '#e3f2fd',
+                      '&:hover': { bgcolor: '#bbdefb' },
+                    }}
+                  >
+                    <Edit />
+                  </IconButton>
+                  <IconButton
+                    color="error"
+                    onClick={() => handleDelete(template.id)}
+                    aria-label="eliminar plantilla"
+                    sx={{
+                      bgcolor: '#ffebee',
+                      '&:hover': { bgcolor: '#ffcdd2' },
+                    }}
+                  >
+                    <Delete />
+                  </IconButton>
+                </Box>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      </Card>
 
       {/* Diálogo para añadir/editar plantilla */}
       <Dialog open={open} onClose={handleClose} fullWidth maxWidth="md">
@@ -314,7 +346,7 @@ const DocumentTemplates: React.FC = () => {
             {/* Información Básica */}
             <Accordion defaultExpanded>
               <AccordionSummary expandIcon={<ExpandMore />}>
-                <Typography sx={{ fontWeight: '600' }}>Información Básica</Typography>
+                <Typography sx={{ fontWeight: 600 }}>Información Básica</Typography>
               </AccordionSummary>
               <AccordionDetails>
                 <Grid container spacing={2}>
@@ -330,12 +362,17 @@ const DocumentTemplates: React.FC = () => {
                           variant="outlined"
                           error={!!errors.name}
                           helperText={errors.name?.message}
+                          sx={{ bgcolor: '#F3F4F6', borderRadius: 1 }}
                         />
                       )}
                     />
                   </Grid>
                   <Grid item xs={12}>
-                    <FormControl fullWidth variant="outlined">
+                    <FormControl
+                      fullWidth
+                      variant="outlined"
+                      sx={{ bgcolor: '#F3F4F6', borderRadius: 1 }}
+                    >
                       <InputLabel>Seleccionar plantilla predefinida</InputLabel>
                       <Controller
                         name="preview"
@@ -361,7 +398,7 @@ const DocumentTemplates: React.FC = () => {
             {/* Diseño y Formato */}
             <Accordion>
               <AccordionSummary expandIcon={<ExpandMore />}>
-                <Typography sx={{ fontWeight: '600' }}>Diseño y Formato</Typography>
+                <Typography sx={{ fontWeight: 600 }}>Diseño y Formato</Typography>
               </AccordionSummary>
               <AccordionDetails>
                 <Grid container spacing={2}>
@@ -378,6 +415,7 @@ const DocumentTemplates: React.FC = () => {
                           variant="outlined"
                           error={!!errors.documentFormat}
                           helperText={errors.documentFormat?.message}
+                          sx={{ bgcolor: '#F3F4F6', borderRadius: 1 }}
                         >
                           <MenuItem value="PDF">PDF</MenuItem>
                           <MenuItem value="Print">Imprimir</MenuItem>
@@ -396,6 +434,7 @@ const DocumentTemplates: React.FC = () => {
                         bgcolor: '#f5f5f5',
                         color: '#1A1A40',
                         '&:hover': { bgcolor: '#e0e0e0' },
+                        borderRadius: 1,
                       }}
                     >
                       Cargar Logo
@@ -415,6 +454,7 @@ const DocumentTemplates: React.FC = () => {
                           variant="outlined"
                           error={!!errors.logoSize}
                           helperText={errors.logoSize?.message}
+                          sx={{ bgcolor: '#F3F4F6', borderRadius: 1 }}
                         >
                           <MenuItem value="S">S</MenuItem>
                           <MenuItem value="M">M</MenuItem>
@@ -430,7 +470,7 @@ const DocumentTemplates: React.FC = () => {
             {/* Personalización */}
             <Accordion>
               <AccordionSummary expandIcon={<ExpandMore />}>
-                <Typography sx={{ fontWeight: '600' }}>Personalización</Typography>
+                <Typography sx={{ fontWeight: 600 }}>Personalización</Typography>
               </AccordionSummary>
               <AccordionDetails>
                 <Grid container spacing={2}>
@@ -447,6 +487,7 @@ const DocumentTemplates: React.FC = () => {
                           variant="outlined"
                           error={!!errors.font}
                           helperText={errors.font?.message}
+                          sx={{ bgcolor: '#F3F4F6', borderRadius: 1 }}
                         >
                           <MenuItem value="Arial">Arial</MenuItem>
                           <MenuItem value="Times New Roman">Times New Roman</MenuItem>
@@ -470,6 +511,7 @@ const DocumentTemplates: React.FC = () => {
                           InputLabelProps={{ shrink: true }}
                           error={!!errors.textColor}
                           helperText={errors.textColor?.message}
+                          sx={{ bgcolor: '#F3F4F6', borderRadius: 1 }}
                         />
                       )}
                     />
@@ -487,6 +529,7 @@ const DocumentTemplates: React.FC = () => {
                           variant="outlined"
                           error={!!errors.orientation}
                           helperText={errors.orientation?.message}
+                          sx={{ bgcolor: '#F3F4F6', borderRadius: 1 }}
                         >
                           <MenuItem value="vertical">Vertical</MenuItem>
                           <MenuItem value="horizontal">Horizontal</MenuItem>
@@ -505,6 +548,7 @@ const DocumentTemplates: React.FC = () => {
                           label="Marca de agua"
                           variant="outlined"
                           placeholder='Ejemplo: "Factura", "Presupuesto", etc.'
+                          sx={{ bgcolor: '#F3F4F6', borderRadius: 1 }}
                         />
                       )}
                     />
@@ -515,7 +559,7 @@ const DocumentTemplates: React.FC = () => {
             {/* Campos */}
             <Accordion>
               <AccordionSummary expandIcon={<ExpandMore />}>
-                <Typography sx={{ fontWeight: '600' }}>Campos</Typography>
+                <Typography sx={{ fontWeight: 600 }}>Campos</Typography>
               </AccordionSummary>
               <AccordionDetails>
                 <Grid container spacing={2}>
@@ -532,6 +576,7 @@ const DocumentTemplates: React.FC = () => {
                           multiline
                           rows={3}
                           placeholder="Añade información personalizada para el pie de página."
+                          sx={{ bgcolor: '#F3F4F6', borderRadius: 1 }}
                         />
                       )}
                     />
@@ -549,6 +594,7 @@ const DocumentTemplates: React.FC = () => {
                           multiline
                           rows={3}
                           placeholder="Configura el orden y la visibilidad de las columnas en la tabla."
+                          sx={{ bgcolor: '#F3F4F6', borderRadius: 1 }}
                         />
                       )}
                     />
@@ -559,7 +605,7 @@ const DocumentTemplates: React.FC = () => {
             {/* Opciones Avanzadas */}
             <Accordion>
               <AccordionSummary expandIcon={<ExpandMore />}>
-                <Typography sx={{ fontWeight: '600' }}>Opciones Avanzadas</Typography>
+                <Typography sx={{ fontWeight: 600 }}>Opciones Avanzadas</Typography>
               </AccordionSummary>
               <AccordionDetails>
                 <Grid container spacing={2}>
@@ -576,6 +622,7 @@ const DocumentTemplates: React.FC = () => {
                           multiline
                           rows={3}
                           placeholder="Configura los elementos visibles en la tabla del documento (nombre, descripción, precio, unidades, etc.)."
+                          sx={{ bgcolor: '#F3F4F6', borderRadius: 1 }}
                         />
                       )}
                     />
@@ -593,6 +640,7 @@ const DocumentTemplates: React.FC = () => {
                           multiline
                           rows={3}
                           placeholder="Añade texto legal o condiciones en los documentos."
+                          sx={{ bgcolor: '#F3F4F6', borderRadius: 1 }}
                         />
                       )}
                     />
@@ -610,6 +658,7 @@ const DocumentTemplates: React.FC = () => {
                           multiline
                           rows={3}
                           placeholder="Personaliza qué datos de la empresa aparecerán (nombre, dirección, teléfono, etc.)."
+                          sx={{ bgcolor: '#F3F4F6', borderRadius: 1 }}
                         />
                       )}
                     />
@@ -627,6 +676,7 @@ const DocumentTemplates: React.FC = () => {
                           multiline
                           rows={3}
                           placeholder="Configura qué detalles de los productos se mostrarán (SKU, descripción, impuestos, etc.)."
+                          sx={{ bgcolor: '#F3F4F6', borderRadius: 1 }}
                         />
                       )}
                     />
@@ -642,6 +692,7 @@ const DocumentTemplates: React.FC = () => {
                           label="Nombre del documento"
                           variant="outlined"
                           placeholder='Ejemplo: "Factura", "Presupuesto"'
+                          sx={{ bgcolor: '#F3F4F6', borderRadius: 1 }}
                         />
                       )}
                     />
@@ -659,6 +710,7 @@ const DocumentTemplates: React.FC = () => {
                           multiline
                           rows={3}
                           placeholder="Personaliza la plantilla utilizando código HTML."
+                          sx={{ bgcolor: '#F3F4F6', borderRadius: 1 }}
                         />
                       )}
                     />

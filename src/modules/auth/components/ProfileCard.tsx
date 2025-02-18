@@ -1,16 +1,23 @@
-// src/modules/auth/components/ProfileCard.tsx
 import React from 'react';
 import { Card, Avatar, Typography, Button } from '@mui/material';
-import { useAuth } from '../context/AuthContext';
+// import { useAuth } from '../context/AuthContext'; // Ya no será necesario si mostramos datos del form
 
 interface ProfileCardProps {
   onChangePhoto: () => void;
   onDeleteAccount: () => void;
+  /**
+   * Nombre y correo provenientes del formulario (o del contacto en BD)
+   */
+  name: string;
+  email: string;
 }
 
-const ProfileCard: React.FC<ProfileCardProps> = ({ onChangePhoto, onDeleteAccount }) => {
-  const { user } = useAuth();
-
+const ProfileCard: React.FC<ProfileCardProps> = ({
+  onChangePhoto,
+  onDeleteAccount,
+  name,
+  email,
+}) => {
   return (
     <Card
       sx={{
@@ -35,16 +42,18 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ onChangePhoto, onDeleteAccoun
           mx: 'auto',
           mb: 2,
         }}
-        src={user?.avatarUrl || undefined}
       >
-        {user?.name?.charAt(0).toUpperCase() || 'NA'}
+        {name?.charAt(0)?.toUpperCase() || 'NA'}
       </Avatar>
+
       <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: '#1A1A40' }}>
-        {user?.name || "Nombre no disponible"}
+        {name || 'Nombre no disponible'}
       </Typography>
+
       <Typography variant="body2" sx={{ mb: 3, color: '#555' }}>
-        {user?.email || "Email no disponible"}
+        {email || 'Email no disponible'}
       </Typography>
+
       <Button
         variant="outlined"
         fullWidth

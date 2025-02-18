@@ -18,16 +18,17 @@ interface FiscalDataFormProps {
 const provinces = [
   { value: 'provincia1', label: 'Provincia 1' },
   { value: 'provincia2', label: 'Provincia 2' },
-  // Añade más provincias según sea necesario
+  // Otras provincias…
 ];
 
 const countries = [
   { value: 'es', label: 'España' },
   { value: 'fr', label: 'Francia' },
-  // Añade más países según sea necesario
+  // Otros países…
 ];
 
 const FiscalDataForm: React.FC<FiscalDataFormProps> = ({ onSave, initialData }) => {
+  // Inicializamos el estado usando las props que provienen del API
   const [formData, setFormData] = useState({
     companyName: initialData?.companyName || '',
     nif: initialData?.nif || '',
@@ -35,11 +36,12 @@ const FiscalDataForm: React.FC<FiscalDataFormProps> = ({ onSave, initialData }) 
     vatIdentifier: initialData?.vatIdentifier || '',
     address: initialData?.address || '',
     postalCode: initialData?.postalCode || '',
+    city: initialData?.postalCode || '',
     province: initialData?.province || '',
     country: initialData?.country || '',
   });
 
-  // Actualizamos el estado si cambia initialData
+  // Cada vez que cambie initialData, actualizamos el estado local
   useEffect(() => {
     setFormData({
       companyName: initialData?.companyName || '',
@@ -49,6 +51,7 @@ const FiscalDataForm: React.FC<FiscalDataFormProps> = ({ onSave, initialData }) 
       address: initialData?.address || '',
       postalCode: initialData?.postalCode || '',
       province: initialData?.province || '',
+      city: initialData?.postalCode || '',
       country: initialData?.country || '',
     });
   }, [initialData]);
@@ -192,22 +195,20 @@ const FiscalDataForm: React.FC<FiscalDataFormProps> = ({ onSave, initialData }) 
               ))}
             </TextField>
           </Grid>
+          <Grid item xs={12} sm={4}>
+          <TextField
+              fullWidth
+              label="población"
+              variant="outlined"
+              name="city"
+              value={formData.city}
+              onChange={handleChange}
+              sx={{ bgcolor: '#F3F4F6', borderRadius: 1 }}
+            />
+          </Grid>
+
         </Grid>
-        <Button
-          type="submit"
-          variant="contained"
-          sx={{
-            mt: 4,
-            py: 1.5,
-            bgcolor: '#1A1A40',
-            color: '#FFFFFF',
-            fontWeight: 'bold',
-            textTransform: 'none',
-            '&:hover': { bgcolor: '#333366' },
-          }}
-        >
-          Guardar Cambios
-        </Button>
+        
       </form>
     </Card>
   );

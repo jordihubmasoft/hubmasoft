@@ -40,6 +40,11 @@ const ContactDataForm: React.FC<ContactDataFormProps> = ({ onSave, initialData }
     onSave(formData);
   };
 
+  // Si existe información inicial (por ejemplo, el campo email), mostramos
+  // un botón de actualización; de lo contrario, uno de creación.
+  const submitLabel =
+    initialData && initialData.email ? 'Actualizar Datos de Contacto' : 'Crear Datos de Contacto';
+
   return (
     <Card
       sx={{
@@ -121,39 +126,8 @@ const ContactDataForm: React.FC<ContactDataFormProps> = ({ onSave, initialData }
               sx={{ bgcolor: '#F3F4F6', borderRadius: 1 }}
             />
           </Grid>
-          <Grid item xs={12} sm={6}>
-            <Button
-              variant="outlined"
-              sx={{
-                width: '100%',
-                height: '56px',
-                borderRadius: 1,
-                textTransform: 'none',
-                fontWeight: 'bold',
-                borderColor: '#2666CF',
-                color: '#2666CF',
-                '&:hover': { borderColor: '#1A1A40', color: '#1A1A40' },
-              }}
-            >
-              Añadir Dirección
-            </Button>
-          </Grid>
         </Grid>
-        <Box sx={{ mt: 4 }}>
-          <Button
-            type="submit"
-            variant="contained"
-            sx={{
-              bgcolor: '#2666CF',
-              color: '#FFFFFF',
-              fontWeight: 'bold',
-              textTransform: 'none',
-              '&:hover': { bgcolor: '#1A1A40' },
-            }}
-          >
-            Guardar Cambios
-          </Button>
-        </Box>
+        
       </form>
     </Card>
   );

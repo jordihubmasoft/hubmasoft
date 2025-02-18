@@ -1,6 +1,16 @@
-// src/modules/auth/pages/Profile.tsx
-import React, { useState, useEffect } from 'react';
-import { Box, Container, Typography, Divider, Grid } from '@mui/material';
+import React, { useState, useEffect, useMemo } from 'react';
+import {
+  Box,
+  Container,
+  Typography,
+  Divider,
+  Grid,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemText,
+} from '@mui/material';
+import Grow from '@mui/material/Grow';
 
 import Header from '../../../components/Header';
 import Sidebar from '../../../components/Sidebar';
@@ -26,7 +36,6 @@ import DocumentTemplates from '../components/DocumentTemplates';
 import PaymentMethodComponent from '../components/PaymentMethod';
 import Imports from '../components/Imports';
 import Polls from '../components/Polls';
-import Signout from '../components/Signout';
 import Taxes from '../components/Taxes';
 
 const Profile: React.FC = () => {
@@ -101,6 +110,52 @@ const Profile: React.FC = () => {
     ]
   });
 
+  // Sidebar derecho: estado para la sección activa
+  const [activeSection, setActiveSection] = useState("profile");
+
+  // Definición de las secciones (fijamos sus ids y labels)
+  const sections = useMemo(
+    () => [
+      { label: 'Perfil', id: 'profile' },
+      { label: 'Datos Fiscales', id: 'fiscalData' },
+      { label: 'Contacto', id: 'contactData' },
+      { label: 'Dirección de Envío', id: 'shippingAddress' },
+      { label: 'Preferencias', id: 'preferences' },
+      { label: 'Documentos', id: 'documentTemplates' },
+      { label: 'Método de Pago', id: 'paymentMethod' },
+      { label: 'Imports', id: 'imports' },
+      { label: 'Encuestas', id: 'polls' },
+      { label: 'Impuestos', id: 'taxes' },
+    ],
+    []
+  );
+
+  // Intersection Observer para detectar la sección visible
+  useEffect(() => {
+    const observerOptions = {
+      root: null,
+      rootMargin: '0px',
+      threshold: 0.6,
+    };
+
+    const observerCallback = (entries: IntersectionObserverEntry[]) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          setActiveSection(entry.target.id);
+        }
+      });
+    };
+
+    const observer = new IntersectionObserver(observerCallback, observerOptions);
+
+    sections.forEach((section) => {
+      const element = document.getElementById(section.id);
+      if (element) observer.observe(element);
+    });
+
+    return () => observer.disconnect();
+  }, [sections]);
+
   // 1. useEffect para "hidratar" y hacer checks
   useEffect(() => {
     setHydrated(true);
@@ -145,11 +200,12 @@ const Profile: React.FC = () => {
             experience: contactData.experience || "",
             companyName: contactData.companyName || "",
             companySize: contactData.companySize || "",
-            shippingAddress: contactData.extraInformation?.shippingAddress?.[0]?.direccion || "",
-            shippingCity: contactData.extraInformation?.shippingAddress?.[0]?.poblacion || "",
-            shippingProvince: contactData.extraInformation?.shippingAddress?.[0]?.provincia || "",
-            shippingPostalCode: contactData.extraInformation?.shippingAddress?.[0]?.codigoPostal || "",
-            shippingCountry: contactData.extraInformation?.shippingAddress?.[0]?.pais || "",
+            // Mapeamos los datos de shippingAddress usando las claves de la API:
+            shippingAddress: contactData.extraInformation?.shippingAddress?.[0]?.direction || "",
+            shippingCity: contactData.extraInformation?.shippingAddress?.[0]?.city || "",
+            shippingProvince: contactData.extraInformation?.shippingAddress?.[0]?.province || "",
+            shippingPostalCode: contactData.extraInformation?.shippingAddress?.[0]?.postalCode || "",
+            shippingCountry: contactData.extraInformation?.shippingAddress?.[0]?.country || "",
           }));
           setHasContact(true);
         } else {
@@ -286,6 +342,46 @@ const Profile: React.FC = () => {
     setFormData((prev) => ({ ...prev, [fieldName]: value }));
   };
 
+  // 5. Handler para guardar datos fiscales
+  const handleSaveFiscalData = async (fiscalData: any) => {
+    try {
+      // Preparamos el payload a partir de los datos fiscales
+      const payload = {
+        userId: agentId,
+        contactId: contactId,
+        companyName: fiscalData.companyName,
+        nie: fiscalData.nif,
+        commercialName: fiscalData.commercialName,
+        vatIdentification: fiscalData.vatIdentifier,
+        address: fiscalData.address,
+        postalCode: fiscalData.postalCode,
+        province: fiscalData.province,
+        country: fiscalData.country,
+      };
+
+      // Llamamos al servicio para actualizar datos fiscales (asegúrate de tener este método en tu ContactService)
+      const response = await ContactService.updateContact(payload, token);
+      if (response?.data) {
+        console.log("Datos fiscales actualizados:", response.data);
+        // Actualizamos el estado con la respuesta, si es necesario
+        setFormData(prev => ({
+          ...prev,
+          companyName: response.data.companyName || prev.companyName,
+          nie: response.data.nif || prev.nie,
+          commercialName: response.data.nombreComercial || prev.commercialName,
+          vatIdentification: response.data.identificacionVAT || prev.vatIdentification,
+          address: response.data.direccion || prev.address,
+          postalCode: response.data.codigoPostal || prev.postalCode,
+          province: response.data.provincia || prev.province,
+          country: response.data.pais || prev.country,
+        }));
+      }
+    } catch (error) {
+      console.error("Error al actualizar datos fiscales:", error);
+      alert("Hubo un problema al guardar los datos fiscales.");
+    }
+  };
+
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
   // Render condicional si no se ha hidratado
@@ -311,7 +407,7 @@ const Profile: React.FC = () => {
       <Header isMenuOpen={isMenuOpen} />
 
       <Box sx={{ display: 'flex', flexGrow: 1, mt: '64px' }}>
-        {/* Sidebar */}
+        {/* Sidebar Izquierdo */}
         <Box
           component="nav"
           sx={{
@@ -348,42 +444,174 @@ const Profile: React.FC = () => {
               Configuración de Perfil
             </Typography>
 
-            <Grid container spacing={3}>
-              {/* Card con la foto y otros datos */}
-              <Grid item xs={12} md={4}>
-                <ProfileCard
-                  onChangePhoto={() => alert('Cambiar foto')}
-                  onDeleteAccount={() => logout()}
-                />
+            {/* Sección Perfil */}
+            <Box id="profile">
+              <Grid container spacing={3}>
+                <Grid item xs={12} md={4}>
+                  <ProfileCard
+                    name={formData.name}
+                    email={formData.email}
+                    onChangePhoto={() => alert('Cambiar foto')}
+                    onDeleteAccount={() => logout()}
+                  />
+                </Grid>
+                <Grid item xs={12} md={8}>
+                  <EditProfileForm
+                    loading={loading}
+                    hasContact={hasContact}
+                    formData={formData}
+                    onChange={handleChangeProfileForm}
+                    onSubmit={handleSubmitProfile}
+                    onChangePassword={() => alert('Cambiar Contraseña')}
+                  />
+                </Grid>
               </Grid>
+            </Box>
 
-              {/* Formulario para editar perfil */}
-              <Grid item xs={12} md={8}>
-                <EditProfileForm
-                  loading={loading}
-                  hasContact={hasContact}
-                  formData={formData}
-                  onChange={handleChangeProfileForm}
-                  onSubmit={handleSubmitProfile}
-                  onChangePassword={() => alert('Cambiar Contraseña')}
-                />
-              </Grid>
-            </Grid>
+            {/* Sección Datos Fiscales */}
+            <Box id="fiscalData" sx={{ mt: 4 }}>
+              <FiscalDataForm
+                initialData={{
+                  companyName: formData.companyName,
+                  nif: formData.nie,
+                  commercialName: formData.commercialName,
+                  vatIdentifier: formData.vatIdentification,
+                  address: formData.address,
+                  postalCode: formData.postalCode,
+                  province: formData.province,
+                  country: formData.country,
+                }}
+                onSave={handleSaveFiscalData}
+              />
+            </Box>
 
-            {/* Otros formularios */}
-            <FiscalDataForm /* ... */ onSave={() => {}}  />
-            <ContactDataForm /* ... */ onSave={() => {}}  />
-            <ShippingAddressForm /* ... */ onAddAddress={() => {}} />
+            {/* Sección Contacto */}
+            <Box id="contactData" sx={{ mt: 4 }}>
+              <ContactDataForm onSave={() => {}} />
+            </Box>
+
+            {/* Sección Dirección de Envío */}
+            <Box id="shippingAddress" sx={{ mt: 4 }}>
+              <ShippingAddressForm
+                initialData={{
+                  direccion: formData.shippingAddress,
+                  poblacion: formData.shippingCity,
+                  provincia: formData.shippingProvince,
+                  codigoPostal: formData.shippingPostalCode,
+                  pais: formData.shippingCountry,
+                }}
+                onAddAddress={(updatedShipping) => {
+                  setFormData((prev) => ({
+                    ...prev,
+                    shippingAddress: updatedShipping.direccion,
+                    shippingCity: updatedShipping.poblacion,
+                    shippingProvince: updatedShipping.provincia,
+                    shippingPostalCode: updatedShipping.codigoPostal,
+                    shippingCountry: updatedShipping.pais,
+                  }));
+                }}
+              />
+            </Box>
+
             <Divider sx={{ my: 4 }} />
 
-            <PreferencesForm /* ... */ onSave={() => {}} />
-            <DocumentTemplates /* ... */ />
-            <PaymentMethodComponent /* ... */ />
-            <Imports /* ... */ />
-            <Polls /* ... */ />
-            <Signout /* ... */ />
-            <Taxes /* ... */ />
+            {/* Sección Preferencias */}
+            <Box id="preferences" sx={{ mt: 4 }}>
+              <PreferencesForm onSave={() => {}} />
+            </Box>
+
+            {/* Sección Documentos */}
+            <Box id="documentTemplates" sx={{ mt: 4 }}>
+              <DocumentTemplates />
+            </Box>
+
+            {/* Sección Método de Pago */}
+            <Box id="paymentMethod" sx={{ mt: 4 }}>
+              <PaymentMethodComponent />
+            </Box>
+
+            {/* Sección Imports */}
+            <Box id="imports" sx={{ mt: 4 }}>
+              <Imports />
+            </Box>
+
+            {/* Sección Encuestas */}
+            <Box id="polls" sx={{ mt: 4 }}>
+              <Polls />
+            </Box>
+
+            {/* Sección Impuestos */}
+            <Box id="taxes" sx={{ mt: 4 }}>
+              <Taxes />
+            </Box>
           </Container>
+
+          {/* Sidebar Derecho Mejorado */}
+          <Box
+            sx={{
+              position: 'fixed',
+              top: '120px',
+              right: '20px',
+              width: '220px',
+              bgcolor: 'background.paper',
+              borderRadius: 2,
+              boxShadow: 3,
+              p: 2,
+              display: { xs: 'none', md: 'block' },
+              zIndex: 1100,
+              transition: 'all 0.3s ease-in-out',
+            }}
+          >
+            <List>
+              {sections.map((section, index) => (
+                <Grow
+                  in={true}
+                  style={{ transformOrigin: '0 0 0' }}
+                  timeout={500 + index * 150}
+                  key={section.id}
+                >
+                  <ListItem disablePadding>
+                    <ListItemButton
+                      onClick={() =>
+                        document.getElementById(section.id)?.scrollIntoView({
+                          behavior: 'smooth',
+                        })
+                      }
+                      selected={activeSection === section.id}
+                      sx={{
+                        transition: 'transform 0.3s, background-color 0.3s',
+                        '&:hover': {
+                          transform: 'scale(1.03)',
+                          backgroundColor: 'rgba(25, 118, 210, 0.1)',
+                        },
+                        borderRadius: 1,
+                        position: 'relative',
+                        ...(activeSection === section.id && {
+                          '&::before': {
+                            content: '""',
+                            position: 'absolute',
+                            left: -8,
+                            top: '50%',
+                            transform: 'translateY(-50%)',
+                            width: 4,
+                            height: '60%',
+                            bgcolor: 'primary.main',
+                            borderRadius: 2,
+                          },
+                        }),
+                        '&.Mui-selected': {
+                          backgroundColor: 'primary.main',
+                          color: 'primary.contrastText',
+                        },
+                      }}
+                    >
+                      <ListItemText primary={section.label} />
+                    </ListItemButton>
+                  </ListItem>
+                </Grow>
+              ))}
+            </List>
+          </Box>
         </Box>
       </Box>
     </Box>
