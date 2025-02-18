@@ -91,7 +91,6 @@ const Polls: React.FC = () => {
     reset,
     formState: { errors },
   } = useForm<NewProposalFormData>({
-    
     defaultValues: {
       description: '',
     },
@@ -155,99 +154,105 @@ const Polls: React.FC = () => {
   };
 
   return (
-    <Box sx={{ bgcolor: '#F3F4F6', minHeight: '100vh', p: 4 }}>
-      <Typography variant="h4" gutterBottom sx={{ color: '#1A1A40', fontWeight: '700' }}>
-        Votar Mejoras
-      </Typography>
-      <Divider sx={{ mb: 3 }} />
+    <Box sx={{ mt: 4, px: { xs: 2, sm: 4, md: 6 }, mb: 4 }}>
+      {/* Card principal para unificar estilo */}
+      <Card
+        sx={{
+          bgcolor: '#FFFFFF',
+          p: 4,
+          borderRadius: 3,
+          boxShadow: '0 3px 10px rgba(0, 0, 0, 0.1)',
+          transition: 'transform 0.3s, box-shadow 0.3s',
+          '&:hover': {
+            transform: 'translateY(-3px)',
+            boxShadow: '0 6px 15px rgba(0, 0, 0, 0.15)',
+          },
+        }}
+      >
+        <Typography variant="h5" gutterBottom sx={{ color: '#1A1A40', fontWeight: 700, mb: 3 }}>
+          Votar Mejoras
+        </Typography>
+        <Divider sx={{ mb: 3 }} />
 
-      {/* Botón para agregar nueva propuesta */}
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 3 }}>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={() => setOpenDialog(true)}
-          sx={{
-            background: 'linear-gradient(90deg, #2666CF, #6A82FB)',
-            color: '#FFFFFF',
-            fontWeight: 'bold',
-            '&:hover': {
-              background: 'linear-gradient(90deg, #6A82FB, #2666CF)',
-            },
-            borderRadius: 2,
-            px: 3,
-            py: 1.5,
-            textTransform: 'none',
-          }}
-        >
-          Agregar Mejora
-        </Button>
-      </Box>
+        {/* Botón para agregar nueva propuesta */}
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 3 }}>
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={() => setOpenDialog(true)}
+            sx={{
+              background: 'linear-gradient(90deg, #2666CF, #6A82FB)',
+              color: '#FFFFFF',
+              fontWeight: 'bold',
+              '&:hover': {
+                background: 'linear-gradient(90deg, #6A82FB, #2666CF)',
+              },
+              borderRadius: 2,
+              px: 3,
+              py: 1.5,
+              textTransform: 'none',
+            }}
+          >
+            Agregar Mejora
+          </Button>
+        </Box>
 
-      {/* Listado de propuestas */}
-      <Grid container spacing={3}>
-        {proposals.map((proposal) => (
-          <Grid item xs={12} md={6} key={proposal.id}>
-            <Card
-              sx={{
-                borderRadius: 2,
-                boxShadow: '0 3px 10px rgba(0, 0, 0, 0.1)',
-                transition: 'transform 0.3s, box-shadow 0.3s',
-                '&:hover': {
-                  transform: 'translateY(-3px)',
-                  boxShadow: '0 6px 15px rgba(0, 0, 0, 0.15)',
-                },
-              }}
-            >
-              <CardContent>
-                <Typography variant="h6" sx={{ color: '#1A1A40', fontWeight: 600 }}>
-                  {proposal.description}
-                </Typography>
-              </CardContent>
-              <CardActions
+        {/* Listado de propuestas */}
+        <Grid container spacing={3}>
+          {proposals.map((proposal) => (
+            <Grid item xs={12} md={6} key={proposal.id}>
+              <Card
                 sx={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  px: 2,
-                  pb: 2,
+                  borderRadius: 2,
+                  boxShadow: '0 3px 10px rgba(0, 0, 0, 0.1)',
+                  transition: 'transform 0.3s, box-shadow 0.3s',
+                  '&:hover': {
+                    transform: 'translateY(-3px)',
+                    boxShadow: '0 6px 15px rgba(0, 0, 0, 0.15)',
+                  },
                 }}
               >
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <CardContent>
+                  <Typography variant="h6" sx={{ color: '#1A1A40', fontWeight: 600 }}>
+                    {proposal.description}
+                  </Typography>
+                </CardContent>
+                <CardActions sx={{ display: 'flex', justifyContent: 'space-between', px: 2, pb: 2 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <IconButton
+                      aria-label="votar"
+                      onClick={() => handleVote(proposal.id)}
+                      color="primary"
+                      sx={{
+                        bgcolor: 'rgba(38, 102, 207, 0.1)',
+                        '&:hover': { bgcolor: 'rgba(38, 102, 207, 0.2)' },
+                      }}
+                    >
+                      <ThumbUpIcon />
+                    </IconButton>
+                    <Typography variant="body2" sx={{ color: '#1A1A40' }}>
+                      {proposal.votes}
+                    </Typography>
+                  </Box>
                   <IconButton
-                    aria-label="votar"
-                    onClick={() => handleVote(proposal.id)}
-                    color="primary"
+                    aria-label="favorito"
+                    onClick={() => handleFavorite(proposal.id)}
                     sx={{
-                      bgcolor: 'rgba(38, 102, 207, 0.1)',
-                      '&:hover': { bgcolor: 'rgba(38, 102, 207, 0.2)' },
+                      color: proposal.isFavorite ? '#E53935' : '#555',
                     }}
                   >
-                    <ThumbUpIcon />
+                    {proposal.isFavorite ? <FavoriteIcon /> : <FavoriteBorderIcon />}
                   </IconButton>
-                  <Typography variant="body2" sx={{ color: '#1A1A40' }}>
-                    {proposal.votes}
-                  </Typography>
-                </Box>
-                <IconButton
-                  aria-label="favorito"
-                  onClick={() => handleFavorite(proposal.id)}
-                  sx={{
-                    color: proposal.isFavorite ? '#E53935' : '#555',
-                  }}
-                >
-                  {proposal.isFavorite ? <FavoriteIcon /> : <FavoriteBorderIcon />}
-                </IconButton>
-              </CardActions>
-            </Card>
-          </Grid>
-        ))}
-      </Grid>
+                </CardActions>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      </Card>
 
       {/* Diálogo para agregar nueva propuesta */}
       <Dialog open={openDialog} onClose={() => setOpenDialog(false)} fullWidth maxWidth="sm">
-        <DialogTitle sx={{ bgcolor: '#1A1A40', color: '#FFFFFF' }}>
-          Agregar Nueva Mejora
-        </DialogTitle>
+        <DialogTitle sx={{ bgcolor: '#1A1A40', color: '#FFFFFF' }}>Agregar Nueva Mejora</DialogTitle>
         <DialogContent>
           <Box component="form" onSubmit={handleSubmit(onSubmit)} sx={{ mt: 2 }}>
             <Controller

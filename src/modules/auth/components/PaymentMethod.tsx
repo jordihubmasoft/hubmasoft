@@ -60,7 +60,7 @@ const schema = yup.object().shape({
     .required('Los días de vencimiento son obligatorios'),
 });
 
-// Opciones de bancos predefinidos (puedes ampliar esta lista según sea necesario)
+// Opciones de bancos predefinidos
 const banks = [
   { value: 'Banco1', label: 'Banco 1' },
   { value: 'Banco2', label: 'Banco 2' },
@@ -191,119 +191,134 @@ const PaymentMethodComponent: React.FC = () => {
   };
 
   return (
-    <Box sx={{ mt: 4, px: { xs: 2, sm: 4, md: 6 }, bgcolor: '#F3F4F6', minHeight: '100vh' }}>
-      <Typography variant="h4" gutterBottom sx={{ color: '#1A1A40', fontWeight: '700' }}>
-        Métodos de Pago
-      </Typography>
-      <Divider sx={{ mb: 3 }} />
+    <Box sx={{ mt: 4, px: { xs: 2, sm: 4, md: 6 }, mb: 4 }}>
+      {/* Card principal para unificar estilo */}
+      <Card
+        sx={{
+          bgcolor: '#FFFFFF',
+          p: 4,
+          borderRadius: 3,
+          boxShadow: '0 3px 10px rgba(0, 0, 0, 0.1)',
+          transition: 'transform 0.3s, box-shadow 0.3s',
+          '&:hover': {
+            transform: 'translateY(-3px)',
+            boxShadow: '0 6px 15px rgba(0, 0, 0, 0.15)',
+          },
+        }}
+      >
+        <Typography variant="h5" gutterBottom sx={{ color: '#1A1A40', fontWeight: 600, mb: 3 }}>
+          Métodos de Pago
+        </Typography>
+        <Divider sx={{ mb: 3 }} />
 
-      {/* Botón para añadir nuevo método de pago */}
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
-        <Button
-          variant="contained"
-          startIcon={<Add />}
-          onClick={() => handleOpen()}
-          sx={{
-            background: 'linear-gradient(90deg, #2666CF, #6A82FB)',
-            color: '#FFFFFF',
-            fontWeight: 'bold',
-            '&:hover': {
-              background: 'linear-gradient(90deg, #6A82FB, #2666CF)',
-            },
-            borderRadius: 2,
-            px: 3,
-            py: 1.5,
-            textTransform: 'none',
-          }}
-        >
-          Añadir Método de Pago
-        </Button>
-      </Box>
+        {/* Botón para añadir nuevo método de pago */}
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+          <Button
+            variant="contained"
+            startIcon={<Add />}
+            onClick={() => handleOpen()}
+            sx={{
+              background: 'linear-gradient(90deg, #2666CF, #6A82FB)',
+              color: '#FFFFFF',
+              fontWeight: 'bold',
+              '&:hover': {
+                background: 'linear-gradient(90deg, #6A82FB, #2666CF)',
+              },
+              borderRadius: 2,
+              px: 3,
+              py: 1.5,
+              textTransform: 'none',
+            }}
+          >
+            Añadir Método de Pago
+          </Button>
+        </Box>
 
-      {/* Lista de métodos de pago */}
-      <Grid container spacing={4}>
-        {paymentMethods.length === 0 ? (
-          <Grid item xs={12}>
-            <Typography variant="body1" sx={{ color: '#555' }}>
-              No hay métodos de pago configurados. Haz clic en "Añadir Método de Pago" para comenzar.
-            </Typography>
-          </Grid>
-        ) : (
-          paymentMethods.map((method) => (
-            <Grid item xs={12} sm={6} md={4} key={method.id}>
-              <Card
-                sx={{
-                  p: 2,
-                  borderRadius: 3,
-                  boxShadow: '0 3px 10px rgba(0, 0, 0, 0.1)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'space-between',
-                  height: '100%',
-                  transition: 'transform 0.2s, box-shadow 0.2s',
-                  '&:hover': {
-                    transform: 'scale(1.02)',
-                    boxShadow: '0 6px 18px rgba(0, 0, 0, 0.15)',
-                  },
-                }}
-              >
-                <Box>
-                  <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#1A1A40' }}>
-                    {method.internalName}
-                  </Typography>
-                  <Typography variant="body2" sx={{ color: '#555', mt: 1 }}>
-                    {method.displayText}
-                  </Typography>
-                  {method.bank && (
-                    <Typography variant="body2" sx={{ color: '#555', mt: 1 }}>
-                      Banco: {method.bank}
-                    </Typography>
-                  )}
-                  <Typography variant="body2" sx={{ color: '#555', mt: 1 }}>
-                    Vencimiento: {method.dueDays} días
-                  </Typography>
-                  {method.includeIBAN && (
-                    <Typography variant="body2" sx={{ color: '#555', mt: 1 }}>
-                      Incluir IBAN del cliente
-                    </Typography>
-                  )}
-                </Box>
-                <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
-                  <IconButton
-                    color="primary"
-                    onClick={() => handleOpen(method)}
-                    aria-label="editar método de pago"
-                    sx={{
-                      bgcolor: '#e3f2fd',
-                      '&:hover': {
-                        bgcolor: '#bbdefb',
-                      },
-                      mr: 1,
-                    }}
-                  >
-                    <Edit />
-                  </IconButton>
-                  <IconButton
-                    color="error"
-                    onClick={() => handleDelete(method.id)}
-                    aria-label="eliminar método de pago"
-                    sx={{
-                      bgcolor: '#ffebee',
-                      '&:hover': {
-                        bgcolor: '#ffcdd2',
-                      },
-                    }}
-                  >
-                    <Delete />
-                  </IconButton>
-                </Box>
-              </Card>
+        {/* Lista de métodos de pago */}
+        <Grid container spacing={4}>
+          {paymentMethods.length === 0 ? (
+            <Grid item xs={12}>
+              <Typography variant="body1" sx={{ color: '#555' }}>
+                No hay métodos de pago configurados. Haz clic en "Añadir Método de Pago" para comenzar.
+              </Typography>
             </Grid>
-          ))
-        )}
-      </Grid>
+          ) : (
+            paymentMethods.map((method) => (
+              <Grid item xs={12} sm={6} md={4} key={method.id}>
+                <Card
+                  sx={{
+                    p: 3,
+                    bgcolor: '#FFFFFF',
+                    borderRadius: 3,
+                    boxShadow: '0 3px 10px rgba(0, 0, 0, 0.1)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                    height: '100%',
+                    transition: 'transform 0.3s, box-shadow 0.3s',
+                    '&:hover': {
+                      transform: 'translateY(-3px)',
+                      boxShadow: '0 6px 15px rgba(0, 0, 0, 0.15)',
+                    },
+                  }}
+                >
+                  <Box>
+                    <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#1A1A40' }}>
+                      {method.internalName}
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: '#555', mt: 1 }}>
+                      {method.displayText}
+                    </Typography>
+                    {method.bank && (
+                      <Typography variant="body2" sx={{ color: '#555', mt: 1 }}>
+                        Banco: {method.bank}
+                      </Typography>
+                    )}
+                    <Typography variant="body2" sx={{ color: '#555', mt: 1 }}>
+                      Vencimiento: {method.dueDays} días
+                    </Typography>
+                    {method.includeIBAN && (
+                      <Typography variant="body2" sx={{ color: '#555', mt: 1 }}>
+                        Incluir IBAN del cliente
+                      </Typography>
+                    )}
+                  </Box>
+                  <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
+                    <IconButton
+                      onClick={() => handleOpen(method)}
+                      aria-label="editar método de pago"
+                      sx={{
+                        bgcolor: '#e3f2fd',
+                        '&:hover': {
+                          bgcolor: '#bbdefb',
+                        },
+                        mr: 1,
+                      }}
+                    >
+                      <Edit />
+                    </IconButton>
+                    <IconButton
+                      color="error"
+                      onClick={() => handleDelete(method.id)}
+                      aria-label="eliminar método de pago"
+                      sx={{
+                        bgcolor: '#ffebee',
+                        '&:hover': {
+                          bgcolor: '#ffcdd2',
+                        },
+                      }}
+                    >
+                      <Delete />
+                    </IconButton>
+                  </Box>
+                </Card>
+              </Grid>
+            ))
+          )}
+        </Grid>
+      </Card>
 
-      {/* Dialog para añadir/editar método de pago */}
+      {/* Diálogo para añadir/editar método de pago */}
       <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
         <DialogTitle sx={{ bgcolor: '#1A1A40', color: '#FFFFFF' }}>
           {editingMethod ? 'Editar Método de Pago' : 'Añadir Método de Pago'}
@@ -325,6 +340,7 @@ const PaymentMethodComponent: React.FC = () => {
                       error={!!errors.internalName}
                       helperText={errors.internalName?.message}
                       required
+                      sx={{ bgcolor: '#F3F4F6', borderRadius: 1 }}
                     />
                   )}
                 />
@@ -346,6 +362,7 @@ const PaymentMethodComponent: React.FC = () => {
                       required
                       multiline
                       rows={3}
+                      sx={{ bgcolor: '#F3F4F6', borderRadius: 1 }}
                     />
                   )}
                 />
@@ -353,7 +370,7 @@ const PaymentMethodComponent: React.FC = () => {
 
               {/* Banco */}
               <Grid item xs={12}>
-                <FormControl fullWidth variant="outlined">
+                <FormControl fullWidth variant="outlined" sx={{ bgcolor: '#F3F4F6', borderRadius: 1 }}>
                   <InputLabel>Banco</InputLabel>
                   <Controller
                     name="bank"
@@ -404,6 +421,7 @@ const PaymentMethodComponent: React.FC = () => {
                       helperText={errors.dueDays?.message}
                       required
                       inputProps={{ min: 1 }}
+                      sx={{ bgcolor: '#F3F4F6', borderRadius: 1 }}
                     />
                   )}
                 />
@@ -419,12 +437,10 @@ const PaymentMethodComponent: React.FC = () => {
             onClick={handleSubmit(onSubmit)}
             variant="contained"
             sx={{
-              background: 'linear-gradient(90deg, #2666CF, #6A82FB)',
+              bgcolor: '#1A1A40',
               color: '#FFFFFF',
               fontWeight: 'bold',
-              '&:hover': {
-                background: 'linear-gradient(90deg, #6A82FB, #2666CF)',
-              },
+              '&:hover': { bgcolor: '#333366' },
               textTransform: 'none',
             }}
           >

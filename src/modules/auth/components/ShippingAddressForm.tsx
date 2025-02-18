@@ -1,45 +1,84 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Typography, Grid, TextField, MenuItem, Button, Box } from '@mui/material';
+import useAuthStore from '../../../store/useAuthStore';
+import ContactService from '../../../services/ContactService';
+import { ShippingAddress } from '../../../types/Contact';
 
-const provinces = [
+const provincias = [
   { value: 'provincia1', label: 'Provincia 1' },
   { value: 'provincia2', label: 'Provincia 2' },
-  // Añade más provincias según sea necesario
+  // Otras provincias…
 ];
 
-const countries = [
+const paises = [
   { value: 'es', label: 'España' },
   { value: 'fr', label: 'Francia' },
-  // Añade más países según sea necesario
+  // Otros países…
 ];
 
 interface ShippingAddressFormProps {
-  onAddAddress: (data: any) => void;
-  initialData?: {
-    address: string;
-    city: string;
-    province: string;
-    postalCode: string;
-    country: string;
-  };
+  /**
+   * Callback opcional para notificar al padre cuando se guarde la dirección.
+   */
+  onAddAddress?: (data: ShippingAddress) => void;
+  /**
+   * Datos iniciales (si ya se han cargado previamente) con la estructura de ShippingAddress.
+   */
+  initialData?: ShippingAddress;
 }
 
 const ShippingAddressForm: React.FC<ShippingAddressFormProps> = ({ onAddAddress, initialData }) => {
-  const [formData, setFormData] = useState({
-    address: initialData?.address || '',
-    city: initialData?.city || '',
-    province: initialData?.province || '',
-    postalCode: initialData?.postalCode || '',
-    country: initialData?.country || '',
-  });
+  const { token, contactId, agentId } = useAuthStore();
 
+  const [formData, setFormData] = useState<ShippingAddress>({
+    direccion: initialData?.direccion || '',
+    poblacion: initialData?.poblacion || '',
+    provincia: initialData?.provincia || '',
+    codigoPostal: initialData?.codigoPostal || '',
+    pais: initialData?.pais || '',
+  });
+  const [loading, setLoading] = useState(false);
+  const [hasShippingAddress, setHasShippingAddress] = useState(false);
+
+  // 1. GET: Al montar el componente se consulta el contacto para obtener la dirección de envío
+  useEffect(() => {
+    const fetchShippingAddress = async () => {
+      if (!contactId || !token) return;
+      setLoading(true);
+      try {
+        const response = await ContactService.getContactById(contactId, token);
+        if (response?.data?.length > 0) {
+          const contactData = response.data[0];
+          const shipping = contactData.extraInformation?.shippingAddress?.[0];
+          if (shipping) {
+            setFormData({
+              direccion: shipping.direccion || '',
+              poblacion: shipping.poblacion || '',
+              provincia: shipping.provincia || '',
+              codigoPostal: shipping.codigoPostal || '',
+              pais: shipping.pais || '',
+            });
+            setHasShippingAddress(true);
+          }
+        }
+      } catch (error) {
+        console.error("Error al obtener la dirección de envío:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchShippingAddress();
+  }, [contactId, token]);
+
+  // 2. Actualizamos el estado si llegan nuevos datos desde las props
   useEffect(() => {
     setFormData({
-      address: initialData?.address || '',
-      city: initialData?.city || '',
-      province: initialData?.province || '',
-      postalCode: initialData?.postalCode || '',
-      country: initialData?.country || '',
+      direccion: initialData?.direccion || '',
+      poblacion: initialData?.poblacion || '',
+      provincia: initialData?.provincia || '',
+      codigoPostal: initialData?.codigoPostal || '',
+      pais: initialData?.pais || '',
     });
   }, [initialData]);
 
@@ -47,14 +86,70 @@ const ShippingAddressForm: React.FC<ShippingAddressFormProps> = ({ onAddAddress,
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  const handleSelectChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+  // 3. PUT/POST: Al enviar el formulario se arma el payload con la información dentro de extraInformation.shippingAddress
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!token || !agentId) {
+      console.error('No hay token o agentId, no se puede guardar.');
+      return;
+    }
+    setLoading(true);
+    try {
+      const payload: any = {
+        userId: agentId,
+        contactId: contactId,
+        extraInformation: {
+          shippingAddress: [
+            {
+              direccion: formData.direccion,
+              poblacion: formData.poblacion,
+              provincia: formData.provincia,
+              codigoPostal: formData.codigoPostal,
+              pais: formData.pais,
+            },
+          ],
+        },
+      };
+
+      let response;
+      if (hasShippingAddress) {
+        // Actualizamos la dirección existente (PUT)
+        response = await ContactService.updateContact(payload, token);
+        console.log('Dirección de envío actualizada:', response);
+      } else {
+        // Creamos la dirección de envío (POST) eliminando contactId del payload
+        const { contactId, ...createPayload } = payload;
+        response = await ContactService.createContact(createPayload, token);
+        console.log('Dirección de envío creada:', response);
+        setHasShippingAddress(true);
+      }
+
+      if (response?.data) {
+        const updatedShipping = response.data.extraInformation?.shippingAddress?.[0];
+        if (updatedShipping) {
+          setFormData({
+            direccion: updatedShipping.direccion || formData.direccion,
+            poblacion: updatedShipping.poblacion || formData.poblacion,
+            provincia: updatedShipping.provincia || formData.provincia,
+            codigoPostal: updatedShipping.codigoPostal || formData.codigoPostal,
+            pais: updatedShipping.pais || formData.pais,
+          });
+          if (onAddAddress) {
+            onAddAddress(updatedShipping);
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Error al guardar la dirección de envío:", error);
+      alert("Hubo un problema al guardar la dirección de envío.");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onAddAddress(formData);
-  };
+  const buttonLabel = hasShippingAddress
+    ? 'Añadir Dirección de Envío'
+    : 'Añadir Dirección de Envío';
 
   return (
     <Card
@@ -74,6 +169,11 @@ const ShippingAddressForm: React.FC<ShippingAddressFormProps> = ({ onAddAddress,
       <Typography variant="h5" gutterBottom sx={{ color: '#1A1A40', fontWeight: 600, mb: 3 }}>
         Dirección de Envío
       </Typography>
+      {loading && (
+        <Typography variant="body2" color="primary" sx={{ mb: 2 }}>
+          Cargando...
+        </Typography>
+      )}
       <form onSubmit={handleSubmit}>
         <Grid container spacing={2}>
           <Grid item xs={12} sm={6}>
@@ -81,21 +181,23 @@ const ShippingAddressForm: React.FC<ShippingAddressFormProps> = ({ onAddAddress,
               fullWidth
               label="Dirección"
               variant="outlined"
-              name="address"
-              value={formData.address}
+              name="direccion"
+              value={formData.direccion}
               onChange={handleChange}
               required
+              sx={{ bgcolor: '#F3F4F6', borderRadius: 1 }}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
             <TextField
               fullWidth
-              label="Ciudad"
+              label="Población"
               variant="outlined"
-              name="city"
-              value={formData.city}
+              name="poblacion"
+              value={formData.poblacion}
               onChange={handleChange}
               required
+              sx={{ bgcolor: '#F3F4F6', borderRadius: 1 }}
             />
           </Grid>
           <Grid item xs={12} sm={4}>
@@ -103,14 +205,15 @@ const ShippingAddressForm: React.FC<ShippingAddressFormProps> = ({ onAddAddress,
               fullWidth
               label="Provincia"
               variant="outlined"
-              name="province"
+              name="provincia"
               select
-              value={formData.province}
-              onChange={handleSelectChange}
+              value={formData.provincia}
+              onChange={handleChange}
               required
+              sx={{ bgcolor: '#F3F4F6', borderRadius: 1 }}
             >
               <MenuItem value="">Seleccionar provincia</MenuItem>
-              {provinces.map((option) => (
+              {provincias.map((option) => (
                 <MenuItem key={option.value} value={option.value}>
                   {option.label}
                 </MenuItem>
@@ -122,10 +225,11 @@ const ShippingAddressForm: React.FC<ShippingAddressFormProps> = ({ onAddAddress,
               fullWidth
               label="Código Postal"
               variant="outlined"
-              name="postalCode"
-              value={formData.postalCode}
+              name="codigoPostal"
+              value={formData.codigoPostal}
               onChange={handleChange}
               required
+              sx={{ bgcolor: '#F3F4F6', borderRadius: 1 }}
             />
           </Grid>
           <Grid item xs={12} sm={4}>
@@ -133,14 +237,15 @@ const ShippingAddressForm: React.FC<ShippingAddressFormProps> = ({ onAddAddress,
               fullWidth
               label="País"
               variant="outlined"
-              name="country"
+              name="pais"
               select
-              value={formData.country}
-              onChange={handleSelectChange}
+              value={formData.pais}
+              onChange={handleChange}
               required
+              sx={{ bgcolor: '#F3F4F6', borderRadius: 1 }}
             >
               <MenuItem value="">Seleccionar país</MenuItem>
-              {countries.map((option) => (
+              {paises.map((option) => (
                 <MenuItem key={option.value} value={option.value}>
                   {option.label}
                 </MenuItem>
@@ -150,9 +255,8 @@ const ShippingAddressForm: React.FC<ShippingAddressFormProps> = ({ onAddAddress,
         </Grid>
         <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 3 }}>
           <Button
-            type="button"
+            type="submit"
             variant="outlined"
-            onClick={() => onAddAddress(formData)}
             sx={{
               textTransform: 'none',
               borderColor: '#2666CF',
@@ -162,8 +266,9 @@ const ShippingAddressForm: React.FC<ShippingAddressFormProps> = ({ onAddAddress,
                 borderColor: '#6A82FB',
               },
             }}
+            disabled={loading}
           >
-            Añadir Dirección de Envío
+            {buttonLabel}
           </Button>
         </Box>
       </form>

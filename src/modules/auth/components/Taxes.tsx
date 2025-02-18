@@ -120,7 +120,6 @@ const Taxes: React.FC = () => {
     setValue,
     formState: { errors },
   } = useForm<FormData>({
-    
     defaultValues: {
       name: '',
       key: '',
@@ -231,307 +230,324 @@ const Taxes: React.FC = () => {
   };
 
   return (
-    <Box sx={{ mt: 4, px: { xs: 2, sm: 4, md: 6 }, bgcolor: '#F3F4F6', minHeight: '100vh' }}>
-      <Typography variant="h4" gutterBottom sx={{ color: '#1A1A40', fontWeight: '700' }}>
-        Gestión de Impuestos
-      </Typography>
-      <Divider sx={{ mb: 3 }} />
+    <Box sx={{ mt: 4, px: { xs: 2, sm: 4, md: 6 }, mb: 4 }}>
+      {/* Envolvemos el contenido en una Card para unificar estilos */}
+      <Card
+        sx={{
+          bgcolor: '#FFFFFF',
+          p: 4,
+          borderRadius: 3,
+          boxShadow: '0 3px 10px rgba(0, 0, 0, 0.1)',
+          transition: 'transform 0.3s, box-shadow 0.3s',
+          '&:hover': {
+            transform: 'translateY(-3px)',
+            boxShadow: '0 6px 15px rgba(0, 0, 0, 0.15)',
+          },
+        }}
+      >
+        <Typography variant="h4" gutterBottom sx={{ color: '#1A1A40', fontWeight: 700 }}>
+          Gestión de Impuestos
+        </Typography>
+        <Divider sx={{ mb: 3 }} />
 
-      {/* Botón para añadir nuevo impuesto */}
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
-        <Button
-          variant="contained"
-          startIcon={<Add />}
-          onClick={() => handleOpen()}
-          sx={{
-            background: 'linear-gradient(90deg, #2666CF, #6A82FB)',
-            color: '#FFFFFF',
-            fontWeight: 'bold',
-            '&:hover': { background: 'linear-gradient(90deg, #6A82FB, #2666CF)' },
-            borderRadius: 2,
-            px: 3,
-            py: 1.5,
-            textTransform: 'none',
-          }}
-        >
-          Añadir Impuesto
-        </Button>
-      </Box>
-
-      {/* Tabla de impuestos existentes */}
-      <TableContainer component={Paper} sx={{ mb: 4 }}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell><strong>Nombre</strong></TableCell>
-              <TableCell><strong>Valor</strong></TableCell>
-              <TableCell><strong>Ámbito</strong></TableCell>
-              <TableCell><strong>Grupo</strong></TableCell>
-              <TableCell><strong>Cuenta</strong></TableCell>
-              <TableCell align="center"><strong>Acciones</strong></TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {taxes.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={6} align="center">
-                  No hay impuestos configurados. Haz clic en "Añadir Impuesto" para comenzar.
-                </TableCell>
-              </TableRow>
-            ) : (
-              taxes.map((tax) => (
-                <TableRow key={tax.id}>
-                  <TableCell>
-                    <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: '#1A1A40' }}>
-                      {tax.name}
-                    </Typography>
-                    <Typography variant="body2" sx={{ color: '#555' }}>
-                      Clave: {tax.key}
-                    </Typography>
-                  </TableCell>
-                  <TableCell>
-                    {tax.type === 'percentage' ? `${tax.amount}%` : `$${tax.amount.toFixed(2)}`}
-                  </TableCell>
-                  <TableCell>{tax.scope}</TableCell>
-                  <TableCell>{tax.group}</TableCell>
-                  <TableCell>{tax.account}</TableCell>
-                  <TableCell align="center">
-                    <IconButton
-                      color="primary"
-                      onClick={() => handleOpen(tax)}
-                      aria-label="editar impuesto"
-                      sx={{
-                        bgcolor: '#e3f2fd',
-                        '&:hover': { bgcolor: '#bbdefb' },
-                        mr: 1,
-                      }}
-                    >
-                      <Edit />
-                    </IconButton>
-                    <IconButton
-                      color="error"
-                      onClick={() => handleDelete(tax.id)}
-                      aria-label="eliminar impuesto"
-                      sx={{
-                        bgcolor: '#ffebee',
-                        '&:hover': { bgcolor: '#ffcdd2' },
-                      }}
-                    >
-                      <Delete />
-                    </IconButton>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </TableContainer>
-
-      {/* Dialog para añadir/editar impuesto */}
-      <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
-        <DialogTitle sx={{ bgcolor: '#1A1A40', color: '#FFFFFF' }}>
-          {editingTax ? 'Editar Impuesto' : 'Añadir Impuesto'}
-        </DialogTitle>
-        <DialogContent>
-          <Box component="form" onSubmit={handleSubmit(onSubmit)} sx={{ mt: 2 }}>
-            <Grid container spacing={3}>
-              {/* Nombre */}
-              <Grid item xs={12}>
-                <Controller
-                  name="name"
-                  control={control}
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      fullWidth
-                      label="Nombre del Impuesto"
-                      variant="outlined"
-                      error={!!errors.name}
-                      helperText={errors.name?.message}
-                      required
-                    />
-                  )}
-                />
-              </Grid>
-              {/* Clave */}
-              <Grid item xs={12}>
-                <Controller
-                  name="key"
-                  control={control}
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      fullWidth
-                      label="Clave del Impuesto"
-                      variant="outlined"
-                      error={!!errors.key}
-                      helperText={errors.key?.message}
-                      required
-                    />
-                  )}
-                />
-              </Grid>
-              {/* Ámbito */}
-              <Grid item xs={12}>
-                <FormControl fullWidth variant="outlined" required>
-                  <InputLabel>Ámbito</InputLabel>
-                  <Controller
-                    name="scope"
-                    control={control}
-                    render={({ field }) => (
-                      <Select {...field} label="Ámbito" error={!!errors.scope}>
-                        {scopes.map((scope) => (
-                          <MenuItem key={scope.value} value={scope.value}>
-                            {scope.label}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    )}
-                  />
-                  {errors.scope && (
-                    <Typography variant="body2" color="error">
-                      {errors.scope.message}
-                    </Typography>
-                  )}
-                </FormControl>
-              </Grid>
-              {/* Tipo */}
-              <Grid item xs={12}>
-                <FormControl fullWidth variant="outlined" required>
-                  <InputLabel>Tipo</InputLabel>
-                  <Controller
-                    name="type"
-                    control={control}
-                    render={({ field }) => (
-                      <Select {...field} label="Tipo" error={!!errors.type}>
-                        <MenuItem value="percentage">Porcentaje</MenuItem>
-                        <MenuItem value="fixed">Valor Fijo</MenuItem>
-                      </Select>
-                    )}
-                  />
-                  {errors.type && (
-                    <Typography variant="body2" color="error">
-                      {errors.type.message}
-                    </Typography>
-                  )}
-                </FormControl>
-              </Grid>
-              {/* Importe */}
-              <Grid item xs={12}>
-                <Controller
-                  name="amount"
-                  control={control}
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      fullWidth
-                      label={field.value > 0 ? 'Porcentaje (%)' : 'Valor Fijo ($)'}
-                      variant="outlined"
-                      type="number"
-                      error={!!errors.amount}
-                      helperText={errors.amount?.message}
-                      required
-                      inputProps={{ min: 0, step: 0.01 }}
-                    />
-                  )}
-                />
-              </Grid>
-              {/* Cuenta de impuestos */}
-              <Grid item xs={12}>
-                <FormControl fullWidth variant="outlined" required>
-                  <InputLabel>Cuenta de Impuestos</InputLabel>
-                  <Controller
-                    name="account"
-                    control={control}
-                    render={({ field }) => (
-                      <Select {...field} label="Cuenta de Impuestos" error={!!errors.account}>
-                        {accounts.map((account) => (
-                          <MenuItem key={account.value} value={account.value}>
-                            {account.label}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    )}
-                  />
-                  {errors.account && (
-                    <Typography variant="body2" color="error">
-                      {errors.account.message}
-                    </Typography>
-                  )}
-                </FormControl>
-              </Grid>
-              {/* Grupo de impuestos */}
-              <Grid item xs={12}>
-                <FormControl fullWidth variant="outlined" required>
-                  <InputLabel>Grupo de Impuestos</InputLabel>
-                  <Controller
-                    name="group"
-                    control={control}
-                    render={({ field }) => (
-                      <Select {...field} label="Grupo de Impuestos" error={!!errors.group}>
-                        {taxGroups.map((group) => (
-                          <MenuItem key={group.value} value={group.value}>
-                            {group.label}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    )}
-                  />
-                  {errors.group && (
-                    <Typography variant="body2" color="error">
-                      {errors.group.message}
-                    </Typography>
-                  )}
-                </FormControl>
-              </Grid>
-              {/* Impuesto activo */}
-              <Grid item xs={12}>
-                <Controller
-                  name="isActive"
-                  control={control}
-                  render={({ field }) => (
-                    <FormControlLabel
-                      control={<Checkbox {...field} checked={field.value} />}
-                      label="Impuesto Activo"
-                    />
-                  )}
-                />
-              </Grid>
-              {/* Mostrar en documentos */}
-              <Grid item xs={12}>
-                <Controller
-                  name="showInDocuments"
-                  control={control}
-                  render={({ field }) => (
-                    <FormControlLabel
-                      control={<Checkbox {...field} checked={field.value} />}
-                      label="Mostrar este impuesto al crear documentos"
-                    />
-                  )}
-                />
-              </Grid>
-            </Grid>
-          </Box>
-        </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 3 }}>
-          <Button onClick={handleClose} sx={{ color: '#555', textTransform: 'none' }}>
-            Cancelar
-          </Button>
+        {/* Botón para añadir nuevo impuesto */}
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
           <Button
-            onClick={handleSubmit(onSubmit)}
             variant="contained"
+            startIcon={<Add />}
+            onClick={() => handleOpen()}
             sx={{
               background: 'linear-gradient(90deg, #2666CF, #6A82FB)',
               color: '#FFFFFF',
               fontWeight: 'bold',
-              '&:hover': { background: 'linear-gradient(90deg, #6A82FB, #2666CF)' },
+              '&:hover': {
+                background: 'linear-gradient(90deg, #6A82FB, #2666CF)',
+              },
+              borderRadius: 2,
+              px: 3,
+              py: 1.5,
               textTransform: 'none',
             }}
           >
-            Guardar
+            Añadir Impuesto
           </Button>
-        </DialogActions>
-      </Dialog>
+        </Box>
+
+        {/* Tabla de impuestos existentes */}
+        <TableContainer component={Paper} sx={{ mb: 4 }}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell><strong>Nombre</strong></TableCell>
+                <TableCell><strong>Valor</strong></TableCell>
+                <TableCell><strong>Ámbito</strong></TableCell>
+                <TableCell><strong>Grupo</strong></TableCell>
+                <TableCell><strong>Cuenta</strong></TableCell>
+                <TableCell align="center"><strong>Acciones</strong></TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {taxes.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} align="center">
+                    No hay impuestos configurados. Haz clic en "Añadir Impuesto" para comenzar.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                taxes.map((tax) => (
+                  <TableRow key={tax.id}>
+                    <TableCell>
+                      <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: '#1A1A40' }}>
+                        {tax.name}
+                      </Typography>
+                      <Typography variant="body2" sx={{ color: '#555' }}>
+                        Clave: {tax.key}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      {tax.type === 'percentage' ? `${tax.amount}%` : `$${tax.amount.toFixed(2)}`}
+                    </TableCell>
+                    <TableCell>{tax.scope}</TableCell>
+                    <TableCell>{tax.group}</TableCell>
+                    <TableCell>{tax.account}</TableCell>
+                    <TableCell align="center">
+                      <IconButton
+                        color="primary"
+                        onClick={() => handleOpen(tax)}
+                        aria-label="editar impuesto"
+                        sx={{
+                          bgcolor: '#e3f2fd',
+                          '&:hover': { bgcolor: '#bbdefb' },
+                          mr: 1,
+                        }}
+                      >
+                        <Edit />
+                      </IconButton>
+                      <IconButton
+                        color="error"
+                        onClick={() => handleDelete(tax.id)}
+                        aria-label="eliminar impuesto"
+                        sx={{
+                          bgcolor: '#ffebee',
+                          '&:hover': { bgcolor: '#ffcdd2' },
+                        }}
+                      >
+                        <Delete />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
+
+        {/* Diálogo para añadir/editar impuesto */}
+        <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
+          <DialogTitle sx={{ bgcolor: '#1A1A40', color: '#FFFFFF' }}>
+            {editingTax ? 'Editar Impuesto' : 'Añadir Impuesto'}
+          </DialogTitle>
+          <DialogContent>
+            <Box component="form" onSubmit={handleSubmit(onSubmit)} sx={{ mt: 2 }}>
+              <Grid container spacing={3}>
+                {/* Nombre */}
+                <Grid item xs={12}>
+                  <Controller
+                    name="name"
+                    control={control}
+                    render={({ field }) => (
+                      <TextField
+                        {...field}
+                        fullWidth
+                        label="Nombre del Impuesto"
+                        variant="outlined"
+                        error={!!errors.name}
+                        helperText={errors.name?.message}
+                        required
+                      />
+                    )}
+                  />
+                </Grid>
+                {/* Clave */}
+                <Grid item xs={12}>
+                  <Controller
+                    name="key"
+                    control={control}
+                    render={({ field }) => (
+                      <TextField
+                        {...field}
+                        fullWidth
+                        label="Clave del Impuesto"
+                        variant="outlined"
+                        error={!!errors.key}
+                        helperText={errors.key?.message}
+                        required
+                      />
+                    )}
+                  />
+                </Grid>
+                {/* Ámbito */}
+                <Grid item xs={12}>
+                  <FormControl fullWidth variant="outlined" required>
+                    <InputLabel>Ámbito</InputLabel>
+                    <Controller
+                      name="scope"
+                      control={control}
+                      render={({ field }) => (
+                        <Select {...field} label="Ámbito" error={!!errors.scope}>
+                          {scopes.map((scope) => (
+                            <MenuItem key={scope.value} value={scope.value}>
+                              {scope.label}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      )}
+                    />
+                    {errors.scope && (
+                      <Typography variant="body2" color="error">
+                        {errors.scope.message}
+                      </Typography>
+                    )}
+                  </FormControl>
+                </Grid>
+                {/* Tipo */}
+                <Grid item xs={12}>
+                  <FormControl fullWidth variant="outlined" required>
+                    <InputLabel>Tipo</InputLabel>
+                    <Controller
+                      name="type"
+                      control={control}
+                      render={({ field }) => (
+                        <Select {...field} label="Tipo" error={!!errors.type}>
+                          <MenuItem value="percentage">Porcentaje</MenuItem>
+                          <MenuItem value="fixed">Valor Fijo</MenuItem>
+                        </Select>
+                      )}
+                    />
+                    {errors.type && (
+                      <Typography variant="body2" color="error">
+                        {errors.type.message}
+                      </Typography>
+                    )}
+                  </FormControl>
+                </Grid>
+                {/* Importe */}
+                <Grid item xs={12}>
+                  <Controller
+                    name="amount"
+                    control={control}
+                    render={({ field }) => (
+                      <TextField
+                        {...field}
+                        fullWidth
+                        label={field.value > 0 ? 'Porcentaje (%)' : 'Valor Fijo ($)'}
+                        variant="outlined"
+                        type="number"
+                        error={!!errors.amount}
+                        helperText={errors.amount?.message}
+                        required
+                        inputProps={{ min: 0, step: 0.01 }}
+                      />
+                    )}
+                  />
+                </Grid>
+                {/* Cuenta de impuestos */}
+                <Grid item xs={12}>
+                  <FormControl fullWidth variant="outlined" required>
+                    <InputLabel>Cuenta de Impuestos</InputLabel>
+                    <Controller
+                      name="account"
+                      control={control}
+                      render={({ field }) => (
+                        <Select {...field} label="Cuenta de Impuestos" error={!!errors.account}>
+                          {accounts.map((account) => (
+                            <MenuItem key={account.value} value={account.value}>
+                              {account.label}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      )}
+                    />
+                    {errors.account && (
+                      <Typography variant="body2" color="error">
+                        {errors.account.message}
+                      </Typography>
+                    )}
+                  </FormControl>
+                </Grid>
+                {/* Grupo de impuestos */}
+                <Grid item xs={12}>
+                  <FormControl fullWidth variant="outlined" required>
+                    <InputLabel>Grupo de Impuestos</InputLabel>
+                    <Controller
+                      name="group"
+                      control={control}
+                      render={({ field }) => (
+                        <Select {...field} label="Grupo de Impuestos" error={!!errors.group}>
+                          {taxGroups.map((group) => (
+                            <MenuItem key={group.value} value={group.value}>
+                              {group.label}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      )}
+                    />
+                    {errors.group && (
+                      <Typography variant="body2" color="error">
+                        {errors.group.message}
+                      </Typography>
+                    )}
+                  </FormControl>
+                </Grid>
+                {/* Impuesto activo */}
+                <Grid item xs={12}>
+                  <Controller
+                    name="isActive"
+                    control={control}
+                    render={({ field }) => (
+                      <FormControlLabel
+                        control={<Checkbox {...field} checked={field.value} />}
+                        label="Impuesto Activo"
+                      />
+                    )}
+                  />
+                </Grid>
+                {/* Mostrar en documentos */}
+                <Grid item xs={12}>
+                  <Controller
+                    name="showInDocuments"
+                    control={control}
+                    render={({ field }) => (
+                      <FormControlLabel
+                        control={<Checkbox {...field} checked={field.value} />}
+                        label="Mostrar este impuesto al crear documentos"
+                      />
+                    )}
+                  />
+                </Grid>
+              </Grid>
+            </Box>
+          </DialogContent>
+          <DialogActions sx={{ px: 3, pb: 3 }}>
+            <Button onClick={handleClose} sx={{ color: '#555', textTransform: 'none' }}>
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleSubmit(onSubmit)}
+              variant="contained"
+              sx={{
+                background: 'linear-gradient(90deg, #2666CF, #6A82FB)',
+                color: '#FFFFFF',
+                fontWeight: 'bold',
+                '&:hover': { background: 'linear-gradient(90deg, #6A82FB, #2666CF)' },
+                textTransform: 'none',
+              }}
+            >
+              Guardar
+            </Button>
+          </DialogActions>
+        </Dialog>
+      </Card>
 
       {/* Snackbar para notificaciones */}
       <Snackbar

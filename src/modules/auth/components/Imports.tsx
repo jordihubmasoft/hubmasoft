@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import {
   Box,
+  Card,
   Typography,
   Grid,
   Button,
@@ -22,7 +23,7 @@ import {
   Divider,
   Paper,
 } from '@mui/material';
-import { ExpandMore, Download, Upload, Delete } from '@mui/icons-material';
+import { ExpandMore, Download, Upload } from '@mui/icons-material';
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
@@ -56,7 +57,7 @@ const schema = yup.object().shape({
     .required('El archivo es obligatorio')
     .test('fileType', 'Solo se permiten archivos Excel', (value) => {
       // Puedes agregar la validación de tipo de archivo aquí
-      return true; // Por ahora, acepta cualquier archivo
+      return true; // Por ahora, se acepta cualquier archivo
     }),
   updateExisting: yup.boolean(),
 });
@@ -317,7 +318,6 @@ const Imports: React.FC = () => {
     reset,
     formState: { errors },
   } = useForm<FormData>({
-    
     defaultValues: {
       file: undefined,
       updateExisting: false,
@@ -393,80 +393,110 @@ const Imports: React.FC = () => {
   };
 
   return (
-    <Box sx={{ mt: 4, px: { xs: 2, sm: 4, md: 6 }, bgcolor: '#F3F4F6', minHeight: '100vh' }}>
-      <Typography variant="h4" gutterBottom sx={{ color: '#1A1A40', fontWeight: '700' }}>
-        Módulo de Importación de Datos
-      </Typography>
-      <Divider sx={{ mb: 4 }} />
+    <Box sx={{ mt: 4, px: { xs: 2, sm: 4, md: 6 }, mb: 4 }}>
+      {/* Card principal para unificar estilo */}
+      <Card
+        sx={{
+          bgcolor: '#FFFFFF',
+          p: 4,
+          borderRadius: 3,
+          boxShadow: '0 3px 10px rgba(0, 0, 0, 0.1)',
+          transition: 'transform 0.3s, box-shadow 0.3s',
+          '&:hover': {
+            transform: 'translateY(-3px)',
+            boxShadow: '0 6px 15px rgba(0, 0, 0, 0.15)',
+          },
+        }}
+      >
+        <Typography variant="h5" gutterBottom sx={{ color: '#1A1A40', fontWeight: 600, mb: 3 }}>
+          Módulo de Importación de Datos
+        </Typography>
+        <Divider sx={{ mb: 3 }} />
 
-      {/* Panel de Categorías */}
-      <Grid container spacing={3}>
-        {categories.map((category) => (
-          <Grid item xs={12} md={6} key={category.name}>
-            <Typography variant="h6" sx={{ color: '#1A1A40', mb: 2, fontWeight: 600 }}>
-              {category.name}
-            </Typography>
-            {category.subcategories.map((subcategory) => (
-              <Paper key={subcategory.name} sx={{ mb: 2, p: 2, borderRadius: 2, boxShadow: '0 3px 10px rgba(0, 0, 0, 0.1)', transition: '0.3s', '&:hover': { transform: 'translateY(-2px)', boxShadow: '0 6px 15px rgba(0, 0, 0, 0.15)' } }}>
-                <Accordion elevation={0} sx={{ backgroundColor: 'transparent', boxShadow: 'none' }}>
-                  <AccordionSummary expandIcon={<ExpandMore />} sx={{ padding: 0 }}>
-                    <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#1A1A40' }}>
-                      {subcategory.name}
-                    </Typography>
-                  </AccordionSummary>
-                  <AccordionDetails sx={{ p: 0 }}>
-                    <Typography variant="body2" sx={{ color: '#555', mb: 2 }}>
-                      {subcategory.description}
-                    </Typography>
-                    <Grid container spacing={2}>
-                      {/* Descargar Plantilla */}
-                      <Grid item xs={12} sm={6}>
-                        <Button
-                          variant="outlined"
-                          startIcon={<Download />}
-                          fullWidth
-                          onClick={() => handleDownloadTemplate(subcategory.templateUrl, `${subcategory.name}.xlsx`)}
-                          sx={{
-                            textTransform: 'none',
-                            borderColor: '#2666CF',
-                            color: '#2666CF',
-                            '&:hover': {
-                              borderColor: '#6A82FB',
-                              backgroundColor: 'rgba(38, 102, 207, 0.1)',
-                            },
-                          }}
-                        >
-                          Descargar Plantilla
-                        </Button>
-                      </Grid>
+        {/* Panel de Categorías */}
+        <Grid container spacing={3}>
+          {categories.map((category) => (
+            <Grid item xs={12} md={6} key={category.name}>
+              <Typography variant="h6" sx={{ color: '#1A1A40', mb: 2, fontWeight: 600 }}>
+                {category.name}
+              </Typography>
+              {category.subcategories.map((subcategory) => (
+                <Paper
+                  key={subcategory.name}
+                  sx={{
+                    mb: 2,
+                    p: 2,
+                    borderRadius: 2,
+                    boxShadow: '0 3px 10px rgba(0, 0, 0, 0.1)',
+                    transition: '0.3s',
+                    '&:hover': {
+                      transform: 'translateY(-2px)',
+                      boxShadow: '0 6px 15px rgba(0, 0, 0, 0.15)',
+                    },
+                  }}
+                >
+                  <Accordion elevation={0} sx={{ backgroundColor: 'transparent', boxShadow: 'none' }}>
+                    <AccordionSummary expandIcon={<ExpandMore />} sx={{ padding: 0 }}>
+                      <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#1A1A40' }}>
+                        {subcategory.name}
+                      </Typography>
+                    </AccordionSummary>
+                    <AccordionDetails sx={{ p: 0 }}>
+                      <Typography variant="body2" sx={{ color: '#555', mb: 2 }}>
+                        {subcategory.description}
+                      </Typography>
+                      <Grid container spacing={2}>
+                        {/* Descargar Plantilla */}
+                        <Grid item xs={12} sm={6}>
+                          <Button
+                            variant="outlined"
+                            startIcon={<Download />}
+                            fullWidth
+                            onClick={() =>
+                              handleDownloadTemplate(subcategory.templateUrl, `${subcategory.name}.xlsx`)
+                            }
+                            sx={{
+                              textTransform: 'none',
+                              borderColor: '#2666CF',
+                              color: '#2666CF',
+                              '&:hover': {
+                                borderColor: '#6A82FB',
+                                backgroundColor: 'rgba(38, 102, 207, 0.1)',
+                              },
+                            }}
+                          >
+                            Descargar Plantilla
+                          </Button>
+                        </Grid>
 
-                      {/* Subir Archivo */}
-                      <Grid item xs={12} sm={6}>
-                        <Button
-                          variant="contained"
-                          startIcon={<Upload />}
-                          fullWidth
-                          onClick={() => handleOpenDialog(subcategory)}
-                          sx={{
-                            textTransform: 'none',
-                            background: 'linear-gradient(90deg, #2666CF, #6A82FB)',
-                            color: '#FFFFFF',
-                            '&:hover': {
-                              background: 'linear-gradient(90deg, #6A82FB, #2666CF)',
-                            },
-                          }}
-                        >
-                          Subir Archivo
-                        </Button>
+                        {/* Subir Archivo */}
+                        <Grid item xs={12} sm={6}>
+                          <Button
+                            variant="contained"
+                            startIcon={<Upload />}
+                            fullWidth
+                            onClick={() => handleOpenDialog(subcategory)}
+                            sx={{
+                              textTransform: 'none',
+                              background: 'linear-gradient(90deg, #2666CF, #6A82FB)',
+                              color: '#FFFFFF',
+                              '&:hover': {
+                                background: 'linear-gradient(90deg, #6A82FB, #2666CF)',
+                              },
+                            }}
+                          >
+                            Subir Archivo
+                          </Button>
+                        </Grid>
                       </Grid>
-                    </Grid>
-                  </AccordionDetails>
-                </Accordion>
-              </Paper>
-            ))}
-          </Grid>
-        ))}
-      </Grid>
+                    </AccordionDetails>
+                  </Accordion>
+                </Paper>
+              ))}
+            </Grid>
+          ))}
+        </Grid>
+      </Card>
 
       {/* Diálogo de Importación */}
       <Dialog open={openDialog} onClose={handleCloseDialog} fullWidth maxWidth="sm">

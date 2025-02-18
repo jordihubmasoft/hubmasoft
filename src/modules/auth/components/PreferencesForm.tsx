@@ -242,22 +242,7 @@ const PreferencesForm: React.FC<PreferencesFormProps> = ({ onSave }) => {
           </Grid>
         </Grid>
 
-        <Button
-          type="submit"
-          variant="contained"
-          fullWidth
-          sx={{
-            mt: 4,
-            background: 'linear-gradient(90deg, #2666CF, #6A82FB)',
-            color: '#FFFFFF',
-            fontWeight: 'bold',
-            '&:hover': {
-              background: 'linear-gradient(90deg, #6A82FB, #2666CF)',
-            },
-          }}
-        >
-          Guardar Cambios
-        </Button>
+        
       </form>
     </Card>
   );
