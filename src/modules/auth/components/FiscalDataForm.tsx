@@ -1,8 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Typography, Grid, TextField, MenuItem, Button } from '@mui/material';
+import { Card, Typography, Grid, TextField, MenuItem } from '@mui/material';
 
 interface FiscalDataFormProps {
   onSave: (data: any) => void;
+  /**
+   * Función que se llama cada vez que se modifica un campo.
+   */
+  onChange?: (fieldName: string, value: string) => void;
   initialData?: {
     companyName: string;
     nif: string;
@@ -27,8 +31,8 @@ const countries = [
   // Otros países…
 ];
 
-const FiscalDataForm: React.FC<FiscalDataFormProps> = ({ onSave, initialData }) => {
-  // Inicializamos el estado usando las props que provienen del API
+const FiscalDataForm: React.FC<FiscalDataFormProps> = ({ onSave, onChange, initialData }) => {
+  // Estado local para el formulario fiscal
   const [formData, setFormData] = useState({
     companyName: initialData?.companyName || '',
     nif: initialData?.nif || '',
@@ -57,7 +61,12 @@ const FiscalDataForm: React.FC<FiscalDataFormProps> = ({ onSave, initialData }) 
   }, [initialData]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+    // Se eleva el cambio al componente padre
+    if (onChange) {
+      onChange(name, value);
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -80,7 +89,11 @@ const FiscalDataForm: React.FC<FiscalDataFormProps> = ({ onSave, initialData }) 
         },
       }}
     >
-      <Typography variant="h5" gutterBottom sx={{ color: '#1A1A40', fontWeight: '600', mb: 3 }}>
+      <Typography
+        variant="h5"
+        gutterBottom
+        sx={{ color: '#1A1A40', fontWeight: '600', mb: 3 }}
+      >
         Datos Fiscales
       </Typography>
       <form onSubmit={handleSubmit}>
@@ -198,7 +211,7 @@ const FiscalDataForm: React.FC<FiscalDataFormProps> = ({ onSave, initialData }) 
           <Grid item xs={12} sm={4}>
             <TextField
               fullWidth
-              label="población"
+              label="Población"
               variant="outlined"
               name="city"
               value={formData.city}
