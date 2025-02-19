@@ -162,30 +162,7 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
     if (formData.userType === 'freelancer') {
       return (
         <>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              label="Habilidades"
-              name="skills"
-              fullWidth
-              variant="outlined"
-              value={formData.skills || ''}
-              onChange={handleChange}
-              error={!!formErrors.skills}
-              helperText={formErrors.skills || ''}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              label="Experiencia"
-              name="experience"
-              fullWidth
-              variant="outlined"
-              value={formData.experience || ''}
-              onChange={handleChange}
-              error={!!formErrors.experience}
-              helperText={formErrors.experience || ''}
-            />
-          </Grid>
+          {/* Aquí podrías agregar campos específicos para autónomos */}
         </>
       );
     }
@@ -203,6 +180,7 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
               onChange={handleChange}
               error={!!formErrors.companyName}
               helperText={formErrors.companyName || ''}
+              required={false}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
@@ -216,6 +194,7 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
               onChange={handleChange}
               error={!!formErrors.companySize}
               helperText={formErrors.companySize || ''}
+              required={false}
             >
               <MenuItem value="">Selecciona Tamaño</MenuItem>
               <MenuItem value="1-10">1-10</MenuItem>
@@ -308,7 +287,6 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                           sx={{ mb: 1 }}
                           onClick={() => {
                             // Implementar funcionalidad para cambiar foto de perfil
-                            // Por ejemplo, abrir un diálogo para subir una nueva foto
                           }}
                         >
                           Cambiar Foto
@@ -319,7 +297,6 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                           fullWidth
                           onClick={() => {
                             // Implementar funcionalidad para eliminar cuenta
-                            // Por ejemplo, confirmar acción y llamar a la API para eliminar
                           }}
                         >
                           Eliminar Cuenta
@@ -346,6 +323,7 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                           onChange={handleChange}
                           error={!!formErrors.name}
                           helperText={formErrors.name || ''}
+                          required={false}
                         />
                       </Grid>
                       <Grid item xs={12} sm={6}>
@@ -358,6 +336,7 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                           onChange={handleChange}
                           error={!!formErrors.email}
                           helperText={formErrors.email || ''}
+                          required={false}
                         />
                       </Grid>
 
@@ -373,6 +352,7 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                           onChange={handleChange}
                           error={!!formErrors.userType}
                           helperText={formErrors.userType || ''}
+                          required={false}
                         >
                           <MenuItem value="">Selecciona Tipo</MenuItem>
                           <MenuItem value="freelancer">Autónomo</MenuItem>
@@ -392,6 +372,7 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                           onChange={handleChange}
                           error={!!formErrors.phone}
                           helperText={formErrors.phone || ''}
+                          required={false}
                         />
                       </Grid>
                       <Grid item xs={12} sm={6}>
@@ -404,6 +385,7 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                           onChange={handleChange}
                           error={!!formErrors.mobile}
                           helperText={formErrors.mobile || ''}
+                          required={false}
                         />
                       </Grid>
                       <Grid item xs={12} sm={6}>
@@ -416,6 +398,7 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                           onChange={handleChange}
                           error={!!formErrors.website}
                           helperText={formErrors.website || ''}
+                          required={false}
                         />
                       </Grid>
                       {/* Fin de Campos Comunes */}
@@ -447,7 +430,6 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                         fullWidth
                         onClick={() => {
                           // Implementar funcionalidad para cambiar contraseña
-                          // Por ejemplo, abrir un diálogo para cambiar la contraseña
                         }}
                       >
                         Cambiar Contraseña
@@ -475,6 +457,7 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                       onChange={handleChange}
                       error={!!formErrors.nie}
                       helperText={formErrors.nie || ''}
+                      required={false}
                     />
                   </Grid>
                   <Grid item xs={12} sm={6}>
@@ -487,6 +470,7 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                       onChange={handleChange}
                       error={!!formErrors.commercialName}
                       helperText={formErrors.commercialName || ''}
+                      required={false}
                     />
                   </Grid>
                   <Grid item xs={12}>
@@ -504,6 +488,7 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                       onChange={handleChange}
                       error={!!formErrors.address}
                       helperText={formErrors.address || ''}
+                      required={false}
                     />
                   </Grid>
                   <Grid item xs={12} sm={6}>
@@ -516,6 +501,7 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                       onChange={handleChange}
                       error={!!formErrors.city}
                       helperText={formErrors.city || ''}
+                      required={false}
                     />
                   </Grid>
                   <Grid item xs={12} sm={4}>
@@ -529,6 +515,7 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                       onChange={handleChange}
                       error={!!formErrors.province}
                       helperText={formErrors.province || ''}
+                      required={false}
                     >
                       <MenuItem value="">Selecciona Provincia</MenuItem>
                       <MenuItem value="provincia1">Provincia 1</MenuItem>
@@ -546,6 +533,7 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                       onChange={handleChange}
                       error={!!formErrors.postalCode}
                       helperText={formErrors.postalCode || ''}
+                      required={false}
                     />
                   </Grid>
                   <Grid item xs={12} sm={4}>
@@ -559,6 +547,7 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                       onChange={handleChange}
                       error={!!formErrors.country}
                       helperText={formErrors.country || ''}
+                      required={false}
                     >
                       <MenuItem value="">Selecciona País</MenuItem>
                       <MenuItem value="es">España</MenuItem>
@@ -576,7 +565,7 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                 <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
                   Dirección de Envío
                 </Typography>
-                {shippingAddresses.map((address, index) => (
+                {shippingAddresses.map((address) => (
                   <Box key={address.id} sx={{ mb: 2, border: '1px solid #E0E0E0', borderRadius: 2, p: 2 }}>
                     <Grid container spacing={2}>
                       <Grid item xs={12} sm={6}>
@@ -589,6 +578,7 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                           onChange={(e) => handleShippingAddressChange(address.id, 'direction', e.target.value)}
                           error={!!formErrors.shippingAddress}
                           helperText={formErrors.shippingAddress || ''}
+                          required={false}
                         />
                       </Grid>
                       <Grid item xs={12} sm={6}>
@@ -601,6 +591,7 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                           onChange={(e) => handleShippingAddressChange(address.id, 'city', e.target.value)}
                           error={!!formErrors.shippingCity}
                           helperText={formErrors.shippingCity || ''}
+                          required={false}
                         />
                       </Grid>
                       <Grid item xs={12} sm={4}>
@@ -614,6 +605,7 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                           onChange={(e) => handleShippingAddressChange(address.id, 'province', e.target.value)}
                           error={!!formErrors.shippingProvince}
                           helperText={formErrors.shippingProvince || ''}
+                          required={false}
                         >
                           <MenuItem value="">Selecciona Provincia</MenuItem>
                           <MenuItem value="provincia1">Provincia 1</MenuItem>
@@ -631,6 +623,7 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                           onChange={(e) => handleShippingAddressChange(address.id, 'postalCode', e.target.value)}
                           error={!!formErrors.shippingPostalCode}
                           helperText={formErrors.shippingPostalCode || ''}
+                          required={false}
                         />
                       </Grid>
                       <Grid item xs={12} sm={4}>
@@ -644,6 +637,7 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                           onChange={(e) => handleShippingAddressChange(address.id, 'country', e.target.value)}
                           error={!!formErrors.shippingCountry}
                           helperText={formErrors.shippingCountry || ''}
+                          required={false}
                         >
                           <MenuItem value="">Selecciona País</MenuItem>
                           <MenuItem value="es">España</MenuItem>
