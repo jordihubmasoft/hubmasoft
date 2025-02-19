@@ -196,7 +196,7 @@ const FiscalDataForm: React.FC<FiscalDataFormProps> = ({ onSave, initialData }) 
             </TextField>
           </Grid>
           <Grid item xs={12} sm={4}>
-          <TextField
+            <TextField
               fullWidth
               label="población"
               variant="outlined"
@@ -206,9 +206,7 @@ const FiscalDataForm: React.FC<FiscalDataFormProps> = ({ onSave, initialData }) 
               sx={{ bgcolor: '#F3F4F6', borderRadius: 1 }}
             />
           </Grid>
-
         </Grid>
-        
       </form>
     </Card>
   );

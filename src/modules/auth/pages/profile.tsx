@@ -9,8 +9,10 @@ import {
   ListItem,
   ListItemButton,
   ListItemText,
+  Button,
 } from '@mui/material';
 import Grow from '@mui/material/Grow';
+import SaveIcon from '@mui/icons-material/Save';
 
 import Header from '../../../components/Header';
 import Sidebar from '../../../components/Sidebar';
@@ -53,6 +55,9 @@ const Profile: React.FC = () => {
   const [hasContact, setHasContact] = useState(false);
   // Para indicar si estamos cargando datos del contacto o guardando cambios
   const [loading, setLoading] = useState(false);
+
+  // Estado para controlar si hay cambios sin guardar
+  const [unsavedChanges, setUnsavedChanges] = useState(false);
 
   // State con todos los campos de contacto que quieras mostrar/editar
   const [formData, setFormData] = useState({
@@ -254,7 +259,7 @@ const Profile: React.FC = () => {
     fetchContact();
   }, [contactId, token, agentId, refresh]);
 
-  // 3. Handler para guardar el formulario principal
+  // 3. Handler para guardar el formulario principal (ahora integrado en el global)
   const handleSubmitProfile = async () => {
     if (!token || !agentId) {
       console.error('No hay token o agentId, no se puede guardar.');
@@ -263,7 +268,7 @@ const Profile: React.FC = () => {
     try {
       setLoading(true);
 
-      // Preparamos el payload
+      // Preparamos el payload (este método se usaba anteriormente por separado)
       const contactData: any = {
         userId: agentId,
         contactId: contactId,
@@ -340,9 +345,10 @@ const Profile: React.FC = () => {
   // 4. Handler para cambios en el formulario: se lo pasamos al formulario hijo
   const handleChangeProfileForm = (fieldName: string, value: string) => {
     setFormData((prev) => ({ ...prev, [fieldName]: value }));
+    setUnsavedChanges(true);
   };
 
-  // 5. Handler para guardar datos fiscales
+  // 5. Handler para guardar datos fiscales (ahora integrado en el global)
   const handleSaveFiscalData = async (fiscalData: any) => {
     try {
       // Preparamos el payload a partir de los datos fiscales
@@ -359,7 +365,7 @@ const Profile: React.FC = () => {
         country: fiscalData.country,
       };
 
-      // Llamamos al servicio para actualizar datos fiscales (asegúrate de tener este método en tu ContactService)
+      // Llamamos al servicio para actualizar datos fiscales
       const response = await ContactService.updateContact(payload, token);
       if (response?.data) {
         console.log("Datos fiscales actualizados:", response.data);
@@ -379,6 +385,89 @@ const Profile: React.FC = () => {
     } catch (error) {
       console.error("Error al actualizar datos fiscales:", error);
       alert("Hubo un problema al guardar los datos fiscales.");
+    }
+  };
+
+  // Nuevo handler global unificado para guardar todos los cambios de una sola petición
+  const handleGlobalSave = async () => {
+    if (!token || !agentId) {
+      console.error('No hay token o agentId, no se puede guardar.');
+      return;
+    }
+    try {
+      setLoading(true);
+      // Construimos un payload unificado que incluye tanto los datos del perfil como los fiscales
+      const payload: any = {
+        userId: agentId,
+        contactId: contactId,
+        name: formData.name,
+        surname: formData.surname,
+        email: formData.email,
+        nie: formData.nie,
+        address: formData.address,
+        province: formData.province,
+        country: formData.country,
+        city: formData.city,
+        postalCode: formData.postalCode,
+        phone: formData.phone,
+        phone1: formData.phone1 || "",
+        website: formData.website,
+        vatIdentification: formData.vatIdentification || "",
+        salesTax: formData.salesTax || 0,
+        equivalenceSurcharge: formData.equivalenceSurcharge || 0,
+        shoppingTax: formData.shoppingTax || 0,
+        paymentDay: formData.paymentDay || 0,
+        tags: formData.tags || "",
+        vatType: formData.vatType || "",
+        internalReference: formData.internalReference || "",
+        language: formData.language || "",
+        currency: formData.currency || "",
+        paymentMethod: formData.paymentMethod || "",
+        paymentExpirationDays: formData.paymentExpirationDays || "",
+        paymentExpirationDay: formData.paymentExpirationDay || "",
+        rate: formData.rate || "",
+        discount: formData.discount || "",
+        swift: formData.swift || "",
+        iban: formData.iban || "",
+        shippingAddress: [
+          {
+            direction: formData.shippingAddress,
+            city: formData.shippingCity,
+            postalCode: formData.shippingPostalCode,
+            province: formData.shippingProvince,
+            country: formData.shippingCountry,
+          },
+        ],
+        // Datos fiscales
+        companyName: formData.companyName,
+        commercialName: formData.commercialName,
+      };
+
+      let response;
+      if (hasContact) {
+        // Actualización: se envía toda la info de una vez
+        response = await ContactService.updateContact(payload, token);
+        console.log('Contacto actualizado:', response);
+      } else {
+        // Creación: se elimina contactId del payload
+        const { contactId, ...createPayload } = payload;
+        response = await ContactService.createContact(createPayload, token);
+        console.log('Contacto creado:', response);
+      }
+
+      if (response?.data) {
+        setHasContact(true);
+        setFormData((prev) => ({
+          ...prev,
+          ...response.data,
+        }));
+        setUnsavedChanges(false);
+      }
+    } catch (error) {
+      console.error('Error guardando cambios globales:', error);
+      alert('Hubo un problema al guardar los cambios.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -509,6 +598,7 @@ const Profile: React.FC = () => {
                     shippingPostalCode: updatedShipping.codigoPostal,
                     shippingCountry: updatedShipping.pais,
                   }));
+                  setUnsavedChanges(true);
                 }}
               />
             </Box>
@@ -614,6 +704,34 @@ const Profile: React.FC = () => {
           </Box>
         </Box>
       </Box>
+
+      {/* Botón flotante para guardar cambios globales con estilo profesional */}
+      <Button
+        variant="contained"
+        startIcon={<SaveIcon />}
+        onClick={handleGlobalSave}
+        disabled={!unsavedChanges || loading}
+        sx={{
+          position: 'fixed',
+          bottom: 16,
+          right: 16,
+          zIndex: 1500,
+          background: 'linear-gradient(90deg, #2666CF, #6A82FB)',
+          color: '#FFFFFF',
+          fontWeight: 'bold',
+          '&:hover': {
+            background: 'linear-gradient(90deg, #6A82FB, #2666CF)',
+          },
+          borderRadius: 2,
+          px: 3,
+          py: 1.5,
+          textTransform: 'none',
+          // Si está deshabilitado, se muestra con menor opacidad
+          opacity: !unsavedChanges || loading ? 0.7 : 1,
+        }}
+      >
+        Guardar Cambios
+      </Button>
     </Box>
   );
 };
