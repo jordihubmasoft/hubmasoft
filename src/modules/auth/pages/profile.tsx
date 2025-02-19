@@ -70,7 +70,7 @@ const Profile: React.FC = () => {
     phone: "",
     address: "",
     postalCode: "",
-    nie: "",
+    nie: "", // Aquí se almacenará el NIF (mapeado desde el formulario fiscal)
     commercialName: "",
     province: "",
     mobile: "",
@@ -114,6 +114,17 @@ const Profile: React.FC = () => {
       }
     ]
   });
+
+  // Función para actualizar el estado global con cambios en el formulario fiscal
+  const handleFiscalDataChange = (field: string, value: string) => {
+    let fieldName = field;
+    // Mapear 'nif' a 'nie' y 'vatIdentifier' a 'vatIdentification'
+    if (field === 'nif') fieldName = 'nie';
+    else if (field === 'vatIdentifier') fieldName = 'vatIdentification';
+
+    setFormData(prev => ({ ...prev, [fieldName]: value }));
+    setUnsavedChanges(true);
+  };
 
   // Sidebar derecho: estado para la sección activa
   const [activeSection, setActiveSection] = useState("profile");
@@ -342,50 +353,10 @@ const Profile: React.FC = () => {
     }
   };
 
-  // 4. Handler para cambios en el formulario: se lo pasamos al formulario hijo
+  // 4. Handler para cambios en el formulario: se lo pasamos al formulario hijo de perfil
   const handleChangeProfileForm = (fieldName: string, value: string) => {
     setFormData((prev) => ({ ...prev, [fieldName]: value }));
     setUnsavedChanges(true);
-  };
-
-  // 5. Handler para guardar datos fiscales (ahora integrado en el global)
-  const handleSaveFiscalData = async (fiscalData: any) => {
-    try {
-      // Preparamos el payload a partir de los datos fiscales
-      const payload = {
-        userId: agentId,
-        contactId: contactId,
-        companyName: fiscalData.companyName,
-        nie: fiscalData.nif,
-        commercialName: fiscalData.commercialName,
-        vatIdentification: fiscalData.vatIdentifier,
-        address: fiscalData.address,
-        postalCode: fiscalData.postalCode,
-        province: fiscalData.province,
-        country: fiscalData.country,
-      };
-
-      // Llamamos al servicio para actualizar datos fiscales
-      const response = await ContactService.updateContact(payload, token);
-      if (response?.data) {
-        console.log("Datos fiscales actualizados:", response.data);
-        // Actualizamos el estado con la respuesta, si es necesario
-        setFormData(prev => ({
-          ...prev,
-          companyName: response.data.companyName || prev.companyName,
-          nie: response.data.nif || prev.nie,
-          commercialName: response.data.nombreComercial || prev.commercialName,
-          vatIdentification: response.data.identificacionVAT || prev.vatIdentification,
-          address: response.data.direccion || prev.address,
-          postalCode: response.data.codigoPostal || prev.postalCode,
-          province: response.data.provincia || prev.province,
-          country: response.data.pais || prev.country,
-        }));
-      }
-    } catch (error) {
-      console.error("Error al actualizar datos fiscales:", error);
-      alert("Hubo un problema al guardar los datos fiscales.");
-    }
   };
 
   // Nuevo handler global unificado para guardar todos los cambios de una sola petición
@@ -562,7 +533,7 @@ const Profile: React.FC = () => {
               <FiscalDataForm
                 initialData={{
                   companyName: formData.companyName,
-                  nif: formData.nie,
+                  nif: formData.nie, // mapeamos el NIF con el estado "nie"
                   commercialName: formData.commercialName,
                   vatIdentifier: formData.vatIdentification,
                   address: formData.address,
@@ -570,7 +541,8 @@ const Profile: React.FC = () => {
                   province: formData.province,
                   country: formData.country,
                 }}
-                onSave={handleSaveFiscalData}
+                onSave={() => {}}
+                onChange={handleFiscalDataChange}
               />
             </Box>
 
@@ -705,7 +677,7 @@ const Profile: React.FC = () => {
         </Box>
       </Box>
 
-      {/* Botón flotante para guardar cambios globales con estilo profesional */}
+      {/* Botón flotante para guardar cambios globales */}
       <Button
         variant="contained"
         startIcon={<SaveIcon />}
@@ -726,7 +698,6 @@ const Profile: React.FC = () => {
           px: 3,
           py: 1.5,
           textTransform: 'none',
-          // Si está deshabilitado, se muestra con menor opacidad
           opacity: !unsavedChanges || loading ? 0.7 : 1,
         }}
       >
