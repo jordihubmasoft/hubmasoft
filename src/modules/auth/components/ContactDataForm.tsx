@@ -1,4 +1,3 @@
-// ContactDataForm.tsx
 import React from 'react';
 import { Card, Typography, Grid, TextField } from '@mui/material';
 
@@ -87,7 +86,7 @@ const ContactDataForm: React.FC<ContactDataFormProps> = ({ data, onChange }) => 
             label="Móvil"
             variant="outlined"
             name="phone1"
-            value={data.phone1}
+            value={data.phone}
             onChange={handleChange}
             sx={{ bgcolor: '#F3F4F6', borderRadius: 1 }}
           />

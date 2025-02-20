@@ -25,10 +25,8 @@ import { useRouter } from 'next/router';
 // Traemos nuestros servicios
 import ContactService from '../../../services/ContactService';
 
-// Importamos el formulario que mostrará y editará los datos:
+// Importamos los formularios y componentes:
 import EditProfileForm from '../components/EditProfileForm';
-
-// (Resto de componentes que ya tenías)
 import ProfileCard from '../components/ProfileCard';
 import FiscalDataForm from '../components/FiscalDataForm';
 import ContactDataForm from '../components/ContactDataForm';
@@ -42,11 +40,10 @@ import Taxes from '../components/Taxes';
 
 const Profile: React.FC = () => {
   const router = useRouter();
-  // De tu store y contexto de auth
   const { token, contactId, agentId } = useAuthStore();
   const { user, logout } = useAuth();
 
-  // Para controlar cuándo ya está todo “hidratado”
+  // Estado para controlar la hidratación y el menú
   const [hydrated, setHydrated] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(true);
   const [refresh, setRefresh] = useState(false);
@@ -59,7 +56,10 @@ const Profile: React.FC = () => {
   // Estado para controlar si hay cambios sin guardar
   const [unsavedChanges, setUnsavedChanges] = useState(false);
 
-  // State con todos los campos de contacto que quieras mostrar/editar
+  // Estado para guardar la información completa que llega desde la API
+  const [originalContact, setOriginalContact] = useState<any>(null);
+
+  // Estado con todos los campos de contacto (se ha añadido contactProfile)
   const [formData, setFormData] = useState({
     name: "",
     surname: "",
@@ -70,8 +70,9 @@ const Profile: React.FC = () => {
     phone: "",
     address: "",
     postalCode: "",
-    nie: "", // Aquí se almacenará el NIF (mapeado desde el formulario fiscal)
+    nie: "",
     commercialName: "",
+    vatIdentification: "",
     province: "",
     mobile: "",
     website: "",
@@ -87,7 +88,6 @@ const Profile: React.FC = () => {
     companyName: "",
     companySize: "",
     phone1: "",
-    vatIdentification: "",
     salesTax: 0,
     equivalenceSurcharge: 0,
     shoppingTax: 0,
@@ -104,24 +104,14 @@ const Profile: React.FC = () => {
     discount: "",
     swift: "",
     iban: "",
-    shippingAddresses: [
-      {
-        direction: "",
-        city: "",
-        postalCode: "",
-        province: "",
-        country: ""
-      }
-    ]
+    contactProfile: "" // <--- campo añadido para conservar la información extra
   });
 
-  // Función para actualizar el estado global con cambios en el formulario fiscal
+  // Handler para cambios en datos fiscales (mapea “nif” a “nie” y “vatIdentifier” a “vatIdentification”)
   const handleFiscalDataChange = (field: string, value: string) => {
     let fieldName = field;
-    // Mapear 'nif' a 'nie' y 'vatIdentifier' a 'vatIdentification'
     if (field === 'nif') fieldName = 'nie';
     else if (field === 'vatIdentifier') fieldName = 'vatIdentification';
-
     setFormData(prev => ({ ...prev, [fieldName]: value }));
     setUnsavedChanges(true);
   };
@@ -129,7 +119,7 @@ const Profile: React.FC = () => {
   // Sidebar derecho: estado para la sección activa
   const [activeSection, setActiveSection] = useState("profile");
 
-  // Definición de las secciones (fijamos sus ids y labels)
+  // Definición de las secciones
   const sections = useMemo(
     () => [
       { label: 'Perfil', id: 'profile' },
@@ -172,7 +162,7 @@ const Profile: React.FC = () => {
     return () => observer.disconnect();
   }, [sections]);
 
-  // 1. useEffect para "hidratar" y hacer checks
+  // 1. useEffect para hidratar
   useEffect(() => {
     setHydrated(true);
   }, []);
@@ -194,6 +184,7 @@ const Profile: React.FC = () => {
   
         if (response?.data?.length > 0) {
           const contactData = response.data[0] as any;
+          setOriginalContact(contactData); // guardamos la info completa
           setFormData((prev) => ({
             ...prev,
             name: contactData.name || "",
@@ -217,12 +208,14 @@ const Profile: React.FC = () => {
             experience: contactData.experience || "",
             companyName: contactData.companyName || "",
             companySize: contactData.companySize || "",
-            // Mapeamos los datos de shippingAddress usando las claves de la API:
+            // Mapeamos la dirección de envío:
             shippingAddress: contactData.extraInformation?.shippingAddress?.[0]?.direction || "",
             shippingCity: contactData.extraInformation?.shippingAddress?.[0]?.city || "",
             shippingProvince: contactData.extraInformation?.shippingAddress?.[0]?.province || "",
             shippingPostalCode: contactData.extraInformation?.shippingAddress?.[0]?.postalCode || "",
             shippingCountry: contactData.extraInformation?.shippingAddress?.[0]?.country || "",
+            // Guardamos también el campo que no se edita en el formulario:
+            contactProfile: contactData.contactProfile || ""
           }));
           setHasContact(true);
         } else {
@@ -265,6 +258,7 @@ const Profile: React.FC = () => {
         experience: "",
         companyName: "",
         companySize: "",
+        contactProfile: ""
       }));
       setHasContact(false);
     };
@@ -272,7 +266,7 @@ const Profile: React.FC = () => {
     fetchContact();
   }, [contactId, token, agentId, refresh]);
 
-  // 3. Handler para guardar el formulario principal (ahora integrado en el global)
+  // 3. Handler para guardar el formulario principal (actualiza solo los datos que se muestran)
   const handleSubmitProfile = async () => {
     if (!token || !agentId) {
       console.error('No hay token o agentId, no se puede guardar.');
@@ -281,96 +275,9 @@ const Profile: React.FC = () => {
     try {
       setLoading(true);
 
-      // Preparamos el payload (este método se usaba anteriormente por separado)
-      const contactData: any = {
-        userId: agentId,
-        contactId: contactId,
-        name: formData.name,
-        nie: formData.nie,
-        address: formData.address,
-        province: formData.province,
-        country: formData.country,
-        city: formData.city,
-        postalCode: formData.postalCode,
-        email: formData.email,
-        phone: formData.phone,
-        phone1: formData.phone1 || "",
-        website: formData.website,
-        vatIdentification: formData.vatIdentification || "",
-        salesTax: formData.salesTax || 0,
-        equivalenceSurcharge: formData.equivalenceSurcharge || 0,
-        shoppingTax: formData.shoppingTax || 0,
-        paymentDay: formData.paymentDay || 0,
-        tags: formData.tags || "",
-        vatType: formData.vatType || "",
-        internalReference: formData.internalReference || "",
-        language: formData.language || "",
-        currency: formData.currency || "",
-        paymentMethod: formData.paymentMethod || "",
-        paymentExpirationDays: formData.paymentExpirationDays || "",
-        paymentExpirationDay: formData.paymentExpirationDay || "",
-        rate: formData.rate || "",
-        discount: formData.discount || "",
-        swift: formData.swift || "",
-        iban: formData.iban || "",
-        shippingAddress: [
-          {
-            direction: formData.shippingAddress,
-            city: formData.shippingCity,
-            postalCode: formData.shippingPostalCode,
-            province: formData.shippingProvince,
-            country: formData.shippingCountry,
-          },
-        ],
-      };
-
-      let response;
-      if (hasContact) {
-        // Update
-        response = await ContactService.updateContact(contactData, token);
-        console.log('Contacto actualizado:', response);
-      } else {
-        // Create
-        const { contactId, ...createPayload } = contactData;
-        response = await ContactService.createContact(createPayload, token);
-        console.log('Contacto creado:', response);
-      }
-
-      if (response?.data) {
-        setHasContact(true);
-        const updated = response.data;
-        setFormData((prev) => ({
-          ...prev,
-          name: updated.name || prev.name,
-          surname: updated.surname || prev.surname,
-          email: updated.email || prev.email,
-          // Actualiza otros campos según lo que devuelva el backend
-        }));
-      }
-    } catch (error) {
-      console.error('Error al crear/actualizar el contacto:', error);
-      alert('Hubo un problema al guardar el contacto.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // 4. Handler para cambios en el formulario: se lo pasamos al formulario hijo de perfil
-  const handleChangeProfileForm = (fieldName: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [fieldName]: value }));
-    setUnsavedChanges(true);
-  };
-
-  // Nuevo handler global unificado para guardar todos los cambios de una sola petición
-  const handleGlobalSave = async () => {
-    if (!token || !agentId) {
-      console.error('No hay token o agentId, no se puede guardar.');
-      return;
-    }
-    try {
-      setLoading(true);
-      // Construimos un payload unificado que incluye tanto los datos del perfil como los fiscales
+      // Se hace un merge de los datos originales con los modificados para conservar campos no editados
       const payload: any = {
+        ...originalContact,
         userId: agentId,
         contactId: contactId,
         name: formData.name,
@@ -411,18 +318,18 @@ const Profile: React.FC = () => {
             country: formData.shippingCountry,
           },
         ],
-        // Datos fiscales
         companyName: formData.companyName,
         commercialName: formData.commercialName,
+        contactProfile: formData.contactProfile || originalContact?.contactProfile
       };
 
       let response;
       if (hasContact) {
-        // Actualización: se envía toda la info de una vez
+        // Update
         response = await ContactService.updateContact(payload, token);
         console.log('Contacto actualizado:', response);
       } else {
-        // Creación: se elimina contactId del payload
+        // Create
         const { contactId, ...createPayload } = payload;
         response = await ContactService.createContact(createPayload, token);
         console.log('Contacto creado:', response);
@@ -430,6 +337,99 @@ const Profile: React.FC = () => {
 
       if (response?.data) {
         setHasContact(true);
+        const updated = response.data;
+        setOriginalContact(updated);
+        setFormData((prev) => ({
+          ...prev,
+          name: updated.name || prev.name,
+          surname: updated.surname || prev.surname,
+          email: updated.email || prev.email,
+          contactProfile: updated.contactProfile || prev.contactProfile,
+          // Actualizar otros campos según la respuesta si se requiere
+        }));
+      }
+    } catch (error) {
+      console.error('Error al crear/actualizar el contacto:', error);
+      alert('Hubo un problema al guardar el contacto.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 4. Handler para cambios en el formulario (datos de perfil)
+  const handleChangeProfileForm = (fieldName: string, value: string) => {
+    setFormData((prev) => ({ ...prev, [fieldName]: value }));
+    setUnsavedChanges(true);
+  };
+
+  // Handler global unificado para guardar todos los cambios de una sola petición
+  const handleGlobalSave = async () => {
+    if (!token || !agentId) {
+      console.error('No hay token o agentId, no se puede guardar.');
+      return;
+    }
+    try {
+      setLoading(true);
+      const payload: any = {
+        ...originalContact,
+        userId: agentId,
+        contactId: contactId,
+        name: formData.name,
+        surname: formData.surname,
+        email: formData.email,
+        nie: formData.nie,
+        address: formData.address,
+        province: formData.province,
+        country: formData.country,
+        city: formData.city,
+        postalCode: formData.postalCode,
+        phone: formData.phone,
+        phone1: formData.phone1 || "",
+        website: formData.website,
+        vatIdentification: formData.vatIdentification || "",
+        salesTax: formData.salesTax || 0,
+        equivalenceSurcharge: formData.equivalenceSurcharge || 0,
+        shoppingTax: formData.shoppingTax || 0,
+        paymentDay: formData.paymentDay || 0,
+        tags: formData.tags || "",
+        vatType: formData.vatType || "",
+        internalReference: formData.internalReference || "",
+        language: formData.language || "",
+        currency: formData.currency || "",
+        paymentMethod: formData.paymentMethod || "",
+        paymentExpirationDays: formData.paymentExpirationDays || "",
+        paymentExpirationDay: formData.paymentExpirationDay || "",
+        rate: formData.rate || "",
+        discount: formData.discount || "",
+        swift: formData.swift || "",
+        iban: formData.iban || "",
+        shippingAddress: [
+          {
+            direction: formData.shippingAddress,
+            city: formData.shippingCity,
+            postalCode: formData.shippingPostalCode,
+            province: formData.shippingProvince,
+            country: formData.shippingCountry,
+          },
+        ],
+        companyName: formData.companyName,
+        commercialName: formData.commercialName,
+        contactProfile: formData.contactProfile || originalContact?.contactProfile,
+      };
+
+      let response;
+      if (hasContact) {
+        response = await ContactService.updateContact(payload, token);
+        console.log('Contacto actualizado:', response);
+      } else {
+        const { contactId, ...createPayload } = payload;
+        response = await ContactService.createContact(createPayload, token);
+        console.log('Contacto creado:', response);
+      }
+
+      if (response?.data) {
+        setHasContact(true);
+        setOriginalContact(response.data);
         setFormData((prev) => ({
           ...prev,
           ...response.data,
@@ -445,24 +445,6 @@ const Profile: React.FC = () => {
   };
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
-
-  // Render condicional si no se ha hidratado
-  if (!hydrated) {
-    return (
-      <Box>
-        <Typography>Cargando...</Typography>
-      </Box>
-    );
-  }
-
-  // Render condicional si no hay usuario
-  if (!user) {
-    return (
-      <Box>
-        <Typography>Redirigiendo al login...</Typography>
-      </Box>
-    );
-  }
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', bgcolor: '#F3F4F6' }}>
@@ -535,7 +517,7 @@ const Profile: React.FC = () => {
               <FiscalDataForm
                 initialData={{
                   companyName: formData.companyName,
-                  nif: formData.nie, // mapeamos el NIF con el estado "nie"
+                  nif: formData.nie,
                   commercialName: formData.commercialName,
                   vatIdentification: formData.vatIdentification,
                   address: formData.address,
@@ -555,10 +537,10 @@ const Profile: React.FC = () => {
                   email: formData.email,
                   phone: formData.phone,
                   website: formData.website,
-                  phone1: formData.phone,
+                  phone1: formData.phone1,
                   shippingAddress: formData.shippingAddress,
                 }}
-                onChange={handleChangeProfileForm} // O puedes crear un manejador específico para datos de contacto
+                onChange={handleChangeProfileForm}
               />
             </Box>
 
@@ -619,7 +601,7 @@ const Profile: React.FC = () => {
             </Box>
           </Container>
 
-          {/* Sidebar Derecho Mejorado */}
+          {/* Sidebar Derecho */}
           <Box
             sx={{
               position: 'fixed',

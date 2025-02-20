@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/router";
 import {
   Box,
@@ -430,11 +430,12 @@ const Dashboard = () => {
     return errors;
   };
   
-  const handleChange = (event: any) => {
+  const handleChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     const name = event.target.name;
     const value = event.target.value;
     setFormData((prev) => ({ ...prev, [name]: value }));
-  };
+  }, []);
+  
   
   const handleFormSubmit = async (event: React.FormEvent) => {
     event.preventDefault();

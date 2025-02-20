@@ -7,23 +7,15 @@ import { ShippingAddress } from '../../../types/Contact';
 const provincias = [
   { value: 'provincia1', label: 'Provincia 1' },
   { value: 'provincia2', label: 'Provincia 2' },
-  // Otras provincias…
 ];
 
 const paises = [
   { value: 'es', label: 'España' },
   { value: 'fr', label: 'Francia' },
-  // Otros países…
 ];
 
 interface ShippingAddressFormProps {
-  /**
-   * Callback opcional para notificar al padre cuando se guarde la dirección.
-   */
   onAddAddress?: (data: ShippingAddress) => void;
-  /**
-   * Datos iniciales (si ya se han cargado previamente) con la estructura de ShippingAddress.
-   */
   initialData?: ShippingAddress;
 }
 
