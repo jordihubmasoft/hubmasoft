@@ -11,7 +11,7 @@ interface FiscalDataFormProps {
     companyName: string;
     nif: string;
     commercialName: string;
-    vatIdentifier: string;
+    vatIdentification: string;
     address: string;
     postalCode: string;
     province: string;
@@ -37,7 +37,7 @@ const FiscalDataForm: React.FC<FiscalDataFormProps> = ({ onSave, onChange, initi
     companyName: initialData?.companyName || '',
     nif: initialData?.nif || '',
     commercialName: initialData?.commercialName || '',
-    vatIdentifier: initialData?.vatIdentifier || '',
+    vatIdentification: initialData?.vatIdentification || '',
     address: initialData?.address || '',
     postalCode: initialData?.postalCode || '',
     city: initialData?.postalCode || '',
@@ -51,7 +51,7 @@ const FiscalDataForm: React.FC<FiscalDataFormProps> = ({ onSave, onChange, initi
       companyName: initialData?.companyName || '',
       nif: initialData?.nif || '',
       commercialName: initialData?.commercialName || '',
-      vatIdentifier: initialData?.vatIdentifier || '',
+      vatIdentification: initialData?.vatIdentification || '',
       address: initialData?.address || '',
       postalCode: initialData?.postalCode || '',
       province: initialData?.province || '',
@@ -139,7 +139,7 @@ const FiscalDataForm: React.FC<FiscalDataFormProps> = ({ onSave, onChange, initi
               label="Identificador VAT"
               variant="outlined"
               name="vatIdentifier"
-              value={formData.vatIdentifier}
+              value={formData.vatIdentification}
               onChange={handleChange}
               sx={{ bgcolor: '#F3F4F6', borderRadius: 1 }}
             />

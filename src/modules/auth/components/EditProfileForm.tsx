@@ -1,4 +1,3 @@
-// src/modules/auth/components/EditProfileForm.tsx
 import React from 'react';
 import { Card, Typography, Grid, TextField, Button } from '@mui/material';
 import { useAuth } from '../context/AuthContext';
@@ -12,7 +11,7 @@ interface EditProfileFormProps {
     email: string;
   };
   onChange: (fieldName: string, value: string) => void;
-  onSubmit: () => void; // ya no se usa internamente, se ejecuta globalmente
+  onSubmit: () => void;
   onChangePassword: () => void;
 }
 
@@ -30,7 +29,6 @@ const EditProfileForm: React.FC<EditProfileFormProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Se elimina el submit interno para usar el botón global
     onSubmit();
   };
 
@@ -91,7 +89,6 @@ const EditProfileForm: React.FC<EditProfileFormProps> = ({
           sx={{ mt: 3, bgcolor: '#F3F4F6', borderRadius: 1 }}
         />
 
-        {/* Se eliminó el botón de "Guardar Cambios" para usar el botón global */}
         <Button
           type="button"
           variant="text"

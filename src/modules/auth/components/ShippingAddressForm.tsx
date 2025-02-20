@@ -7,23 +7,15 @@ import { ShippingAddress } from '../../../types/Contact';
 const provincias = [
   { value: 'provincia1', label: 'Provincia 1' },
   { value: 'provincia2', label: 'Provincia 2' },
-  // Otras provincias…
 ];
 
 const paises = [
   { value: 'es', label: 'España' },
   { value: 'fr', label: 'Francia' },
-  // Otros países…
 ];
 
 interface ShippingAddressFormProps {
-  /**
-   * Callback opcional para notificar al padre cuando se guarde la dirección.
-   */
   onAddAddress?: (data: ShippingAddress) => void;
-  /**
-   * Datos iniciales (si ya se han cargado previamente) con la estructura de ShippingAddress.
-   */
   initialData?: ShippingAddress;
 }
 
@@ -147,9 +139,7 @@ const ShippingAddressForm: React.FC<ShippingAddressFormProps> = ({ onAddAddress,
     }
   };
 
-  const buttonLabel = hasShippingAddress
-    ? 'Añadir Dirección de Envío'
-    : 'Añadir Dirección de Envío';
+  
 
   return (
     <Card
@@ -254,22 +244,9 @@ const ShippingAddressForm: React.FC<ShippingAddressFormProps> = ({ onAddAddress,
           </Grid>
         </Grid>
         <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 3 }}>
-          <Button
-            type="submit"
-            variant="outlined"
-            sx={{
-              textTransform: 'none',
-              borderColor: '#2666CF',
-              color: '#2666CF',
-              '&:hover': {
-                backgroundColor: 'rgba(38, 102, 207, 0.1)',
-                borderColor: '#6A82FB',
-              },
-            }}
-            disabled={loading}
-          >
-            {buttonLabel}
-          </Button>
+          
+         
+          
         </Box>
       </form>
     </Card>

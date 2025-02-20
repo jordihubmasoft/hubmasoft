@@ -1,5 +1,4 @@
-// src/pages/Dashboard.tsx
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/router";
 import {
   Box,
@@ -116,13 +115,12 @@ const Dashboard = () => {
   const router = useRouter();
   const { token, contactId, agentId } = useAuthStore();
 
-  // Flag de hidratación: se inicializa en false y se actualiza en useEffect
+  // Flag de hidratación
   const [hydrated, setHydrated] = useState(false);
   useEffect(() => {
     setHydrated(true);
   }, []);
 
-  // Declaramos el resto de hooks siempre (sin condicionales)
   const [open, setOpen] = useState(true);
   const [userType, setUserType] = useState("");
   const [isMenuOpen, setIsMenuOpen] = useState(true);
@@ -135,7 +133,7 @@ const Dashboard = () => {
   const [loadingState, setLoadingState] = useState(false);
   const [refresh, setRefresh] = useState(false);
 
-  // Estado del formulario (propiedades en inglés)
+  // Estado del formulario
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -148,7 +146,7 @@ const Dashboard = () => {
     nie: "",
     commercialName: "",
     province: "",
-    mobile: "",
+    
     shippingAddress: "",
     shippingCity: "",
     website: "",
@@ -190,10 +188,8 @@ const Dashboard = () => {
     ]
   });
   
-  // Inicializamos formErrors
   const [formErrors, setFormErrors] = useState<FormErrors>({});
 
-  // useEffect para redirigir al login si ya se hidrató y no hay token
   useEffect(() => {
     if (hydrated && !token) {
       router.push("/auth/login");
@@ -216,14 +212,21 @@ const Dashboard = () => {
             email: contactData.email || "",
             country: contactData.country || "",
             city: contactData.city || "",
-            userType: contactData.userType || "",
+            // userType vendrá de contactProfile (1 o 2), si lo necesitas
+            // Por ejemplo, si contactData.contactProfile === 1 => userType = 'freelancer'
+            // contactProfile === 2 => userType = 'company'
+            userType: contactData.contactProfile === 1 
+                      ? "freelancer" 
+                      : contactData.contactProfile === 2 
+                      ? "company" 
+                      : "",
             phone: contactData.phone || "",
             address: contactData.address || "",
             postalCode: contactData.postalCode || "",
             nie: contactData.nie || "",
             commercialName: contactData.commercialName || "",
             province: contactData.province || "",
-            mobile: contactData.mobile || "",
+            phone1: contactData.phone1 || "",
             website: contactData.website || "",
             contactId: contactData.id ? contactData.id.toString() : "",
             userId: agentId || "",
@@ -231,11 +234,11 @@ const Dashboard = () => {
             experience: contactData.experience || "",
             companyName: contactData.companyName || "",
             companySize: contactData.companySize || "",
-            shippingAddress: contactData.extraInformation?.shippingAddress?.[0]?.direccion || "",
-            shippingCity: contactData.extraInformation?.shippingAddress?.[0]?.poblacion || "",
-            shippingProvince: contactData.extraInformation?.shippingAddress?.[0]?.provincia || "",
-            shippingPostalCode: contactData.extraInformation?.shippingAddress?.[0]?.codigoPostal || "",
-            shippingCountry: contactData.extraInformation?.shippingAddress?.[0]?.pais || "",
+            shippingAddress: contactData.extraInformation?.shippingAddress?.[0]?.direction || "",
+            shippingCity: contactData.extraInformation?.shippingAddress?.[0]?.city || "",
+            shippingProvince: contactData.extraInformation?.shippingAddress?.[0]?.province || "",
+            shippingPostalCode: contactData.extraInformation?.shippingAddress?.[0]?.postalCode || "",
+            shippingCountry: contactData.extraInformation?.shippingAddress?.[0]?.country || "",
           }));
           setHasContact(true);
         } else {
@@ -263,7 +266,7 @@ const Dashboard = () => {
         nie: "",
         commercialName: "",
         province: "",
-        mobile: "",
+        phone1: "",
         website: "",
         contactId: "",
         shippingAddress: "",
@@ -272,7 +275,6 @@ const Dashboard = () => {
         shippingPostalCode: "",
         shippingCountry: "",
         userId: agentId || "",
-        skills: "",
         experience: "",
         companyName: "",
         companySize: "",
@@ -411,7 +413,7 @@ const Dashboard = () => {
   };
   
   // Campos obligatorios
-  const requiredFields = ["name", "email", "country", "city", "phone"];
+  const requiredFields = [];
   
   const validateForm = (): FormErrors => {
     const errors: FormErrors = {};
@@ -421,32 +423,19 @@ const Dashboard = () => {
       }
     });
   
-    if (formData.userType === "freelancer") {
-      if (!formData.skills) {
-        errors.skills = `${t("dashboard.skills")} es requerido`;
-      }
-      if (!formData.experience) {
-        errors.experience = `${t("dashboard.experience")} es requerido`;
-      }
-    }
+    
   
-    if (formData.userType === "company") {
-      if (!formData.companyName) {
-        errors.companyName = `${t("dashboard.companyName")} es requerido`;
-      }
-      if (!formData.companySize) {
-        errors.companySize = `${t("dashboard.companySize")} es requerido`;
-      }
-    }
+    
   
     return errors;
   };
   
-  const handleChange = (event: any) => {
+  const handleChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     const name = event.target.name;
     const value = event.target.value;
     setFormData((prev) => ({ ...prev, [name]: value }));
-  };
+  }, []);
+  
   
   const handleFormSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -461,10 +450,20 @@ const Dashboard = () => {
       console.error("UserId no disponible. El usuario no ha iniciado sesión correctamente.");
       return;
     }
-  
+
+    // Convertimos userType a contactProfile
+    let contactProfile = 0;
+    if (formData.userType === "freelancer") {
+      contactProfile = 1;
+    } else if (formData.userType === "company") {
+      contactProfile = 2;
+    }
+
+    // Construimos el payload
     const contactData: any = {
       userId: agentId,
       contactId: contactId,
+      contactProfile, // Usamos contactProfile en lugar de userType
       name: formData.name,
       nie: formData.nie,
       address: formData.address,
@@ -493,6 +492,13 @@ const Dashboard = () => {
       discount: formData.discount || "",
       swift: formData.swift || "",
       iban: formData.iban || "",
+      commercialName: formData.commercialName || "",
+      // Campos adicionales
+      skills: formData.skills || "",
+      experience: formData.experience || "",
+      companyName: formData.companyName || "",
+      companySize: formData.companySize || "",
+      // Dirección de envío
       shippingAddress: [
         {
           direction: formData.shippingAddress,
@@ -516,30 +522,30 @@ const Dashboard = () => {
   
       if (response && response.data) {
         const updatedContact = response.data as any;
+        // Actualizamos formData en el estado local con la respuesta
         setFormData({
           ...formData,
           name: updatedContact.name || formData.name,
           email: updatedContact.email || formData.email,
           country: updatedContact.country || formData.country,
           city: updatedContact.city || formData.city,
-          userType: updatedContact.userType || formData.userType,
+          // Convertimos contactProfile de nuevo a userType si lo deseas
+          userType: updatedContact.contactProfile === 1 
+                    ? "freelancer" 
+                    : updatedContact.contactProfile === 2 
+                    ? "company" 
+                    : "",
           phone: updatedContact.phone || formData.phone,
           address: updatedContact.address || formData.address,
-          shippingAddress:
-            updatedContact.shippingAddress?.[0]?.direction || formData.shippingAddress,
-          shippingCity:
-            updatedContact.shippingAddress?.[0]?.city || formData.shippingCity,
-          shippingProvince:
-            updatedContact.shippingAddress?.[0]?.province || formData.shippingProvince,
-          shippingPostalCode:
-            updatedContact.shippingAddress?.[0]?.postalCode || formData.shippingPostalCode,
-          shippingCountry:
-            updatedContact.shippingAddress?.[0]?.country || formData.shippingCountry,
+          shippingAddress: updatedContact.shippingAddress?.[0]?.direction || formData.shippingAddress,
+          shippingCity: updatedContact.shippingAddress?.[0]?.city || formData.shippingCity,
+          shippingProvince: updatedContact.shippingAddress?.[0]?.province || formData.shippingProvince,
+          shippingPostalCode: updatedContact.shippingAddress?.[0]?.postalCode || formData.shippingPostalCode,
+          shippingCountry: updatedContact.shippingAddress?.[0]?.country || formData.shippingCountry,
           postalCode: updatedContact.postalCode || formData.postalCode,
           nie: updatedContact.nie || formData.nie,
           commercialName: updatedContact.commercialName || formData.commercialName,
           province: updatedContact.province || formData.province,
-          mobile: updatedContact.mobile || formData.mobile,
           website: updatedContact.website || formData.website,
           contactId: updatedContact.id || formData.contactId,
           userId: updatedContact.userId || formData.userId,
@@ -630,8 +636,6 @@ const Dashboard = () => {
     },
   };
 
-  // Ahora, una vez que se han llamado todos los hooks, si aún no se ha hidratado,
-  // mostramos un indicador de carga.
   if (!hydrated) {
     return <div></div>;
   }
