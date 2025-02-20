@@ -1,4 +1,3 @@
-// components/ContactForm.tsx
 import React, { useState, useEffect, useRef } from 'react';
 import {
   Dialog,
@@ -24,6 +23,74 @@ import { SelectChangeEvent } from '@mui/material/Select';
 import { Contact, ShippingAddress, ExtraInformation } from '../../../types/Contact';
 import ContactService from '../../../services/ContactService';
 import useAuthStore from '../../../store/useAuthStore';
+
+// Función para mapear un contacto del backend al formato local
+const mapBackendContactToLocal = (backendContact: any): Contact => {
+  return {
+    id: backendContact.id ? backendContact.id.toString() : "",
+    userId: "",
+    nombre: backendContact.name || "",
+    email: backendContact.email || "",
+    pais: backendContact.country || "",
+    poblacion: backendContact.city || "",
+    tipoContacto: backendContact.contactType === 1 ? "Cliente" : backendContact.contactType === 2 ? "Proveedor" : "",
+    telefono: backendContact.phone || "",
+    movil: backendContact.phone1 || "",
+    sitioWeb: backendContact.website || "",
+    direccion: backendContact.address || "",
+    codigoPostal: backendContact.postalCode || "",
+    nif: backendContact.nie || "",
+    nombreComercial: backendContact.commercialName || "",
+    provincia: backendContact.province || "",
+    identificacionVAT: backendContact.vatIdentification || "",
+    tags: backendContact.tags || "",
+    idioma: backendContact.extraInformation?.language || "",
+    moneda: backendContact.extraInformation?.currency || "",
+    formaPago: backendContact.extraInformation?.paymentMethod || "",
+    diasVencimiento: backendContact.extraInformation?.paymentExpirationDays || "",
+    diaVencimiento: backendContact.extraInformation?.paymentExpirationDay || "",
+    tarifa: backendContact.extraInformation?.rate || "",
+    descuento: backendContact.extraInformation?.discount || "",
+    cuentaCompras: "",
+    cuentaPagos: "",
+    swift: backendContact.extraInformation?.swift || "",
+    iban: backendContact.extraInformation?.iban || "",
+    refMandato: "",
+    referenciaInterna: backendContact.extraInformation?.internalReference || "",
+    comercialAsignado: "",
+    tipoIVA: backendContact.extraInformation?.vatType ? [backendContact.extraInformation.vatType] : [],
+    informacionAdicional: "",
+    skills: backendContact.skills || "",
+    experience: backendContact.experience || "",
+    companyName: backendContact.companyName || "",
+    companySize: backendContact.companySize || "",
+    extraInformation: backendContact.extraInformation || {
+      contact: '',
+      salesTax: 0,
+      equivalenceSurcharge: 0,
+      shoppingTax: 0,
+      paymentDay: 0,
+      vatType: '',
+      internalReference: '',
+      language: '',
+      currency: '',
+      paymentMethod: '',
+      paymentExpirationDays: '',
+      paymentExpirationDay: '',
+      rate: '',
+      discount: '',
+      swift: '',
+      iban: '',
+      shippingAddress: [
+        { direccion: '', poblacion: '', codigoPostal: '', provincia: '', pais: '' },
+      ],
+      id: 0,
+      creationDate: '',
+      active: true,
+      updatingDate: '',
+    },
+  };
+};
 
 // Objeto inicial usando los nombres en español
 const initialFormData: Contact = {
@@ -119,7 +186,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, h
       setFormData(initialFormData);
       setNombreInput('');
     }
-    // Si se abre el formulario de nuevo, se resetea el estado de autorrelleno
+    // Se resetea el estado de autorrelleno al abrir el formulario
     setIsAutoFilled(false);
   }, [contact, open]);
 
@@ -131,16 +198,15 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, h
       }
       debounceTimerRef.current = setTimeout(() => {
         if (token) {
-          // Se asume que el endpoint espera { searchTerm: string }
+          // Se asume que el endpoint espera { text: string }
           ContactService.getContactsWithFiltersV2({ text: nombreInput }, token)
             .then((response) => {
               if (response && response.data) {
                 console.log('Sugerencias recibidas:', response.data);
-                // Mapear la respuesta para ajustar "name" a "nombre"
-                const mappedSuggestions = response.data.map((contact: any) => ({
-                  ...contact,
-                  nombre: contact.name,
-                }));
+                // Mapear cada contacto recibido al formato local
+                const mappedSuggestions = response.data.map((contact: any) =>
+                  mapBackendContactToLocal(contact)
+                );
                 setSuggestions(mappedSuggestions);
               }
             })
@@ -159,14 +225,12 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, h
       }
     };
   }, [nombreInput, token]);
-  
 
   // Actualiza el formulario al escribir (incluyendo el campo "nombre")
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = event.target;
     if (!name) return;
-    // Si se trata del campo "nombre" y el usuario intenta editar manualmente,
-    // se deshabilita el modo autorrellenado para permitir la edición
+    // Si se trata del campo "nombre" y el usuario edita manualmente, se deshabilita el modo autorrelleno
     if (name === 'nombre' && isAutoFilled) {
       setIsAutoFilled(false);
     }
@@ -266,14 +330,11 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, h
     }));
   };
 
-  // Al seleccionar una sugerencia, se completan otros campos del formulario
-  // y se bloquea la edición
+  // Al seleccionar una sugerencia, se completan todos los campos del formulario
   const handleSuggestionSelect = (event: any, value: Contact | null) => {
     if (value) {
-      setFormData((prev) => ({
-        ...prev,
-        ...value,
-      }));
+      // Se actualizan todos los campos con el objeto mapeado
+      setFormData(value);
       setNombreInput(value.nombre);
       setIsAutoFilled(true);
     }
@@ -328,35 +389,33 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, h
           <Grid item xs={12} sm={6}>
             {/* Campo "Nombre" con Autocomplete */}
             <Autocomplete
-  freeSolo
-  disabled={isAutoFilled}
-  options={suggestions}
-  getOptionLabel={(option) =>
-    typeof option === 'string' ? option : option.nombre
-  }
-  onChange={handleSuggestionSelect}
-  inputValue={nombreInput}
-  onInputChange={(event, newInputValue) => {
-    setNombreInput(newInputValue);
-    // Se actualiza el campo "nombre" en el formulario
-    handleInputChange({
-      target: { name: 'nombre', value: newInputValue },
-    } as React.ChangeEvent<HTMLInputElement>);
-  }}
-  renderInput={(params) => (
-    <TextField
-      {...params}
-      label="Nombre"
-      margin="dense"
-      fullWidth
-      disabled={isAutoFilled}
-      error={Boolean(errors.nombre)}
-      helperText={errors.nombre}
-    />
-  )}
-/>
-
-
+              freeSolo
+              disabled={isAutoFilled}
+              options={suggestions}
+              getOptionLabel={(option) =>
+                typeof option === 'string' ? option : option.nombre
+              }
+              onChange={handleSuggestionSelect}
+              inputValue={nombreInput}
+              onInputChange={(event, newInputValue) => {
+                setNombreInput(newInputValue);
+                // Se actualiza el campo "nombre" en el formulario
+                handleInputChange({
+                  target: { name: 'nombre', value: newInputValue },
+                } as React.ChangeEvent<HTMLInputElement>);
+              }}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Nombre"
+                  margin="dense"
+                  fullWidth
+                  disabled={isAutoFilled}
+                  error={Boolean(errors.nombre)}
+                  helperText={errors.nombre}
+                />
+              )}
+            />
           </Grid>
           <Grid item xs={12} sm={6}>
             <TextField
