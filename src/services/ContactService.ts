@@ -188,37 +188,56 @@ export default class ContactService {
   }
 
   // NUEVO: Función para obtener sugerencias usando el endpoint WithFiltersV2
-  static async getContactsWithFiltersV2(filterPayload: any, token: string): Promise<CommonResponse<Contact[]>> {
-    try {
-      const baseURL = process.env.NEXT_PUBLIC_API?.replace(/\/+$/, '');
-      if (!baseURL) throw new Error("Base URL no está definido en las variables de entorno.");
-      const url = `${baseURL}/Contact/WithFiltersV2`;
+  // NUEVO: Función para obtener sugerencias usando el endpoint WithFiltersV2
+static async getContactsWithFiltersV2(filterPayload: any, token: string): Promise<CommonResponse<Contact[]>> {
+  try {
+    const baseURL = process.env.NEXT_PUBLIC_API?.replace(/\/+$/, '');
+    if (!baseURL) throw new Error("Base URL no está definido en las variables de entorno.");
+    const url = `${baseURL}/Contact/WithFiltersV2`;
 
-      const response = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
-        },
-        body: JSON.stringify(filterPayload),
-      });
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+      body: JSON.stringify(filterPayload),
+    });
 
-      if (response.ok) {
-        const resultData = await response.json();
+    if (response.ok) {
+      const resultData = await response.json();
+
+      // Si la respuesta es un array, se asume que es directamente la lista de contactos
+      if (Array.isArray(resultData)) {
         return {
           result: {
-            resultNumber: resultData.result.resultNumber,
-            errorMessage: resultData.result.errorMessage,
+            resultNumber: resultData.length,
+            errorMessage: "",
+          },
+          data: resultData as Contact[],
+        };
+      }
+      
+      // Si la respuesta tiene la estructura { result, data }
+      if (resultData.data) {
+        return {
+          result: {
+            resultNumber: resultData.result?.resultNumber,
+            errorMessage: resultData.result?.errorMessage,
           },
           data: resultData.data as Contact[],
         };
-      } else {
-        const errorResponse = await response.json();
-        throw new Error(errorResponse.result?.errorMessage || "Error al obtener contactos con filtros");
       }
-    } catch (err: any) {
-      console.error("Error en la solicitud de getContactsWithFiltersV2:", err.message || err);
-      throw new Error("Ocurrió un problema al obtener contactos con filtros.");
+
+      throw new Error("Formato de respuesta inesperado.");
+    } else {
+      const errorResponse = await response.json();
+      throw new Error(errorResponse.result?.errorMessage || "Error al obtener contactos con filtros");
     }
+  } catch (err: any) {
+    console.error("Error en la solicitud de getContactsWithFiltersV2:", err.message || err);
+    throw new Error("Ocurrió un problema al obtener contactos con filtros.");
   }
+}
+
 }

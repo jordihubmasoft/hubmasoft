@@ -136,7 +136,12 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, h
             .then((response) => {
               if (response && response.data) {
                 console.log('Sugerencias recibidas:', response.data);
-                setSuggestions(response.data);
+                // Mapear la respuesta para ajustar "name" a "nombre"
+                const mappedSuggestions = response.data.map((contact: any) => ({
+                  ...contact,
+                  nombre: contact.name,
+                }));
+                setSuggestions(mappedSuggestions);
               }
             })
             .catch((error) => {
@@ -154,6 +159,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, h
       }
     };
   }, [nombreInput, token]);
+  
 
   // Actualiza el formulario al escribir (incluyendo el campo "nombre")
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -322,33 +328,35 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, h
           <Grid item xs={12} sm={6}>
             {/* Campo "Nombre" con Autocomplete */}
             <Autocomplete
-              freeSolo
-              disabled={isAutoFilled} // Se deshabilita si se autorrellena
-              options={suggestions}
-              getOptionLabel={(option) =>
-                typeof option === 'string' ? option : option.nombre
-              }
-              onChange={handleSuggestionSelect}
-              inputValue={nombreInput}
-              onInputChange={(event, newInputValue) => {
-                setNombreInput(newInputValue);
-                // Se actualiza el campo "nombre" en el formulario
-                handleInputChange({
-                  target: { name: 'nombre', value: newInputValue },
-                } as React.ChangeEvent<HTMLInputElement>);
-              }}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label="Nombre"
-                  margin="dense"
-                  fullWidth
-                  disabled={isAutoFilled}
-                  error={Boolean(errors.nombre)}
-                  helperText={errors.nombre}
-                />
-              )}
-            />
+  freeSolo
+  disabled={isAutoFilled}
+  options={suggestions}
+  getOptionLabel={(option) =>
+    typeof option === 'string' ? option : option.nombre
+  }
+  onChange={handleSuggestionSelect}
+  inputValue={nombreInput}
+  onInputChange={(event, newInputValue) => {
+    setNombreInput(newInputValue);
+    // Se actualiza el campo "nombre" en el formulario
+    handleInputChange({
+      target: { name: 'nombre', value: newInputValue },
+    } as React.ChangeEvent<HTMLInputElement>);
+  }}
+  renderInput={(params) => (
+    <TextField
+      {...params}
+      label="Nombre"
+      margin="dense"
+      fullWidth
+      disabled={isAutoFilled}
+      error={Boolean(errors.nombre)}
+      helperText={errors.nombre}
+    />
+  )}
+/>
+
+
           </Grid>
           <Grid item xs={12} sm={6}>
             <TextField
