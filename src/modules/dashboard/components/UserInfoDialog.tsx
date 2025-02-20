@@ -1,6 +1,4 @@
-// src/components/UserInfoDialog.tsx
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -28,7 +26,6 @@ interface FormErrors {
   city?: string;
   phone?: string;
   userType?: string;
-  skills?: string;
   experience?: string;
   companyName?: string;
   companySize?: string;
@@ -43,7 +40,6 @@ interface FormErrors {
   address?: string;
   postalCode?: string;
   website?: string;
-  mobile?: string;
   [key: string]: string | undefined;
 }
 
@@ -61,7 +57,7 @@ interface UserInfoDialogProps {
     email: string;
     country: string;
     city: string;
-    userType: string;
+    userType: string;  // "freelancer" o "company"
     phone: string;
     address: string;
     shippingAddress: string;
@@ -69,11 +65,10 @@ interface UserInfoDialogProps {
     nie: string;
     commercialName: string;
     province: string;
-    mobile: string;
+    phone1: string;
     website: string;
-    contactId?: string; // Hacer opcional
+    contactId?: string;
     userId: string;
-    skills: string;
     experience: string;
     companyName: string;
     companySize: string;
@@ -124,6 +119,48 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
       : []
   );
 
+  // Efecto para inicializar shippingAddresses cuando lleguen datos de formData
+  useEffect(() => {
+    if (
+      formData.shippingAddress &&
+      formData.shippingCity &&
+      formData.shippingProvince &&
+      formData.shippingPostalCode &&
+      formData.shippingCountry &&
+      shippingAddresses.length === 0
+    ) {
+      setShippingAddresses([
+        {
+          id: "initial",
+          direction: formData.shippingAddress,
+          city: formData.shippingCity,
+          province: formData.shippingProvince,
+          postalCode: formData.shippingPostalCode,
+          country: formData.shippingCountry,
+        },
+      ]);
+    }
+  }, [
+    formData.shippingAddress,
+    formData.shippingCity,
+    formData.shippingProvince,
+    formData.shippingPostalCode,
+    formData.shippingCountry,
+    shippingAddresses.length,
+  ]);
+
+  // Sincroniza los cambios en shippingAddresses con formData usando handleChange
+  useEffect(() => {
+    if (shippingAddresses.length > 0) {
+      const firstAddress = shippingAddresses[0];
+      handleChange({ target: { name: "shippingAddress", value: firstAddress.direction } } as React.ChangeEvent<HTMLInputElement>);
+      handleChange({ target: { name: "shippingCity", value: firstAddress.city } } as React.ChangeEvent<HTMLInputElement>);
+      handleChange({ target: { name: "shippingProvince", value: firstAddress.province } } as React.ChangeEvent<HTMLInputElement>);
+      handleChange({ target: { name: "shippingPostalCode", value: firstAddress.postalCode } } as React.ChangeEvent<HTMLInputElement>);
+      handleChange({ target: { name: "shippingCountry", value: firstAddress.country } } as React.ChangeEvent<HTMLInputElement>);
+    }
+  }, [shippingAddresses, handleChange]);
+
   // Función para agregar una nueva dirección de envío
   const addShippingAddress = () => {
     setShippingAddresses([
@@ -160,14 +197,12 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
   // Función para renderizar campos específicos según el tipo de usuario
   const renderUserTypeFields = () => {
     if (formData.userType === 'freelancer') {
-      return (
-        <>
-          {/* Aquí podrías agregar campos específicos para autónomos */}
-        </>
-      );
+      // Campos adicionales para autónomo, si los hubiera
+      return null;
     }
 
     if (formData.userType === 'company') {
+      // Campos adicionales para empresa
       return (
         <>
           <Grid item xs={12} sm={6}>
@@ -217,7 +252,6 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
       </DialogTitle>
       <DialogContent>
         {loading ? (
-          // Mostrar indicador de carga cuando loading es true
           <Box
             sx={{
               display: 'flex',
@@ -229,7 +263,6 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
             <CircularProgress color="primary" />
           </Box>
         ) : (
-          // Mostrar contenido del formulario cuando loading es false
           <>
             <DialogContentText sx={{ fontWeight: "400", fontFamily: "Roboto, sans-serif" }}>
               {hasContact
@@ -286,7 +319,7 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                           fullWidth
                           sx={{ mb: 1 }}
                           onClick={() => {
-                            // Implementar funcionalidad para cambiar foto de perfil
+                            // Funcionalidad para cambiar foto de perfil
                           }}
                         >
                           Cambiar Foto
@@ -296,7 +329,7 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                           color="error"
                           fullWidth
                           onClick={() => {
-                            // Implementar funcionalidad para eliminar cuenta
+                            // Funcionalidad para eliminar cuenta
                           }}
                         >
                           Eliminar Cuenta
@@ -378,13 +411,13 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                       <Grid item xs={12} sm={6}>
                         <TextField
                           label="Móvil"
-                          name="mobile"
+                          name="phone1"
                           fullWidth
                           variant="outlined"
-                          value={formData.mobile || ''}
+                          value={formData.phone1 || ''}
                           onChange={handleChange}
-                          error={!!formErrors.mobile}
-                          helperText={formErrors.mobile || ''}
+                          error={!!formErrors.phone1}
+                          helperText={formErrors.phone1 || ''}
                           required={false}
                         />
                       </Grid>
@@ -429,7 +462,7 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                         color="secondary"
                         fullWidth
                         onClick={() => {
-                          // Implementar funcionalidad para cambiar contraseña
+                          // Funcionalidad para cambiar contraseña
                         }}
                       >
                         Cambiar Contraseña
@@ -520,7 +553,6 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                       <MenuItem value="">Selecciona Provincia</MenuItem>
                       <MenuItem value="provincia1">Provincia 1</MenuItem>
                       <MenuItem value="provincia2">Provincia 2</MenuItem>
-                      {/* Añade más opciones según sea necesario */}
                     </TextField>
                   </Grid>
                   <Grid item xs={12} sm={4}>
@@ -552,7 +584,6 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                       <MenuItem value="">Selecciona País</MenuItem>
                       <MenuItem value="es">España</MenuItem>
                       <MenuItem value="fr">Francia</MenuItem>
-                      {/* Añade más opciones según sea necesario */}
                     </TextField>
                   </Grid>
                 </Grid>
@@ -610,7 +641,6 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                           <MenuItem value="">Selecciona Provincia</MenuItem>
                           <MenuItem value="provincia1">Provincia 1</MenuItem>
                           <MenuItem value="provincia2">Provincia 2</MenuItem>
-                          {/* Añade más opciones según sea necesario */}
                         </TextField>
                       </Grid>
                       <Grid item xs={12} sm={4}>
@@ -642,11 +672,11 @@ const UserInfoDialog: React.FC<UserInfoDialogProps> = ({
                           <MenuItem value="">Selecciona País</MenuItem>
                           <MenuItem value="es">España</MenuItem>
                           <MenuItem value="fr">Francia</MenuItem>
-                          {/* Añade más opciones según sea necesario */}
                         </TextField>
                       </Grid>
                     </Grid>
                     {shippingAddresses.length > 1 && (
+                    
                       <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
                         <IconButton color="error" onClick={() => removeShippingAddress(address.id)}>
                           <DeleteIcon />

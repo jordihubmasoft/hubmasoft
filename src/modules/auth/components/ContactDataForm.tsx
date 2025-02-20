@@ -1,49 +1,22 @@
-import React, { useState, useEffect } from 'react';
-import { Card, Typography, Grid, TextField, Button, Box } from '@mui/material';
+// ContactDataForm.tsx
+import React from 'react';
+import { Card, Typography, Grid, TextField } from '@mui/material';
 
 interface ContactDataFormProps {
-  onSave: (data: any) => void;
-  initialData?: {
+  onChange: (fieldName: string, value: string) => void;
+  data: {
     email: string;
     phone: string;
     website: string;
-    mobile: string;
+    phone1: string;
     shippingAddress: string;
   };
 }
 
-const ContactDataForm: React.FC<ContactDataFormProps> = ({ onSave, initialData }) => {
-  const [formData, setFormData] = useState({
-    email: initialData?.email || '',
-    phone: initialData?.phone || '',
-    website: initialData?.website || '',
-    mobile: initialData?.mobile || '',
-    shippingAddress: initialData?.shippingAddress || '',
-  });
-
-  useEffect(() => {
-    setFormData({
-      email: initialData?.email || '',
-      phone: initialData?.phone || '',
-      website: initialData?.website || '',
-      mobile: initialData?.mobile || '',
-      shippingAddress: initialData?.shippingAddress || '',
-    });
-  }, [initialData]);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+const ContactDataForm: React.FC<ContactDataFormProps> = ({ data, onChange }) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    onChange(e.target.name, e.target.value);
   };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSave(formData);
-  };
-
-  // Si existe información inicial (por ejemplo, el campo email), mostramos
-  // un botón de actualización; de lo contrario, uno de creación.
-  const submitLabel =
-    initialData && initialData.email ? 'Actualizar Datos de Contacto' : 'Crear Datos de Contacto';
 
   return (
     <Card
@@ -63,72 +36,74 @@ const ContactDataForm: React.FC<ContactDataFormProps> = ({ onSave, initialData }
       <Typography
         variant="h5"
         gutterBottom
-        sx={{ color: '#1A1A40', fontWeight: 500, mb: 3, fontFamily: 'Roboto, sans-serif' }}
+        sx={{
+          color: '#1A1A40',
+          fontWeight: 500,
+          mb: 3,
+          fontFamily: 'Roboto, sans-serif',
+        }}
       >
         Datos de Contacto
       </Typography>
-      <form onSubmit={handleSubmit}>
-        <Grid container spacing={2}>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              label="Email"
-              variant="outlined"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              required
-              sx={{ bgcolor: '#F3F4F6', borderRadius: 1 }}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              label="Teléfono"
-              variant="outlined"
-              name="phone"
-              value={formData.phone}
-              onChange={handleChange}
-              required
-              sx={{ bgcolor: '#F3F4F6', borderRadius: 1 }}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              label="Sitio Web"
-              variant="outlined"
-              name="website"
-              value={formData.website}
-              onChange={handleChange}
-              sx={{ bgcolor: '#F3F4F6', borderRadius: 1 }}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              label="Móvil"
-              variant="outlined"
-              name="mobile"
-              value={formData.mobile}
-              onChange={handleChange}
-              sx={{ bgcolor: '#F3F4F6', borderRadius: 1 }}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              label="Dirección de Envío"
-              variant="outlined"
-              name="shippingAddress"
-              value={formData.shippingAddress}
-              onChange={handleChange}
-              sx={{ bgcolor: '#F3F4F6', borderRadius: 1 }}
-            />
-          </Grid>
+      <Grid container spacing={2}>
+        <Grid item xs={12} sm={6}>
+          <TextField
+            fullWidth
+            label="Email"
+            variant="outlined"
+            name="email"
+            value={data.email}
+            onChange={handleChange}
+            required
+            sx={{ bgcolor: '#F3F4F6', borderRadius: 1 }}
+          />
         </Grid>
-        
-      </form>
+        <Grid item xs={12} sm={6}>
+          <TextField
+            fullWidth
+            label="Teléfono"
+            variant="outlined"
+            name="phone"
+            value={data.phone}
+            onChange={handleChange}
+            required
+            sx={{ bgcolor: '#F3F4F6', borderRadius: 1 }}
+          />
+        </Grid>
+        <Grid item xs={12} sm={6}>
+          <TextField
+            fullWidth
+            label="Sitio Web"
+            variant="outlined"
+            name="website"
+            value={data.website}
+            onChange={handleChange}
+            sx={{ bgcolor: '#F3F4F6', borderRadius: 1 }}
+          />
+        </Grid>
+        <Grid item xs={12} sm={6}>
+          <TextField
+            fullWidth
+            label="Móvil"
+            variant="outlined"
+            name="phone1"
+            value={data.phone1}
+            onChange={handleChange}
+            sx={{ bgcolor: '#F3F4F6', borderRadius: 1 }}
+          />
+        </Grid>
+        <Grid item xs={12} sm={6}>
+          <TextField
+            fullWidth
+            label="Dirección de Envío"
+            variant="outlined"
+            name="shippingAddress"
+            value={data.shippingAddress}
+            onChange={handleChange}
+            sx={{ bgcolor: '#F3F4F6', borderRadius: 1 }}
+          />
+        </Grid>
+      </Grid>
     </Card>
   );
 };

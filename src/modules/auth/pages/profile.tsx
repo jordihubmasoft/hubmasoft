@@ -207,6 +207,7 @@ const Profile: React.FC = () => {
             postalCode: contactData.postalCode || "",
             nie: contactData.nie || "",
             commercialName: contactData.commercialName || "",
+            vatIdentification: contactData.vatIdentification || "",
             province: contactData.province || "",
             mobile: contactData.mobile || "",
             website: contactData.website || "",
@@ -249,6 +250,7 @@ const Profile: React.FC = () => {
         postalCode: "",
         nie: "",
         commercialName: "",
+        vatIdentification: "",
         province: "",
         mobile: "",
         website: "",
@@ -535,7 +537,7 @@ const Profile: React.FC = () => {
                   companyName: formData.companyName,
                   nif: formData.nie, // mapeamos el NIF con el estado "nie"
                   commercialName: formData.commercialName,
-                  vatIdentifier: formData.vatIdentification,
+                  vatIdentification: formData.vatIdentification,
                   address: formData.address,
                   postalCode: formData.postalCode,
                   province: formData.province,
@@ -548,7 +550,16 @@ const Profile: React.FC = () => {
 
             {/* Sección Contacto */}
             <Box id="contactData" sx={{ mt: 4 }}>
-              <ContactDataForm onSave={() => {}} />
+              <ContactDataForm
+                data={{
+                  email: formData.email,
+                  phone: formData.phone,
+                  website: formData.website,
+                  phone1: formData.phone,
+                  shippingAddress: formData.shippingAddress,
+                }}
+                onChange={handleChangeProfileForm} // O puedes crear un manejador específico para datos de contacto
+              />
             </Box>
 
             {/* Sección Dirección de Envío */}
