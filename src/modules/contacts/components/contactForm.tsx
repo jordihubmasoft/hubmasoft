@@ -343,17 +343,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, h
   // Validación adaptada a las claves en español
   const validateForm = (): boolean => {
     const newErrors: Partial<Record<keyof Contact | keyof ExtraInformation, string>> = {};
-    if (!formData.nombre.trim()) newErrors.nombre = 'Este campo es obligatorio';
-    if (!formData.nif.trim()) newErrors.nif = 'Este campo es obligatorio';
-    if (!formData.direccion.trim()) newErrors.direccion = 'Este campo es obligatorio';
-    if (!formData.codigoPostal.trim()) newErrors.codigoPostal = 'Este campo es obligatorio';
-    if (!formData.provincia.trim()) newErrors.provincia = 'Este campo es obligatorio';
-    if (!formData.pais.trim()) newErrors.pais = 'Este campo es obligatorio';
-    const extra = formData.extraInformation!;
-    if (!extra.vatType.trim()) newErrors.vatType = 'Este campo es obligatorio';
-    if (!extra.language.trim()) newErrors.language = 'Este campo es obligatorio';
-    if (!extra.currency.trim()) newErrors.currency = 'Este campo es obligatorio';
-    if (!extra.paymentMethod.trim()) newErrors.paymentMethod = 'Este campo es obligatorio';
+    
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
