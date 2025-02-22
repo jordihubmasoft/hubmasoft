@@ -2,4 +2,5 @@
 export interface LinkedContact {
   ownerContactId: string;
   linkedContactId: string;
+  isApproved: boolean;
 }

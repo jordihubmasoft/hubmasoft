@@ -62,6 +62,12 @@ import {
 import { UserChecker } from "components/UserChecker";
 import ContactService from "services/ContactService";
 
+// NUEVOS IMPORTS:
+import LinkedContactsService from "services/LinkedContactsService";
+import { LinkedContact } from "types/LinkedContact";
+import { Contact } from "types/Contact";
+import Badge from "@mui/material/Badge";
+
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -133,6 +139,13 @@ const Dashboard = () => {
   const [loadingState, setLoadingState] = useState(false);
   const [refresh, setRefresh] = useState(false);
 
+  // NUEVOS ESTADOS PARA SOLICITUDES PENDIENTES
+  const [pendingRequests, setPendingRequests] = useState<{
+    link: LinkedContact;
+    contact: Contact | null;
+  }[]>([]);
+  const [openRequestsDialog, setOpenRequestsDialog] = useState(false);
+
   // Estado del formulario
   const [formData, setFormData] = useState({
     name: "",
@@ -146,7 +159,6 @@ const Dashboard = () => {
     nie: "",
     commercialName: "",
     province: "",
-    
     shippingAddress: "",
     shippingCity: "",
     website: "",
@@ -183,11 +195,11 @@ const Dashboard = () => {
         city: "",
         postalCode: "",
         province: "",
-        country: ""
-      }
-    ]
+        country: "",
+      },
+    ],
   });
-  
+
   const [formErrors, setFormErrors] = useState<FormErrors>({});
 
   useEffect(() => {
@@ -199,11 +211,11 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchContact = async () => {
       if (!open || !contactId || !token) return;
-  
+
       setLoadingState(true);
       try {
         const response = await ContactService.getContactById(contactId, token);
-  
+
         if (response?.data?.length > 0) {
           const contactData = response.data[0] as any;
           setFormData((prev) => ({
@@ -213,13 +225,12 @@ const Dashboard = () => {
             country: contactData.country || "",
             city: contactData.city || "",
             // userType vendrá de contactProfile (1 o 2), si lo necesitas
-            // Por ejemplo, si contactData.contactProfile === 1 => userType = 'freelancer'
-            // contactProfile === 2 => userType = 'company'
-            userType: contactData.contactProfile === 1 
-                      ? "freelancer" 
-                      : contactData.contactProfile === 2 
-                      ? "company" 
-                      : "",
+            userType:
+              contactData.contactProfile === 1
+                ? "freelancer"
+                : contactData.contactProfile === 2
+                ? "company"
+                : "",
             phone: contactData.phone || "",
             address: contactData.address || "",
             postalCode: contactData.postalCode || "",
@@ -234,11 +245,18 @@ const Dashboard = () => {
             experience: contactData.experience || "",
             companyName: contactData.companyName || "",
             companySize: contactData.companySize || "",
-            shippingAddress: contactData.extraInformation?.shippingAddress?.[0]?.direction || "",
-            shippingCity: contactData.extraInformation?.shippingAddress?.[0]?.city || "",
-            shippingProvince: contactData.extraInformation?.shippingAddress?.[0]?.province || "",
-            shippingPostalCode: contactData.extraInformation?.shippingAddress?.[0]?.postalCode || "",
-            shippingCountry: contactData.extraInformation?.shippingAddress?.[0]?.country || "",
+            shippingAddress:
+              contactData.extraInformation?.shippingAddress?.[0]?.direction ||
+              "",
+            shippingCity:
+              contactData.extraInformation?.shippingAddress?.[0]?.city || "",
+            shippingProvince:
+              contactData.extraInformation?.shippingAddress?.[0]?.province || "",
+            shippingPostalCode:
+              contactData.extraInformation?.shippingAddress?.[0]?.postalCode ||
+              "",
+            shippingCountry:
+              contactData.extraInformation?.shippingAddress?.[0]?.country || "",
           }));
           setHasContact(true);
         } else {
@@ -251,7 +269,7 @@ const Dashboard = () => {
         setLoadingState(false);
       }
     };
-  
+
     const resetFormData = () => {
       setFormData((prev) => ({
         ...prev,
@@ -281,10 +299,10 @@ const Dashboard = () => {
       }));
       setHasContact(false);
     };
-  
+
     fetchContact();
   }, [open, contactId, token, agentId, refresh]);
-  
+
   // Estado para los widgets
   const [widgets, setWidgets] = useState({
     showVentas: true,
@@ -301,40 +319,40 @@ const Dashboard = () => {
     showDevolucionesClientes: true,
     showClientesConVentas: true,
   });
-  
+
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  
+
   const handleMenuClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
   };
-  
+
   const handleMenuClose = () => {
     setAnchorEl(null);
   };
-  
+
   const handleWidgetChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setWidgets({
       ...widgets,
       [event.target.name]: event.target.checked,
     });
   };
-  
+
   const handleYearChange = (event: React.ChangeEvent<{ value: unknown }>) => {
     const newYear = event.target.value as string;
     setSelectedYear(newYear);
     updateChartData(newYear, selectedPeriod);
   };
-  
+
   const handlePeriodChange = (event: React.ChangeEvent<{ value: unknown }>) => {
     const newPeriod = event.target.value as string;
     setSelectedPeriod(newPeriod);
     updateChartData(selectedYear, newPeriod);
   };
-  
+
   const updateChartData = (year: string, period: string) => {
     let updatedData;
     let updatedAmount;
-  
+
     if (year === "2024" && period === "15 días") {
       updatedData = {
         labels: ["Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio"],
@@ -399,22 +417,22 @@ const Dashboard = () => {
       };
       updatedAmount = "€0,00";
     }
-  
+
     setAmount(updatedAmount);
     setChartData(updatedData);
   };
-  
+
   const handleClose = () => {
     setOpen(false);
   };
-  
+
   const handleUserTypeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setUserType(event.target.value);
   };
-  
+
   // Campos obligatorios
-  const requiredFields = [];
-  
+  const requiredFields: string[] = [];
+
   const validateForm = (): FormErrors => {
     const errors: FormErrors = {};
     requiredFields.forEach((field) => {
@@ -422,36 +440,30 @@ const Dashboard = () => {
         errors[field] = `${t(`dashboard.${field}`)} es requerido`;
       }
     });
-  
-    
-  
-    
-  
+
     return errors;
   };
-  
+
   const handleChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     const name = event.target.name;
     const value = event.target.value;
     setFormData((prev) => ({ ...prev, [name]: value }));
   }, []);
-  
-  
+
   const handleFormSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-  
+
     const formValidationErrors = validateForm();
     if (Object.keys(formValidationErrors).length > 0) {
       setFormErrors(formValidationErrors);
       return;
     }
-  
+
     if (!agentId) {
       console.error("UserId no disponible. El usuario no ha iniciado sesión correctamente.");
       return;
     }
 
-    // Convertimos userType a contactProfile
     let contactProfile = 0;
     if (formData.userType === "freelancer") {
       contactProfile = 1;
@@ -459,11 +471,10 @@ const Dashboard = () => {
       contactProfile = 2;
     }
 
-    // Construimos el payload
     const contactData: any = {
       userId: agentId,
       contactId: contactId,
-      contactProfile, // Usamos contactProfile en lugar de userType
+      contactProfile,
       name: formData.name,
       nie: formData.nie,
       address: formData.address,
@@ -493,12 +504,10 @@ const Dashboard = () => {
       swift: formData.swift || "",
       iban: formData.iban || "",
       commercialName: formData.commercialName || "",
-      // Campos adicionales
       skills: formData.skills || "",
       experience: formData.experience || "",
       companyName: formData.companyName || "",
       companySize: formData.companySize || "",
-      // Dirección de envío
       shippingAddress: [
         {
           direction: formData.shippingAddress,
@@ -509,7 +518,7 @@ const Dashboard = () => {
         },
       ],
     };
-    
+
     try {
       let response;
       if (hasContact && contactId) {
@@ -519,32 +528,41 @@ const Dashboard = () => {
         response = await ContactService.createContact(contactData, token);
         console.log("Contacto creado exitosamente.");
       }
-  
+
       if (response && response.data) {
         const updatedContact = response.data as any;
-        // Actualizamos formData en el estado local con la respuesta
         setFormData({
           ...formData,
           name: updatedContact.name || formData.name,
           email: updatedContact.email || formData.email,
           country: updatedContact.country || formData.country,
           city: updatedContact.city || formData.city,
-          // Convertimos contactProfile de nuevo a userType si lo deseas
-          userType: updatedContact.contactProfile === 1 
-                    ? "freelancer" 
-                    : updatedContact.contactProfile === 2 
-                    ? "company" 
-                    : "",
+          userType:
+            updatedContact.contactProfile === 1
+              ? "freelancer"
+              : updatedContact.contactProfile === 2
+              ? "company"
+              : "",
           phone: updatedContact.phone || formData.phone,
           address: updatedContact.address || formData.address,
-          shippingAddress: updatedContact.shippingAddress?.[0]?.direction || formData.shippingAddress,
-          shippingCity: updatedContact.shippingAddress?.[0]?.city || formData.shippingCity,
-          shippingProvince: updatedContact.shippingAddress?.[0]?.province || formData.shippingProvince,
-          shippingPostalCode: updatedContact.shippingAddress?.[0]?.postalCode || formData.shippingPostalCode,
-          shippingCountry: updatedContact.shippingAddress?.[0]?.country || formData.shippingCountry,
+          shippingAddress:
+            updatedContact.shippingAddress?.[0]?.direction ||
+            formData.shippingAddress,
+          shippingCity:
+            updatedContact.shippingAddress?.[0]?.city || formData.shippingCity,
+          shippingProvince:
+            updatedContact.shippingAddress?.[0]?.province ||
+            formData.shippingProvince,
+          shippingPostalCode:
+            updatedContact.shippingAddress?.[0]?.postalCode ||
+            formData.shippingPostalCode,
+          shippingCountry:
+            updatedContact.shippingAddress?.[0]?.country ||
+            formData.shippingCountry,
           postalCode: updatedContact.postalCode || formData.postalCode,
           nie: updatedContact.nie || formData.nie,
-          commercialName: updatedContact.commercialName || formData.commercialName,
+          commercialName:
+            updatedContact.commercialName || formData.commercialName,
           province: updatedContact.province || formData.province,
           website: updatedContact.website || formData.website,
           contactId: updatedContact.id || formData.contactId,
@@ -557,7 +575,7 @@ const Dashboard = () => {
         setHasContact(true);
         setRefresh((prev) => !prev);
       }
-  
+
       setOpen(false);
     } catch (error: any) {
       console.error(
@@ -573,11 +591,11 @@ const Dashboard = () => {
       );
     }
   };
-  
+
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
-  
+
   const data = {
     labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul"],
     datasets: [
@@ -597,7 +615,7 @@ const Dashboard = () => {
       },
     ],
   };
-  
+
   const options = {
     responsive: true,
     plugins: {
@@ -636,10 +654,86 @@ const Dashboard = () => {
     },
   };
 
+  // NUEVA FUNCIÓN PARA REFRESCAR LAS SOLICITUDES PENDIENTES
+  const refetchPendingRequests = async () => {
+    if (!token || !contactId) return;
+  
+    try {
+      const resp = await LinkedContactsService.getByContactId(contactId, token);
+      if (!resp.data) return;
+  
+      // Usa directamente el array de vínculos (ya que resp.data es un array de LinkedContact)
+      const allLinks = resp.data;
+      
+      // Filtra las solicitudes pendientes
+      const pending = allLinks.filter((lc: any) =>
+        !lc.isApproved &&
+        (
+          lc.linkedContactId?.toLowerCase() === contactId.toLowerCase() ||
+          lc.ownerContactId?.toLowerCase() === contactId.toLowerCase()
+        )
+      );
+  
+      // Obtén los detalles del otro contacto en cada solicitud pendiente
+      const detailed = await Promise.all(
+        pending.map(async (lc: any) => {
+          let contactData: Contact | null = null;
+          // Si el current contactId coincide con linkedContactId, entonces la solicitud es recibida y el otro contacto es ownerContactId, y viceversa.
+          const isReceived = lc.linkedContactId?.toLowerCase() === contactId.toLowerCase();
+          const otherContactId = isReceived ? lc.ownerContactId : lc.linkedContactId;
+          try {
+            const cResp = await ContactService.getContactById(otherContactId, token);
+            if (cResp.data && cResp.data.length > 0) {
+              contactData = cResp.data[0];
+            }
+          } catch (err) {
+            console.error("Error fetching contact data:", err);
+          }
+          return { link: lc, contact: contactData };
+        })
+      );
+  
+      setPendingRequests(detailed);
+    } catch (error) {
+      console.error("Error al obtener solicitudes pendientes:", error);
+    }
+  };
+  
+  
+  
+  
+
+  // AL MONTAR O CAMBIAR CONTACTID/TOKEN, REFRESCAMOS SOLICITUDES
+  useEffect(() => {
+    refetchPendingRequests();
+  }, [token, contactId]);
+
+  // APROBAR SOLICITUD
+  const handleApprove = async (ownerContactId: string, linkedContactId: string) => {
+    if (!token || !contactId) return;
+    try {
+      await LinkedContactsService.approveLinkedContact(ownerContactId, linkedContactId, token);
+      await refetchPendingRequests();
+    } catch (err) {
+      console.error("Error al aprobar la solicitud:", err);
+    }
+  };
+
+  // RECHAZAR SOLICITUD
+  const handleReject = async (ownerContactId: string, linkedContactId: string) => {
+    if (!token || !contactId) return;
+    try {
+      await LinkedContactsService.deleteLinkedContact(ownerContactId, linkedContactId, token);
+      await refetchPendingRequests();
+    } catch (err) {
+      console.error("Error al rechazar la solicitud:", err);
+    }
+  };
+
   if (!hydrated) {
     return <div></div>;
   }
-  
+
   return (
     <Box
       sx={{
@@ -706,21 +800,29 @@ const Dashboard = () => {
                 }}
               >
                 <Fade in timeout={500}>
-                  <Button
-                    variant="contained"
-                    sx={{
-                      background: "linear-gradient(90deg, #2666CF, #6A82FB)",
-                      color: "#ffffff",
-                      fontWeight: "500",
-                      textTransform: "none",
-                      padding: "10px 20px",
-                      borderRadius: 2,
-                      boxShadow: "0 3px 6px rgba(0,0,0,0.1)",
-                      minWidth: "120px",
-                    }}
+                  {/* BADGE PARA MOSTRAR EL NÚMERO DE SOLICITUDES PENDIENTES */}
+                  <Badge
+                    badgeContent={pendingRequests.length}
+                    color="secondary"
+                    overlap="rectangular"
                   >
-                    {t("dashboard.newContactRequests")}
-                  </Button>
+                    <Button
+                      variant="contained"
+                      sx={{
+                        background: "linear-gradient(90deg, #2666CF, #6A82FB)",
+                        color: "#ffffff",
+                        fontWeight: "500",
+                        textTransform: "none",
+                        padding: "10px 20px",
+                        borderRadius: 2,
+                        boxShadow: "0 3px 6px rgba(0,0,0,0.1)",
+                        minWidth: "120px",
+                      }}
+                      onClick={() => setOpenRequestsDialog(true)}
+                    >
+                      {t("dashboard.newContactRequests")}
+                    </Button>
+                  </Badge>
                 </Fade>
                 <Fade in timeout={1000}>
                   <Button
@@ -772,39 +874,71 @@ const Dashboard = () => {
                   <ListItemText primary="Balance" />
                 </MenuItem>
                 <MenuItem>
-                  <Checkbox checked={widgets.showInvoicesToReceive} onChange={handleWidgetChange} name="showInvoicesToReceive" />
+                  <Checkbox
+                    checked={widgets.showInvoicesToReceive}
+                    onChange={handleWidgetChange}
+                    name="showInvoicesToReceive"
+                  />
                   <ListItemText primary="Invoices to Receive" />
                 </MenuItem>
                 <MenuItem>
-                  <Checkbox checked={widgets.showInvoicesToPay} onChange={handleWidgetChange} name="showInvoicesToPay" />
+                  <Checkbox
+                    checked={widgets.showInvoicesToPay}
+                    onChange={handleWidgetChange}
+                    name="showInvoicesToPay"
+                  />
                   <ListItemText primary="Invoices to Pay" />
                 </MenuItem>
                 <MenuItem>
-                  <Checkbox checked={widgets.showComparacionVentas} onChange={handleWidgetChange} name="showComparacionVentas" />
+                  <Checkbox
+                    checked={widgets.showComparacionVentas}
+                    onChange={handleWidgetChange}
+                    name="showComparacionVentas"
+                  />
                   <ListItemText primary="Comparación de Ventas" />
                 </MenuItem>
                 <MenuItem>
-                  <Checkbox checked={widgets.showFlujoTransacciones} onChange={handleWidgetChange} name="showFlujoTransacciones" />
+                  <Checkbox
+                    checked={widgets.showFlujoTransacciones}
+                    onChange={handleWidgetChange}
+                    name="showFlujoTransacciones"
+                  />
                   <ListItemText primary="Flujo de Transacciones" />
                 </MenuItem>
                 <MenuItem>
-                  <Checkbox checked={widgets.showMejoresClientes} onChange={handleWidgetChange} name="showMejoresClientes" />
+                  <Checkbox
+                    checked={widgets.showMejoresClientes}
+                    onChange={handleWidgetChange}
+                    name="showMejoresClientes"
+                  />
                   <ListItemText primary="Mejores Clientes" />
                 </MenuItem>
                 <MenuItem>
-                  <Checkbox checked={widgets.showProductosVendidos} onChange={handleWidgetChange} name="showProductosVendidos" />
+                  <Checkbox
+                    checked={widgets.showProductosVendidos}
+                    onChange={handleWidgetChange}
+                    name="showProductosVendidos"
+                  />
                   <ListItemText primary="Productos Vendidos" />
                 </MenuItem>
                 <MenuItem>
-                  <Checkbox checked={widgets.showDevolucionesClientes} onChange={handleWidgetChange} name="showDevolucionesClientes" />
+                  <Checkbox
+                    checked={widgets.showDevolucionesClientes}
+                    onChange={handleWidgetChange}
+                    name="showDevolucionesClientes"
+                  />
                   <ListItemText primary="Devoluciones de Clientes" />
                 </MenuItem>
                 <MenuItem>
-                  <Checkbox checked={widgets.showClientesConVentas} onChange={handleWidgetChange} name="showClientesConVentas" />
+                  <Checkbox
+                    checked={widgets.showClientesConVentas}
+                    onChange={handleWidgetChange}
+                    name="showClientesConVentas"
+                  />
                   <ListItemText primary="Clientes con Ventas" />
                 </MenuItem>
               </Menu>
-  
+
               <Grid container spacing={3}>
                 {widgets.showVentas && (
                   <Grid item xs={12} md={3}>
@@ -1391,7 +1525,7 @@ const Dashboard = () => {
                                 intersect: false,
                                 callbacks: {
                                   label: function (tooltipItem: any) {
-                                    return ` ${tooltipItem.dataset.label}: €${tooltipItem.formattedValue}`;
+                                    return `${tooltipItem.dataset.label}: €${tooltipItem.formattedValue}`;
                                   },
                                 },
                               },
@@ -1801,7 +1935,7 @@ const Dashboard = () => {
             </Container>
           </Box>
         </Box>
-  
+
         <UserInfoDialog
           open={open}
           handleClose={handleClose}
@@ -1812,9 +1946,90 @@ const Dashboard = () => {
           handleFormSubmit={handleFormSubmit}
           loading={loadingState}
         />
+
+        {/* DIALOGO PARA SOLICITUDES PENDIENTES */}
+        <Dialog
+          open={openRequestsDialog}
+          onClose={() => setOpenRequestsDialog(false)}
+        >
+          <DialogTitle>{t("dashboard.newContactRequests")}</DialogTitle>
+          <DialogContent dividers>
+          {pendingRequests.length === 0 ? (
+              <Typography>No tienes solicitudes pendientes</Typography>
+            ) : (
+              pendingRequests.map(({ link, contact }) => {
+                const isReceived =
+                  link.linkedContactId?.toLowerCase() === contactId.toLowerCase();
+                return (
+                  <Box
+                    key={`${link.ownerContactId}-${link.linkedContactId}`}
+                    sx={{
+                      border: "1px solid #eee",
+                      borderRadius: 2,
+                      p: 2,
+                      mb: 2,
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 1,
+                    }}
+                  >
+                    <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                      {contact?.nombre ?? "Contacto desconocido"}
+                    </Typography>
+                    <Typography variant="body2">
+                      Email: {contact?.email ?? "No disponible"}
+                    </Typography>
+                    {isReceived ? (
+                      <Box sx={{ display: "flex", gap: 1, mt: 1 }}>
+                        <Button
+                          variant="contained"
+                          color="success"
+                          onClick={() =>
+                            handleApprove(link.ownerContactId, link.linkedContactId)
+                          }
+                        >
+                          Aceptar
+                        </Button>
+                        <Button
+                          variant="outlined"
+                          color="error"
+                          onClick={() =>
+                            handleReject(link.ownerContactId, link.linkedContactId)
+                          }
+                        >
+                          Rechazar
+                        </Button>
+                      </Box>
+                    ) : (
+                      <Box sx={{ display: "flex", gap: 1, mt: 1, alignItems: "center" }}>
+                        <Typography variant="body2">
+                          Solicitud enviada - pendiente de aprobación
+                        </Typography>
+                        <Button
+                          variant="outlined"
+                          color="error"
+                          onClick={() =>
+                            handleReject(link.ownerContactId, link.linkedContactId)
+                          }
+                        >
+                          Cancelar
+                        </Button>
+                      </Box>
+                    )}
+                  </Box>
+                );
+              })
+            )}
+
+          </DialogContent>
+
+          <DialogActions>
+            <Button onClick={() => setOpenRequestsDialog(false)}>Cerrar</Button>
+          </DialogActions>
+        </Dialog>
       </UserChecker>
     </Box>
   );
 };
-  
+
 export default Dashboard;

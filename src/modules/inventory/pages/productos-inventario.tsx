@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Container,
@@ -37,8 +37,16 @@ import ViewColumnIcon from '@mui/icons-material/ViewColumn';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import SearchIcon from '@mui/icons-material/Search';
+
+import { useRouter } from 'next/router';
+import useAuthStore from '../../../store/useAuthStore';
+
 import Header from 'components/Header';
 import Sidebar from 'components/Sidebar';
+
+import ProductService from '../services/productService';
+// Importa el tipo de producto de una única ruta para evitar conflictos
+import { Product } from '../types/Product';
 
 // Columnas de la tabla de productos
 const allColumns = [
@@ -54,74 +62,70 @@ const allColumns = [
   { id: 'codigoBarras', label: 'Código de Barras' },
 ];
 
-// Datos de ejemplo para la tabla de productos
-const productsData = [
-  {
-    id: 1,
-    referencia: 'P001',
-    nombre: 'Producto A',
-    descripcion: 'Descripción del producto A',
-    familia: 'Familia 1',
-    subFamilia: 'Sub-familia 1',
-    unidadMedida: 'Kg',
-    precio: '100€',
-    iva: '21%',
-    descuento: '5%',
-    codigoBarras: '1234567890123',
-  },
-  {
-    id: 2,
-    referencia: 'P002',
-    nombre: 'Producto B',
-    descripcion: 'Descripción del producto B',
-    familia: 'Familia 2',
-    subFamilia: 'Sub-familia 2',
-    unidadMedida: 'Litros',
-    precio: '80€',
-    iva: '21%',
-    descuento: '0%',
-    codigoBarras: '1234567890456',
-  },
-  {
-    id: 3,
-    referencia: 'P003',
-    nombre: 'Producto C',
-    descripcion: 'Descripción del producto C',
-    familia: 'Familia 1',
-    subFamilia: 'Sub-familia 1',
-    unidadMedida: 'Unidades',
-    precio: '120€',
-    iva: '21%',
-    descuento: '3%',
-    codigoBarras: '1234567890111',
-  },
-];
+// Formulario de Producto
+const ProductFormPage = ({
+  product,
+  handleBack,
+  handleSave,
+}: {
+  product: Product | null;
+  handleBack: () => void;
+  handleSave: (p: Product) => void;
+}) => {
+  // Se recupera el token y además el usuario (para obtener el ContactId)
+  const token = useAuthStore((state) => state.token);
+  const user = useAuthStore((state) => state.contactId);
 
-// Página del formulario de productos
-const ProductFormPage = ({ product, handleBack, handleSave }) => {
-  const [formData, setFormData] = useState(product || {
-    referencia: '',
-    nombre: '',
-    descripcion: '',
-    familia: '',
-    subFamilia: '',
-    unidadMedida: '',
-    precio: '',
-    iva: '',
-    descuento: '',
-    codigoBarras: '',
-  });
+  // Estado inicial: si se está editando se carga el producto; de lo contrario, se inicializan todos los campos en vacío
+  const [formData, setFormData] = useState<Product>(
+    product || {
+      referencia: '',
+      nombre: '',
+      descripcion: '',
+      familia: '',
+      subFamilia: '',
+      unidadMedida: '',
+      precio: '',
+      iva: '',
+      descuento: '',
+      codigoBarras: '',
+      // campos opcionales para API
+      codigoFabricacion: '',
+      peso: '',
+      nombreTarifa: '',
+      subtotal: '',
+      impuestos: '',
+      total: '',
+      tarifas: '',
+      precioRecomendado: '',
+      proveedor: '',
+      costeMedio: '',
+      precioCompraSubtotal: '',
+      precioCompraImpuestos: '',
+      precioCompraTotal: '',
+      almacenPredeterminado: '',
+      cantidad: 0,
+      contactId: '',
+    }
+  );
 
-  const handleChange = (e) => {
+  // Modificamos handleChange para convertir el valor del campo "cantidad" a número
+  const handleChange = (
+    e:
+      | React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+      | any
+  ) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
+    setFormData((prev) => ({
+      ...prev,
+      [name]: name === "cantidad" ? Number(value) : value,
+    }));
   };
 
+  // Al enviar el formulario se utiliza directamente el objeto de estado (inyectando el ContactId)
   const handleSubmit = () => {
-    handleSave(formData);
+    const productToSave: Product = { ...formData, contactId: user || '' };
+    handleSave(productToSave);
     handleBack();
   };
 
@@ -131,7 +135,11 @@ const ProductFormPage = ({ product, handleBack, handleSave }) => {
         <IconButton onClick={handleBack} color="primary" sx={{ mr: 2 }}>
           <ArrowBackIcon />
         </IconButton>
-        <Typography variant="h5" component="div" sx={{ flexGrow: 1, fontWeight: 'bold' }}>
+        <Typography
+          variant="h5"
+          component="div"
+          sx={{ flexGrow: 1, fontWeight: 'bold' }}
+        >
           {product ? 'Editar Producto' : 'Nuevo Producto'}
         </Typography>
       </Box>
@@ -144,29 +152,25 @@ const ProductFormPage = ({ product, handleBack, handleSave }) => {
           <Divider sx={{ mb: 2 }} />
           <Grid container spacing={3}>
             {/* Columna de Nombre y Referencia */}
-            <Grid item xs={12} sm={4} container direction="column" spacing={3}>
-              <Grid item>
-                <TextField
-                  label="Nombre Producto"
-                  name="nombre"
-                  variant="outlined"
-                  fullWidth
-                  value={formData.nombre}
-                  onChange={handleChange}
-                  sx={{ borderRadius: 2 }}
-                />
-              </Grid>
-              <Grid item>
-                <TextField
-                  label="Referencia"
-                  name="referencia"
-                  variant="outlined"
-                  fullWidth
-                  value={formData.referencia}
-                  onChange={handleChange}
-                  sx={{ borderRadius: 2 }}
-                />
-              </Grid>
+            <Grid item xs={12} sm={4} container direction="column">
+              <TextField
+                label="Nombre Producto"
+                name="nombre"
+                variant="outlined"
+                fullWidth
+                value={formData.nombre}
+                onChange={handleChange}
+                sx={{ borderRadius: 2, mb: 2 }}
+              />
+              <TextField
+                label="Referencia"
+                name="referencia"
+                variant="outlined"
+                fullWidth
+                value={formData.referencia}
+                onChange={handleChange}
+                sx={{ borderRadius: 2 }}
+              />
             </Grid>
 
             {/* Columna de Descripción */}
@@ -175,7 +179,7 @@ const ProductFormPage = ({ product, handleBack, handleSave }) => {
                 label="Descripción"
                 name="descripcion"
                 multiline
-                rows={6} 
+                rows={6}
                 variant="outlined"
                 fullWidth
                 value={formData.descripcion}
@@ -184,7 +188,7 @@ const ProductFormPage = ({ product, handleBack, handleSave }) => {
               />
             </Grid>
 
-            {/* Fila para Código de Barras, Código de Fabricación, y Peso */}
+            {/* Fila para Código de Barras, Código de Fabricación y Peso */}
             <Grid item xs={12} sm={4}>
               <TextField
                 label="Código de Barras"
@@ -221,52 +225,50 @@ const ProductFormPage = ({ product, handleBack, handleSave }) => {
           </Grid>
         </CardContent>
       </Card>
-      <Card elevation={3} sx={{ mb: 4 }}> 
-      <CardContent>
-      {/* Sección familia */}
-      <Typography variant="h6" gutterBottom sx={{ fontWeight: '600' }}>
-        Categorías
-      </Typography>
-      <Divider sx={{ mb: 2 }} />
-      <Grid container spacing={3}>
-        {/* Campo Almacén Predeterminado */}
-        <Grid item xs={12} sm={6}>
-          <FormControl fullWidth variant="outlined" sx={{ borderRadius: 2 }}>
-            <InputLabel id="almacen-predeterminado-label">Familia</InputLabel>
-            <Select
-              labelId="familias"
-              id="familia"
-              name="familia"
-              value={formData.almacenPredeterminado}
-              onChange={handleChange}
-              label="Familia"
-            >
-              {/* Iterar sobre la lista de almacenes para crear los MenuItems */}
-              
-            </Select>
-          </FormControl>
-        </Grid>
 
-        {/* Campo Cantidad */}
-        <Grid item xs={12} sm={6}>
-          <TextField
-            label="Sub-familias"
-            name="cantidad"
-            variant="outlined"
-            fullWidth
-            type="number"
-            value={formData.cantidad}
-            onChange={handleChange}
-            InputProps={{
-              inputProps: { min: 0 },
-            }}
-            sx={{ borderRadius: 2 }}
-          />
-        </Grid>
-      </Grid>
-    </CardContent>
+      {/* Sección Categorías (Familia/Subfamilia) */}
+      <Card elevation={3} sx={{ mb: 4 }}>
+        <CardContent>
+          <Typography variant="h6" gutterBottom sx={{ fontWeight: '600' }}>
+            Categorías
+          </Typography>
+          <Divider sx={{ mb: 2 }} />
+          <Grid container spacing={3}>
+            <Grid item xs={12} sm={6}>
+              <FormControl fullWidth variant="outlined" sx={{ borderRadius: 2 }}>
+                <InputLabel>Familia</InputLabel>
+                <Select
+                  label="Familia"
+                  name="familia"
+                  value={formData.familia || ''}
+                  onChange={handleChange}
+                >
+                  <MenuItem value="Familia 1">Familia 1</MenuItem>
+                  <MenuItem value="Familia 2">Familia 2</MenuItem>
+                  <MenuItem value="Familia 3">Familia 3</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <FormControl fullWidth variant="outlined" sx={{ borderRadius: 2 }}>
+                <InputLabel>Sub-familia</InputLabel>
+                <Select
+                  label="Sub-familia"
+                  name="subFamilia"
+                  value={formData.subFamilia || ''}
+                  onChange={handleChange}
+                >
+                  <MenuItem value="Sub-familia 1">Sub-familia 1</MenuItem>
+                  <MenuItem value="Sub-familia 2">Sub-familia 2</MenuItem>
+                  <MenuItem value="Sub-familia 3">Sub-familia 3</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+          </Grid>
+        </CardContent>
       </Card>
 
+      {/* Sección Ventas */}
       <Card elevation={3} sx={{ mb: 4 }}>
         <CardContent>
           <Typography variant="h6" gutterBottom sx={{ fontWeight: '600' }}>
@@ -274,7 +276,6 @@ const ProductFormPage = ({ product, handleBack, handleSave }) => {
           </Typography>
           <Divider sx={{ mb: 2 }} />
           <Grid container spacing={3}>
-            {/* Fila con cuatro campos: Nombre tarifa, Subtotal, Impuestos, Total */}
             <Grid item xs={12} sm={3}>
               <TextField
                 label="Nombre tarifa"
@@ -295,7 +296,9 @@ const ProductFormPage = ({ product, handleBack, handleSave }) => {
                 value={formData.subtotal}
                 onChange={handleChange}
                 InputProps={{
-                  startAdornment: <InputAdornment position="start">€</InputAdornment>,
+                  startAdornment: (
+                    <InputAdornment position="start">€</InputAdornment>
+                  ),
                 }}
                 sx={{ borderRadius: 2 }}
               />
@@ -309,7 +312,9 @@ const ProductFormPage = ({ product, handleBack, handleSave }) => {
                 value={formData.impuestos}
                 onChange={handleChange}
                 InputProps={{
-                  startAdornment: <InputAdornment position="start">€</InputAdornment>,
+                  startAdornment: (
+                    <InputAdornment position="start">€</InputAdornment>
+                  ),
                 }}
                 sx={{ borderRadius: 2 }}
               />
@@ -323,19 +328,19 @@ const ProductFormPage = ({ product, handleBack, handleSave }) => {
                 value={formData.total}
                 onChange={handleChange}
                 InputProps={{
-                  startAdornment: <InputAdornment position="start">€</InputAdornment>,
+                  startAdornment: (
+                    <InputAdornment position="start">€</InputAdornment>
+                  ),
                 }}
                 sx={{ borderRadius: 2 }}
               />
             </Grid>
-
-            {/* Campos adicionales */}
             <Grid item xs={12}>
               <FormControl fullWidth variant="outlined">
                 <InputLabel>Tarifas</InputLabel>
                 <Select
                   name="tarifas"
-                  value={formData.tarifas}
+                  value={formData.tarifas || ''}
                   onChange={handleChange}
                   label="Tarifas"
                   sx={{ borderRadius: 2 }}
@@ -345,31 +350,28 @@ const ProductFormPage = ({ product, handleBack, handleSave }) => {
                 </Select>
               </FormControl>
             </Grid>
-
             <Grid item xs={12}>
               <FormControl fullWidth variant="outlined">
                 <InputLabel>Precio recomendado</InputLabel>
                 <Select
-                  name="Precio"
-                  value={formData.tarifas}
+                  name="precioRecomendado"
+                  value={formData.precioRecomendado || ''}
                   onChange={handleChange}
                   label="Precio"
                   sx={{ borderRadius: 2 }}
                 >
-                  <MenuItem value="Precio 1">Tarifa 1</MenuItem>
-                  <MenuItem value="Precio 2">Tarifa 2</MenuItem>
+                  <MenuItem value="Precio 1">Precio 1</MenuItem>
+                  <MenuItem value="Precio 2">Precio 2</MenuItem>
                 </Select>
               </FormControl>
             </Grid>
           </Grid>
         </CardContent>
       </Card>
-      
-      
-      
-        <Card elevation={3} sx={{ mb: 4 }}>
-          <CardContent>
-          {/* Sección Compras */}
+
+      {/* Sección Compras */}
+      <Card elevation={3} sx={{ mb: 4 }}>
+        <CardContent>
           <Typography variant="h6" gutterBottom sx={{ fontWeight: '600' }}>
             Compras
           </Typography>
@@ -395,14 +397,15 @@ const ProductFormPage = ({ product, handleBack, handleSave }) => {
                 value={formData.costeMedio}
                 onChange={handleChange}
                 InputProps={{
-                  startAdornment: <InputAdornment position="start">€</InputAdornment>,
+                  startAdornment: (
+                    <InputAdornment position="start">€</InputAdornment>
+                  ),
                 }}
                 sx={{ borderRadius: 2 }}
               />
             </Grid>
           </Grid>
 
-          {/* Sección Precio Compra */}
           <Typography variant="h6" gutterBottom sx={{ fontWeight: '600' }}>
             Precio Compra
           </Typography>
@@ -417,7 +420,9 @@ const ProductFormPage = ({ product, handleBack, handleSave }) => {
                 value={formData.precioCompraSubtotal}
                 onChange={handleChange}
                 InputProps={{
-                  startAdornment: <InputAdornment position="start">€</InputAdornment>,
+                  startAdornment: (
+                    <InputAdornment position="start">€</InputAdornment>
+                  ),
                 }}
                 sx={{ borderRadius: 2 }}
               />
@@ -431,7 +436,9 @@ const ProductFormPage = ({ product, handleBack, handleSave }) => {
                 value={formData.precioCompraImpuestos}
                 onChange={handleChange}
                 InputProps={{
-                  startAdornment: <InputAdornment position="start">€</InputAdornment>,
+                  startAdornment: (
+                    <InputAdornment position="start">€</InputAdornment>
+                  ),
                 }}
                 sx={{ borderRadius: 2 }}
               />
@@ -445,79 +452,70 @@ const ProductFormPage = ({ product, handleBack, handleSave }) => {
                 value={formData.precioCompraTotal}
                 onChange={handleChange}
                 InputProps={{
-                  startAdornment: <InputAdornment position="start">€</InputAdornment>,
+                  startAdornment: (
+                    <InputAdornment position="start">€</InputAdornment>
+                  ),
                 }}
                 sx={{ borderRadius: 2 }}
               />
             </Grid>
           </Grid>
-
-          
         </CardContent>
       </Card>
 
-      <Card>
-      <CardContent>
       {/* Sección Stock */}
-      <Typography variant="h6" gutterBottom sx={{ fontWeight: '600' }}>
-        Stock
-      </Typography>
-      <Divider sx={{ mb: 2 }} />
-      <Grid container spacing={3}>
-        {/* Campo Almacén Predeterminado */}
-        <Grid item xs={12} sm={6}>
-          <FormControl fullWidth variant="outlined" sx={{ borderRadius: 2 }}>
-            <InputLabel id="almacen-predeterminado-label">Almacén Predeterminado</InputLabel>
-            <Select
-              labelId="almacen-predeterminado-label"
-              id="almacen-predeterminado"
-              name="almacenPredeterminado"
-              value={formData.almacenPredeterminado}
-              onChange={handleChange}
-              label="Almacén Predeterminado"
-            >
-              {/* Iterar sobre la lista de almacenes para crear los MenuItems */}
-              
-            </Select>
-          </FormControl>
-        </Grid>
-
-        {/* Campo Cantidad */}
-        <Grid item xs={12} sm={6}>
-          <TextField
-            label="Cantidad"
-            name="cantidad"
-            variant="outlined"
-            fullWidth
-            type="number"
-            value={formData.cantidad}
-            onChange={handleChange}
-            InputProps={{
-              inputProps: { min: 0 },
-            }}
-            sx={{ borderRadius: 2 }}
-          />
-        </Grid>
-      </Grid>
-    </CardContent>
+      <Card>
+        <CardContent>
+          <Typography variant="h6" gutterBottom sx={{ fontWeight: '600' }}>
+            Stock
+          </Typography>
+          <Divider sx={{ mb: 2 }} />
+          <Grid container spacing={3}>
+            <Grid item xs={12} sm={6}>
+              <FormControl fullWidth variant="outlined" sx={{ borderRadius: 2 }}>
+                <InputLabel id="almacen-predeterminado-label">
+                  Almacén Predeterminado
+                </InputLabel>
+                <Select
+                  labelId="almacen-predeterminado-label"
+                  id="almacen-predeterminado"
+                  name="almacenPredeterminado"
+                  value={formData.almacenPredeterminado || ''}
+                  onChange={handleChange}
+                  label="Almacén Predeterminado"
+                >
+                  <MenuItem value="Almacén 1">Almacén 1</MenuItem>
+                  <MenuItem value="Almacén 2">Almacén 2</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                label="Cantidad"
+                name="cantidad"
+                variant="outlined"
+                fullWidth
+                type="number"
+                value={formData.cantidad}
+                onChange={handleChange}
+                InputProps={{ inputProps: { min: 0 } }}
+                sx={{ borderRadius: 2 }}
+              />
+            </Grid>
+          </Grid>
+        </CardContent>
       </Card>
 
-      <Card elevation={3} sx={{ mb: 4, mt:4 }}>
+      {/* Gestión de Inventario (Variantes / Lotes) */}
+      <Card elevation={3} sx={{ mb: 4, mt: 4 }}>
         <CardContent>
-          {/* Menú Principal */}
           <Typography variant="h6" gutterBottom sx={{ fontWeight: '600' }}>
             Gestión de Inventario
           </Typography>
           <Divider sx={{ mb: 2 }} />
-
           <Grid container spacing={2} sx={{ mb: 3 }}>
             <Grid item>
-              <ToggleButtonGroup
-                exclusive
-                aria-label="Menú Principal"
-                // Sin funcionalidad: estado y manejadores omitidos
-                value="variantes" // Valor estático para fines estéticos
-              >
+              <ToggleButtonGroup exclusive aria-label="Menú Principal" value="variantes">
                 <ToggleButton value="variantes" aria-label="Gestionar variantes">
                   Gestionar Variantes
                 </ToggleButton>
@@ -528,9 +526,7 @@ const ProductFormPage = ({ product, handleBack, handleSave }) => {
             </Grid>
           </Grid>
 
-          {/* Menú Secundario: Gestionar Variantes */}
           <Box>
-            {/* Opciones Superiores */}
             <Grid container spacing={2} alignItems="center" sx={{ mb: 2 }}>
               <Grid item>
                 <Button variant="contained" color="primary" sx={{ borderRadius: 2 }}>
@@ -558,13 +554,11 @@ const ProductFormPage = ({ product, handleBack, handleSave }) => {
                 />
               </Grid>
               <Grid item>
-                <IconButton>
-                  
-                </IconButton>
+                <IconButton>{/* Icono opcional */}</IconButton>
               </Grid>
             </Grid>
 
-            {/* Tabla de Variantes */}
+            {/* Tabla de Variantes (ejemplo estático) */}
             <TableContainer component={Paper} sx={{ borderRadius: 2 }}>
               <Table aria-label="tabla de variantes">
                 <TableHead>
@@ -580,7 +574,7 @@ const ProductFormPage = ({ product, handleBack, handleSave }) => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {/* Fila de Ejemplo */}
+                  {/* Fila de ejemplo */}
                   <TableRow>
                     <TableCell>000001</TableCell>
                     <TableCell>123456789012</TableCell>
@@ -598,27 +592,20 @@ const ProductFormPage = ({ product, handleBack, handleSave }) => {
                       </IconButton>
                     </TableCell>
                   </TableRow>
-                  {/* Puedes duplicar las filas según sea necesario para propósitos estéticos */}
                 </TableBody>
               </Table>
             </TableContainer>
           </Box>
 
-          {/* Menú Secundario: Gestionar Lotes */}
+          {/* Configuración de Fechas de Lotes (ejemplo estático) */}
           <Box sx={{ mt: 4 }}>
             <Typography variant="h6" gutterBottom sx={{ fontWeight: '600' }}>
               Configuración de Fechas de Lotes
             </Typography>
             <Divider sx={{ mb: 2 }} />
-
             <Grid container spacing={2} alignItems="center">
               <Grid item>
-                <ToggleButtonGroup
-                  exclusive
-                  aria-label="Toggle Fechas"
-                  // Sin funcionalidad: estado y manejadores omitidos
-                  value="inicio" // Valor estático para fines estéticos
-                >
+                <ToggleButtonGroup exclusive aria-label="Toggle Fechas" value="inicio">
                   <ToggleButton value="inicio" aria-label="Fecha Inicio">
                     10/05/2024
                   </ToggleButton>
@@ -643,9 +630,7 @@ const ProductFormPage = ({ product, handleBack, handleSave }) => {
             bgcolor: 'primary.main',
             color: 'white',
             fontWeight: 'bold',
-            '&:hover': {
-              bgcolor: 'primary.dark',
-            },
+            '&:hover': { bgcolor: 'primary.dark' },
             borderRadius: 2,
             paddingX: 4,
             paddingY: 1.5,
@@ -659,34 +644,144 @@ const ProductFormPage = ({ product, handleBack, handleSave }) => {
   );
 };
 
-// Página principal de productos
 const Productos = () => {
-  const [isEditing, setIsEditing] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState(null);
-  const [products, setProducts] = useState(productsData);
-  const [visibleColumns, setVisibleColumns] = useState(allColumns.map((col) => col.id));
-  const [anchorEl, setAnchorEl] = useState(null);
+  const router = useRouter();
+  const token = useAuthStore((state) => state.token);
 
-  const handleOpen = (product = null) => {
+  // Estado de hidratación (similar a FamiliasInventario)
+  const [hydrated, setHydrated] = useState(false);
+  useEffect(() => {
+    setHydrated(true);
+  }, []);
+
+  // Redirección a login si no existe token (una vez hidratado)
+  useEffect(() => {
+    if (hydrated && !token) {
+      router.push('/auth/login');
+    }
+  }, [hydrated, token, router]);
+
+  // Estado para manejar sidebar, carga y errores
+  const [isMenuOpen, setIsMenuOpen] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Lista de productos y control de edición
+  const [products, setProducts] = useState<Product[]>([]);
+  const [isEditing, setIsEditing] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+
+  // Columnas visibles y menú
+  const [visibleColumns, setVisibleColumns] = useState(
+    allColumns.map((col) => col.id)
+  );
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+
+  // Función para obtener productos desde el API
+  const fetchProducts = async () => {
+    if (!token) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await ProductService.getAll(token);
+      if (response?.data) {
+        const mappedProducts = response.data.map((p: any) => ({
+          referencia: p.reference,
+          nombre: p.name,
+          descripcion: p.description,
+          // Puedes mapear "familia" según lo que necesites, por ejemplo:
+          familia: p.companyCode,
+          subFamilia: p.subFamily || '',
+          unidadMedida: '', // No disponible en la API, definir según necesidad
+          precio: p.recommendedPrice?.toString() || '',
+          iva: '', // Definir si lo tienes en algún otro campo o dejar vacío
+          descuento: '',
+          codigoBarras: p.barCode,
+          codigoFabricacion: p.manufacturingCode,
+          peso: p.weight?.toString() || '',
+          nombreTarifa: p.rateName,
+          subtotal: '',
+          impuestos: '',
+          total: '',
+          tarifas: '',
+          precioRecomendado: p.recommendedPrice?.toString() || '',
+          proveedor: p.supplier,
+          costeMedio: p.avarageCost?.toString() || '',
+          precioCompraSubtotal: '',
+          precioCompraImpuestos: '',
+          precioCompraTotal: '',
+          almacenPredeterminado: p.wareHouse,
+          cantidad: p.stock,
+          id: p.id,
+          contactId: '' // o asignar el valor correspondiente si lo tienes
+        }));
+        setProducts(mappedProducts);
+      }
+    } catch (err) {
+      console.error(err);
+      setError('Ocurrió un problema al cargar los productos.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Cargar productos cuando la app esté hidratada y exista token
+  useEffect(() => {
+    if (hydrated && token) {
+      fetchProducts();
+    }
+  }, [hydrated, token]);
+
+  // Abrir formulario para crear o editar producto
+  const handleOpen = (product: Product | null = null) => {
     setSelectedProduct(product);
     setIsEditing(true);
   };
 
+  // Volver al listado
   const handleBack = () => {
     setIsEditing(false);
     setSelectedProduct(null);
   };
 
-  const handleSave = (product) => {
-    if (selectedProduct) {
-      setProducts(products.map((p) => (p.id === product.id ? product : p)));
-    } else {
-      product.id = products.length + 1;
-      setProducts([...products, product]);
+  // Guardar producto (crear o actualizar)
+  const handleSave = async (product: Product) => {
+    if (!token) return;
+    try {
+      if (product.id) {
+        // Actualizar producto existente
+        const response = await ProductService.update(product, token);
+        if (response?.data) {
+          setProducts((prev) =>
+            prev.map((p) => (p.id === product.id ? response.data : p))
+          );
+        }
+      } else {
+        // Crear nuevo producto
+        const response = await ProductService.create(product, token);
+        if (response?.data) {
+          setProducts((prev) => [...prev, response.data]);
+        }
+      }
+    } catch (err) {
+      console.error(err);
+      // Aquí podrías manejar el error, por ejemplo mostrando una alerta
     }
   };
 
-  const handleColumnToggle = (column) => {
+  // Eliminar producto
+  const handleDelete = async (productId: number | string) => {
+    if (!token) return;
+    try {
+      await ProductService.delete(productId, token);
+      setProducts((prev) => prev.filter((p) => p.id !== productId));
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  // Toggle de columnas visibles
+  const handleColumnToggle = (column: string) => {
     setVisibleColumns((prev) =>
       prev.includes(column)
         ? prev.filter((col) => col !== column)
@@ -694,28 +789,32 @@ const Productos = () => {
     );
   };
 
-  const handleMenuOpen = (event) => {
+  // Menú para selección de columnas
+  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
   };
-
   const handleMenuClose = () => {
     setAnchorEl(null);
   };
 
+  // Toggle del sidebar
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
+  };
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', bgcolor: '#F3F4F6' }}>
+      {/* Vista de listado de productos */}
       <Fade in={!isEditing} timeout={300}>
         <Box display={isEditing ? 'none' : 'block'} sx={{ flexGrow: 1 }}>
-          <Header isMenuOpen={true} />
+          <Header isMenuOpen={isMenuOpen} />
           <Box sx={{ display: 'flex', flexGrow: 1, marginTop: '64px' }}>
             <Box
               component="nav"
               sx={{
-                width: '240px',
+                width: isMenuOpen ? '240px' : '70px',
                 flexShrink: 0,
                 bgcolor: '#1A1A40',
-                borderRight: 'none',
-                borderRadius: 2,
                 overflow: 'hidden',
                 boxShadow: '0 3px 10px rgba(0, 0, 0, 0.1)',
                 zIndex: 1201,
@@ -724,7 +823,7 @@ const Productos = () => {
                 transition: 'width 0.3s ease',
               }}
             >
-              <Sidebar isMenuOpen={true} toggleMenu={() => {}} />
+              <Sidebar isMenuOpen={isMenuOpen} toggleMenu={toggleMenu} />
             </Box>
             <Box
               component="main"
@@ -733,19 +832,35 @@ const Productos = () => {
                 bgcolor: '#F3F4F6',
                 p: 3,
                 transition: 'margin-left 0.3s ease',
-                marginLeft: '240px',
+                marginLeft: isMenuOpen ? '240px' : '70px',
                 maxWidth: 'calc(100% - 240px)',
               }}
             >
               <Container maxWidth="xl">
-                <Typography variant="h3" gutterBottom sx={{ color: '#1A1A40', fontWeight: '700' }}>
+                <Typography
+                  variant="h3"
+                  gutterBottom
+                  sx={{ color: '#1A1A40', fontWeight: '700' }}
+                >
                   Productos
                 </Typography>
+
+                {loading && (
+                  <Typography variant="h6" sx={{ mb: 2 }}>
+                    Cargando productos...
+                  </Typography>
+                )}
+                {error && (
+                  <Typography variant="h6" sx={{ mb: 2, color: 'red' }}>
+                    {error}
+                  </Typography>
+                )}
+
                 <Box sx={{ display: 'flex', mb: 3, flexWrap: 'wrap', gap: 2 }}>
-                  <TextField 
-                    variant="outlined" 
-                    placeholder="Buscar..." 
-                    fullWidth 
+                  <TextField
+                    variant="outlined"
+                    placeholder="Buscar..."
+                    fullWidth
                     sx={{ flexGrow: 1, maxWidth: '400px' }}
                     InputProps={{
                       startAdornment: (
@@ -753,25 +868,25 @@ const Productos = () => {
                           <SearchIcon />
                         </InputAdornment>
                       ),
-                    }} 
+                    }}
                   />
-                  <Button 
-                    variant="contained" 
-                    sx={{ 
-                      bgcolor: 'linear-gradient(90deg, #2666CF, #6A82FB)', 
-                      color: '#ffffff', 
-                      fontWeight: '600', 
-                      textTransform: 'none', 
-                      borderRadius: 2, 
-                      boxShadow: '0 4px 8px rgba(0,0,0,0.2)', 
+                  <Button
+                    variant="contained"
+                    sx={{
+                      bgcolor: 'linear-gradient(90deg, #2666CF, #6A82FB)',
+                      color: '#ffffff',
+                      fontWeight: '600',
+                      textTransform: 'none',
+                      borderRadius: 2,
+                      boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
                       minWidth: '150px',
                       paddingY: 1,
                       '&:hover': {
                         bgcolor: 'linear-gradient(90deg, #1B4F72, #5063AF)',
                       },
-                    }} 
-                    startIcon={<AddIcon />} 
-                    onClick={() => handleOpen()}
+                    }}
+                    startIcon={<AddIcon />}
+                    onClick={() => handleOpen(null)}
                   >
                     Añadir Producto
                   </Button>
@@ -782,11 +897,9 @@ const Productos = () => {
                       borderRadius: 2,
                       boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
                       transition: 'background-color 0.3s ease',
-                      '&:hover': {
-                        bgcolor: '#FF8C00',
-                      },
+                      '&:hover': { bgcolor: '#FF8C00' },
                       minWidth: '48px',
-                      minHeight: '48px'
+                      minHeight: '48px',
                     }}
                     onClick={handleMenuOpen}
                   >
@@ -797,51 +910,73 @@ const Productos = () => {
                     open={Boolean(anchorEl)}
                     onClose={handleMenuClose}
                     PaperProps={{
-                      style: {
-                        maxHeight: '400px',
-                        width: '250px',
-                      },
+                      style: { maxHeight: '400px', width: '250px' },
                     }}
                   >
                     {allColumns.map((column) => (
                       <DropdownMenuItem key={column.id}>
                         <FormControlLabel
-                          control={<Checkbox checked={visibleColumns.includes(column.id)} onChange={() => handleColumnToggle(column.id)} />}
+                          control={
+                            <Checkbox
+                              checked={visibleColumns.includes(column.id)}
+                              onChange={() => handleColumnToggle(column.id)}
+                            />
+                          }
                           label={column.label}
                         />
                       </DropdownMenuItem>
                     ))}
                   </Menu>
                 </Box>
-                <TableContainer component={Paper} sx={{ borderRadius: 2, boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)' }}>
+
+                {/* Tabla de productos */}
+                <TableContainer
+                  component={Paper}
+                  sx={{ borderRadius: 2, boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)' }}
+                >
                   <Table>
-                    <TableHead sx={{ bgcolor: '#2666CF', '& th': { color: '#ffffff', fontWeight: '700' } }}>
+                    <TableHead
+                      sx={{
+                        bgcolor: '#2666CF',
+                        '& th': { color: '#ffffff', fontWeight: '700' },
+                      }}
+                    >
                       <TableRow>
                         {allColumns.map((column) =>
-                          visibleColumns.includes(column.id) ? <TableCell key={column.id}>{column.label}</TableCell> : null
+                          visibleColumns.includes(column.id) ? (
+                            <TableCell key={column.id}>{column.label}</TableCell>
+                          ) : null
                         )}
                         <TableCell align="center">Acciones</TableCell>
                       </TableRow>
                     </TableHead>
                     <TableBody>
                       {products.map((product, index) => (
-                        <TableRow 
-                          key={product.id} 
-                          sx={{ 
+                        <TableRow
+                          key={product.id}
+                          sx={{
                             bgcolor: index % 2 === 0 ? '#ffffff' : '#f9f9f9',
-                            '&:hover': { bgcolor: '#e3f2fd', boxShadow: '0 4px 8px rgba(0,0,0,0.1)' },
+                            '&:hover': {
+                              bgcolor: '#e3f2fd',
+                              boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
+                            },
                             transition: 'background-color 0.3s, box-shadow 0.3s',
                           }}
                         >
-                          {visibleColumns.map((column) => (
-                            <TableCell key={column}>{product[column]}</TableCell>
+                          {visibleColumns.map((colId) => (
+                            <TableCell key={colId}>
+                              {(product as any)[colId]}
+                            </TableCell>
                           ))}
                           <TableCell align="center">
-                            <IconButton onClick={() => handleOpen(product)} sx={{ color: '#1A1A40', marginRight: 1 }}>
+                            <IconButton
+                              onClick={() => handleOpen(product)}
+                              sx={{ color: '#1A1A40', marginRight: 1 }}
+                            >
                               <EditIcon />
                             </IconButton>
-                            <IconButton 
-                              onClick={() => setProducts(products.filter((p) => p.id !== product.id))} 
+                            <IconButton
+                              onClick={() => handleDelete(product.id!)}
                               sx={{ color: '#B00020' }}
                             >
                               <DeleteIcon />
@@ -858,9 +993,14 @@ const Productos = () => {
         </Box>
       </Fade>
 
+      {/* Vista del formulario (para crear/editar) */}
       <Fade in={isEditing} timeout={300}>
         <Box display={isEditing ? 'block' : 'none'}>
-          <ProductFormPage product={selectedProduct} handleBack={handleBack} handleSave={handleSave} />
+          <ProductFormPage
+            product={selectedProduct}
+            handleBack={handleBack}
+            handleSave={handleSave}
+          />
         </Box>
       </Fade>
     </Box>
