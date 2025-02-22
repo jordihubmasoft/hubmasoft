@@ -311,7 +311,7 @@ const Sidebar = ({ isMenuOpen, toggleMenu }) => {
             </ListItemIcon>
             {sidebarExpanded && (
               <>
-                <ListItemText primary={t('sidebar.inventory')} onClick={() => !openInventory && handleItemClick('/inventory/inventario')} sx={{ color: '#343A40', fontWeight: 'bold' }} />
+                <ListItemText primary={t('sidebar.inventory')} onClick={() => !openInventory } sx={{ color: '#343A40', fontWeight: 'bold' }} />
                 {openInventory ? <ExpandLess sx={{ color: '#1A73E8' }} /> : <ExpandMore sx={{ color: '#1A73E8' }} />}
               </>
             )}

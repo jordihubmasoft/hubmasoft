@@ -1,50 +1,156 @@
-// ProductService.ts
+// services/productService.ts
 
-import { CommonResponse } from "../../../types/CommonResponse";
-import { Product } from "../../../types/Product";
-import { CreateProductResponse } from "../../../types/CreateProductResponse";
+import { Product } from '../types/Product';
 
-export default class ProductService {
-  
+const BASE_URL = process.env.NEXT_PUBLIC_API?.replace(/\/+$/, '');
+
+class ProductService {
   /**
-   * Método para crear un nuevo producto.
-   * @param product - Objeto que contiene los detalles del producto a crear.
-   * @param token - Token de autorización para la solicitud.
-   * @returns Una promesa que resuelve en una respuesta común con los datos del producto creado.
+   * Obtiene todos los productos (endpoint: GET /Product/Get).
    */
-  static async create(product: Product, token: string): Promise<CommonResponse<CreateProductResponse>> {
+  static async getAll(token: string) {
     try {
-      const url = `${process.env.NEXT_PUBLIC_API}Product`;
-
-      const response = await fetch(url, {
-        method: "POST",
+      const response = await fetch(`${BASE_URL}/Product`, {
+        method: 'GET',
         headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`, // Añade el token en las cabeceras
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Error al obtener la lista de productos');
+      }
+
+      const data = await response.json();
+      return { data };
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
+  /**
+   * Obtiene productos filtrados por ContactId (endpoint: GET /Product/GetByContactId).
+   */
+  static async getByContactId(contactId: string, token: string) {
+    try {
+      const response = await fetch(`${BASE_URL}/GetByContactId?contactId=${contactId}`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Error al obtener productos por ContactId');
+      }
+
+      const data = await response.json();
+      return { data };
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
+  /**
+   * Crea un nuevo producto (endpoint: POST /Product/Create).
+   */
+  static async create(product: Product, token: string) {
+    try {
+      // Se construye el payload sin el wrapper "productRequest"
+      const payload = {
+        Name: product.nombre,
+        Description: product.descripcion,
+        ContactId: product.contactId,
+        Reference: product.referencia,
+        BarCode: product.codigoBarras,
+        ManufacturingCode: product.codigoFabricacion,
+        CompanyCode: product.familia,
+        Tags: "", // O product.tags si lo tienes
+        Weight: parseFloat(product.peso) || 0,
+        RecommendedPrice: parseFloat(product.precioRecomendado) || 0,
+        AvarageCost: parseFloat(product.costeMedio) || 0,
+        Supplier: product.proveedor,
+        WareHouse: product.almacenPredeterminado,
+        RateName: product.nombreTarifa,
+        Stock: product.cantidad,
+        SubFamilyId: null, // O product.subFamilyId si dispones de él
+        SubFamily: product.subFamilia || null,
+      };
+
+      // Se envía el payload directamente en el body
+      const response = await fetch(`${BASE_URL}/Product`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        throw new Error('Error al crear el producto');
+      }
+
+      const data = await response.json();
+      return { data };
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
+  /**
+   * Actualiza un producto existente (endpoint: PUT /Product/UpdateProduct).
+   */
+  static async update(product: Product, token: string) {
+    try {
+      const response = await fetch(`${BASE_URL}/UpdateProduct`, {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify(product),
       });
 
-      if (response.ok) {
-        const resultData = await response.json();
-        return {
-          result: {
-            resultNumber: resultData.result.resultNumber,
-            errorMessage: resultData.result.errorMessage,
-          },
-          data: resultData.data, // Asegúrate de que 'data' tenga la estructura de CreateProductResponse
-        };
-      } else {
-        const errorResponse = await response.json();
-        throw new Error(
-          errorResponse.result?.errorMessage || "Error en la solicitud de creación del producto"
-        );
+      if (!response.ok) {
+        throw new Error('Error al actualizar el producto');
       }
-    } catch (err) {
-      console.error("Error en la solicitud de creación de producto:", err);
-      throw new Error("Ocurrió un problema al procesar la solicitud. Intenta nuevamente.");
+
+      const data = await response.json();
+      return { data };
+    } catch (error) {
+      console.error(error);
+      throw error;
     }
   }
 
-  // Puedes agregar más métodos relacionados con productos aquí (e.g., get, update, delete)
+  /**
+   * Elimina un producto (endpoint: DELETE /Product/Delete).
+   * Se asume que se pasa como query param: /Delete?productId=XX
+   */
+  static async delete(productId: number | string, token: string) {
+    try {
+      const response = await fetch(`${BASE_URL}/Delete?productId=${productId}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Error al eliminar el producto');
+      }
+
+      const data = await response.json();
+      return { data };
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
 }
+
+export default ProductService;

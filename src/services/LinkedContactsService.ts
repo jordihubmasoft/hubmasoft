@@ -52,10 +52,11 @@ export default class LinkedContactsService {
       const url = `${baseURL}/LinkedContact`;
 
       // Se mantiene el nombre "LinekdContactId" ya que es lo que espera el backend.
+      // Cambiado a isApproved: false para que la vinculación quede pendiente de aprobación.
       const body = { 
         OwnerContactId: ownerContactId, 
         LinekdContactId: linkedContactId,
-        isApproved: true
+        isApproved: false
       };
 
       const response = await fetch(url, {

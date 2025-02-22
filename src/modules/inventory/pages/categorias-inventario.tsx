@@ -1,4 +1,3 @@
-// src/components/FamiliasInventario.tsx
 import React, { useState, useEffect } from 'react';
 import {
   Box,
@@ -41,10 +40,29 @@ import { Family } from '../types/family';
 import { SubFamily } from '../types/subFamily';
 import FamilyService from '../services/familyService';
 import SubFamilyService from '../services/subFamilyService';
+import { useRouter } from 'next/router';
+import useAuthStore from '../../../store/useAuthStore';
 
 const COLORS = ['#2666CF', '#4CAF50', '#FFA500', '#FF5722', '#8E24AA'];
 
 const FamiliasInventario: React.FC = () => {
+  const router = useRouter();
+  // Obtenemos el token desde el store (similar a la página de Contacts)
+  const token = useAuthStore((state) => state.token);
+
+  // Estado para verificar la hidratación (igual que en Contacts)
+  const [hydrated, setHydrated] = useState(false);
+  useEffect(() => {
+    setHydrated(true);
+  }, []);
+
+  // Redirigir a login si no hay token (una vez hidratado)
+  useEffect(() => {
+    if (hydrated && !token) {
+      router.push('/auth/login');
+    }
+  }, [hydrated, token, router]);
+
   const [familias, setFamilias] = useState<Family[]>([]);
   const [familiaExpandida, setFamiliaExpandida] = useState<string | null>(null);
   const [terminoBusqueda, setTerminoBusqueda] = useState('');
@@ -58,21 +76,10 @@ const FamiliasInventario: React.FC = () => {
   const [familiaSeleccionadaId, setFamiliaSeleccionadaId] = useState<string | null>(null);
   const [nuevoNombreSubFamilia, setNuevoNombreSubFamilia] = useState('');
   const [isMenuOpen, setIsMenuOpen] = useState(true);
-  const [token, setToken] = useState<string>(''); // Se debe obtener el token de tu sistema de autenticación
   const [cargando, setCargando] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const storedToken = localStorage.getItem('authToken'); 
-    if (storedToken) {
-      setToken(storedToken);
-      fetchFamilias(storedToken);
-    } else {
-      console.error("No se encontró el token de autenticación.");
-      // Aquí podrías redirigir a login o manejar el error según corresponda.
-    }
-  }, []);
-
+  // Cargar las familias usando el token obtenido del store
   const fetchFamilias = async (authToken: string) => {
     setCargando(true);
     setError(null);
@@ -102,6 +109,13 @@ const FamiliasInventario: React.FC = () => {
     }
   };
 
+  // Cargar familias cuando haya token y se haya hidratado la app
+  useEffect(() => {
+    if (hydrated && token) {
+      fetchFamilias(token);
+    }
+  }, [hydrated, token]);
+
   const handleExpandClick = (familyId: string) => {
     setFamiliaExpandida(familiaExpandida === familyId ? null : familyId);
   };
@@ -124,6 +138,7 @@ const FamiliasInventario: React.FC = () => {
       alert("El nombre de la familia no puede estar vacío.");
       return;
     }
+    if (!token) return;
 
     try {
       const nuevaFamilia: Family = await FamilyService.createFamily(
@@ -163,8 +178,7 @@ const FamiliasInventario: React.FC = () => {
       alert("El nombre de la sub-familia no puede estar vacío.");
       return;
     }
-
-    if (!familiaSeleccionadaId) return;
+    if (!familiaSeleccionadaId || !token) return;
     try {
       const nuevaSubFamilia: SubFamily = await SubFamilyService.createSubFamily(
         {

@@ -401,7 +401,7 @@ const Contacts = () => {
             setContacts((prevContacts) => [...prevContacts, newContact]);
             setLinkedContacts((prevLinked) => [
               ...prevLinked,
-              { ownerContactId: ownerContactId, linkedContactId: newContact.id },
+              { ownerContactId: ownerContactId, linkedContactId: newContact.id, isApproved:false },
             ]);
           } else {
             console.error("No se puede vincular el contacto debido a un ID inválido.");
@@ -575,7 +575,7 @@ const Contacts = () => {
                 <Typography variant="h3" gutterBottom sx={{ color: "#1A1A40", fontWeight: "600" }}>
                   Contactos
                 </Typography>
-  
+
                 <ContactsSearchFilters
                   searchTerm={searchTerm}
                   onSearchChange={handleSearch}
@@ -591,11 +591,11 @@ const Contacts = () => {
                   onColumnToggle={handleColumnToggle}
                   allColumns={allColumns}
                 />
-  
+
                 <Typography variant="h4" sx={{ mb: 3, color: "#2666CF", fontWeight: "600" }}>
                   Contactos Vinculados
                 </Typography>
-  
+
                 {(loadingContacts || loadingLinkedContacts) ? (
                   <Box
                     sx={{
@@ -617,7 +617,7 @@ const Contacts = () => {
                     onRowClick={handleOpenDrawer}
                   />
                 )}
-  
+
                 <ContactDetailsDrawer
                   selectedContact={selectedContact}
                   isDrawerOpen={isDrawerOpen}
@@ -641,7 +641,7 @@ const Contacts = () => {
                   handleSaveContact={handleSave}
                   handleOpenDialog={handleOpenDialog}
                 />
-  
+
                 <PasswordDialog
                   open={isPasswordDialogOpen}
                   onClose={() => setIsPasswordDialogOpen(false)}
@@ -650,7 +650,7 @@ const Contacts = () => {
                   password={password}
                   setPassword={setPassword}
                 />
-  
+
                 <LinkPersonDialog
                   open={isDialogOpen}
                   onClose={handleCloseDialog}
@@ -659,7 +659,7 @@ const Contacts = () => {
                   filteredPeople={filteredPeople}
                   onLinkContact={handleLinkContact}
                 />
-  
+
                 <ContactForm
                   open={open}
                   handleClose={handleClose}
@@ -667,7 +667,7 @@ const Contacts = () => {
                   handleSave={handleSave}
                   onLinkContact={handleLinkContact}
                 />
-  
+
               </Container>
             </Box>
           </Box>
