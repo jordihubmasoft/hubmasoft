@@ -28,11 +28,12 @@ export default class LinkedContactsService {
         };
       } else {
         let errorMessage = `Error al obtener el contacto vinculado. Código de estado: ${response.status}`;
+        const clonedResponse = response.clone();
         try {
           const errorResponse = await response.json();
           errorMessage = errorResponse.result?.errorMessage || errorMessage;
         } catch {
-          const errorText = await response.text();
+          const errorText = await clonedResponse.text();
           errorMessage = `Error al obtener el contacto vinculado: ${errorText}`;
         }
         console.error("Respuesta del servidor:", errorMessage);
@@ -50,6 +51,7 @@ export default class LinkedContactsService {
       if (!baseURL) throw new Error("Base URL no está definido en las variables de entorno.");
       const url = `${baseURL}/LinkedContact`;
 
+      // Se mantiene el nombre "LinekdContactId" ya que es lo que espera el backend.
       const body = { 
         OwnerContactId: ownerContactId, 
         LinekdContactId: linkedContactId,
@@ -66,21 +68,39 @@ export default class LinkedContactsService {
       });
 
       if (response.ok) {
-        const resultData = await response.json();
-        return {
-          result: {
-            resultNumber: resultData.result.resultNumber,
-            errorMessage: resultData.result.errorMessage,
-          },
-          data: resultData.data as LinkedContact,
-        };
+        // Clonamos la respuesta inmediatamente para usarla en caso de fallo en el parseo
+        const clonedResponse = response.clone();
+        try {
+          const resultData = await response.json();
+          return {
+            result: {
+              resultNumber: resultData.result.resultNumber,
+              errorMessage: resultData.result.errorMessage,
+            },
+            data: resultData.data as LinkedContact,
+          };
+        } catch {
+          const textData = await clonedResponse.text();
+          console.warn("Respuesta no JSON recibida:", textData);
+          return {
+            result: {
+              resultNumber: 0,
+              errorMessage: ""
+            },
+            data: {
+              ownerContactId,
+              linkedContactId
+            } as LinkedContact,
+          };
+        }
       } else {
         let errorMessage = `Error al agregar el contacto vinculado. Código de estado: ${response.status}`;
+        const clonedResponse = response.clone();
         try {
           const errorResponse = await response.json();
           errorMessage = errorResponse.result?.errorMessage || errorMessage;
         } catch {
-          const errorText = await response.text();
+          const errorText = await clonedResponse.text();
           errorMessage = `Error al agregar el contacto vinculado: ${errorText}`;
         }
         console.error("Respuesta del servidor:", errorMessage);
@@ -117,11 +137,12 @@ export default class LinkedContactsService {
         };
       } else {
         let errorMessage = `Error al aprobar el contacto vinculado. Código de estado: ${response.status}`;
+        const clonedResponse = response.clone();
         try {
           const errorResponse = await response.json();
           errorMessage = errorResponse.result?.errorMessage || errorMessage;
         } catch {
-          const errorText = await response.text();
+          const errorText = await clonedResponse.text();
           errorMessage = `Error al aprobar el contacto vinculado: ${errorText}`;
         }
         console.error("Respuesta del servidor:", errorMessage);
@@ -148,21 +169,36 @@ export default class LinkedContactsService {
       });
 
       if (response.ok) {
-        const resultData = await response.json();
-        return {
-          result: {
-            resultNumber: resultData.result.resultNumber,
-            errorMessage: resultData.result.errorMessage,
-          },
-          data: null,
-        };
+        // Clonamos la respuesta de inmediato para usarla en caso de error al parsear
+        const clonedResponse = response.clone();
+        try {
+          const resultData = await response.json();
+          return {
+            result: {
+              resultNumber: resultData.result.resultNumber,
+              errorMessage: resultData.result.errorMessage,
+            },
+            data: null,
+          };
+        } catch {
+          const textData = await clonedResponse.text();
+          console.warn("Respuesta no JSON recibida en deleteLinkedContact:", textData);
+          return {
+            result: {
+              resultNumber: 0,
+              errorMessage: ""
+            },
+            data: null,
+          };
+        }
       } else {
         let errorMessage = `Error al eliminar el contacto vinculado. Código de estado: ${response.status}`;
+        const clonedResponse = response.clone();
         try {
           const errorResponse = await response.json();
           errorMessage = errorResponse.result?.errorMessage || errorMessage;
         } catch {
-          const errorText = await response.text();
+          const errorText = await clonedResponse.text();
           errorMessage = `Error al eliminar el contacto vinculado: ${errorText}`;
         }
         console.error("Respuesta del servidor:", errorMessage);

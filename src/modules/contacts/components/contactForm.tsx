@@ -163,9 +163,10 @@ interface ContactFormProps {
   handleClose: () => void;
   contact: Contact | null;
   handleSave: (contact: Contact) => Promise<void>;
+  onLinkContact?: (contactId: string) => Promise<void>;
 }
 
-const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, handleSave }) => {
+const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, handleSave, onLinkContact }) => {
   const token = useAuthStore((state) => state.token);
   const [formData, setFormData] = useState<Contact>(initialFormData);
   const [errors, setErrors] = useState<Partial<Record<keyof Contact | keyof ExtraInformation, string>>>({});
@@ -351,7 +352,15 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, handleClose, contact, h
   const handleSubmit = async () => {
     if (validateForm()) {
       try {
-        await handleSave(formData);
+        if (isAutoFilled && formData.id) {
+          // Si se seleccionó un contacto existente, solo se vincula
+          if (onLinkContact) {
+            await onLinkContact(formData.id);
+          }
+        } else {
+          // Si se ingresó manualmente, se crea/actualiza y luego se vincula
+          await handleSave(formData);
+        }
         handleClose();
         setFormData(initialFormData);
         setErrors({});

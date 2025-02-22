@@ -1,4 +1,3 @@
-// pages/contacts/index.tsx
 import { useState, useEffect } from "react";
 import { Box, Container, Typography, CircularProgress } from "@mui/material";
 import { useRouter } from "next/router";
@@ -153,9 +152,7 @@ const Contacts = () => {
   const token = useAuthStore((state) => state.token);
   const ownerContactId = useAuthStore((state) => state.contactId);
 
-  // -------------------------------
-  // Lógica de hidratación y redirección
-  // -------------------------------
+  // Estado para hidratación y redirección
   const [hydrated, setHydrated] = useState(false);
   useEffect(() => {
     setHydrated(true);
@@ -165,9 +162,8 @@ const Contacts = () => {
       router.push("/auth/login");
     }
   }, [hydrated, token, router]);
-  // -------------------------------
 
-  // Aquí se declaran TODOS los hooks, sin retornos condicionales
+  // Declaración de hooks
   const [open, setOpen] = useState(false);
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [contacts, setContacts] = useState<Contact[]>([]);
@@ -201,6 +197,8 @@ const Contacts = () => {
   const [linkedContacts, setLinkedContacts] = useState<LinkedContact[]>([]);
   const [loadingLinkedContacts, setLoadingLinkedContacts] = useState<boolean>(false);
   const [loadingContacts, setLoadingContacts] = useState<boolean>(false);
+  // Estado para controlar el polling de actualización
+  const [isPolling, setIsPolling] = useState(false);
 
   // Función para refrescar la lista de contactos desde el API
   const fetchContacts = async () => {
@@ -235,6 +233,23 @@ const Contacts = () => {
         setLoadingLinkedContacts(false);
       }
     }
+  };
+
+  // Función de polling que refresca los datos cada 2 segundos hasta un máximo de intentos
+  const startPollingUpdates = () => {
+    setIsPolling(true);
+    let attempts = 0;
+    const maxAttempts = 5;
+    const intervalId = setInterval(async () => {
+      attempts++;
+      await fetchContacts();
+      await fetchLinkedContacts();
+      // Aquí podrías agregar lógica para detener el polling si se detecta la actualización esperada
+      if (attempts >= maxAttempts) {
+        clearInterval(intervalId);
+        setIsPolling(false);
+      }
+    }, 2000);
   };
 
   // Cargar contactos al iniciar
@@ -323,18 +338,21 @@ const Contacts = () => {
       );
       if (response.data) {
         await fetchLinkedContacts();
+        await fetchContacts();
+        startPollingUpdates();
       }
     } catch (error) {
       console.error("Error al vincular contacto:", error);
     }
   };
 
-  // Función para desvincular un contacto
+  // Función para desvincular un contacto (solo elimina el vínculo)
   const handleUnlinkContact = async (linkedContactId: string) => {
     if (!ownerContactId || !token) return;
     try {
       await LinkedContactsService.deleteLinkedContact(ownerContactId, linkedContactId, token);
       await fetchLinkedContacts();
+      startPollingUpdates();
     } catch (error) {
       console.error("Error al eliminar contacto vinculado:", error);
     }
@@ -396,28 +414,10 @@ const Contacts = () => {
       }
       await fetchContacts();
       await fetchLinkedContacts();
+      startPollingUpdates();
       setOpen(false);
     } catch (error) {
       console.error("Error al guardar el contacto:", error);
-    } finally {
-      setLoadingContacts(false);
-    }
-  };
-
-  // Función para eliminar un contacto y refrescar la tabla
-  const handleDelete = async (contactId: string) => {
-    if (!token || !ownerContactId) {
-      console.error("No hay token o ownerContactId disponible");
-      return;
-    }
-    setLoadingContacts(true);
-    try {
-      await ContactService.deleteContact(contactId, token);
-      setContacts((prev) => prev.filter((contact) => contact.id !== contactId));
-      setFilteredPeople((prev) => prev.filter((contact) => contact.id !== contactId));
-      await fetchLinkedContacts();
-    } catch (error) {
-      console.error("Error al eliminar el contacto:", error);
     } finally {
       setLoadingContacts(false);
     }
@@ -515,6 +515,25 @@ const Contacts = () => {
 
   return (
     <>
+      {/* Overlay de polling */}
+      {isPolling && (
+        <Box
+          sx={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            bgcolor: "rgba(255,255,255,0.7)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 9999,
+          }}
+        >
+          <CircularProgress />
+        </Box>
+      )}
       {/* Condicionalmente mostramos un Loading si no se ha hidratado */}
       {!hydrated ? (
         <div></div>
@@ -594,7 +613,7 @@ const Contacts = () => {
                     visibleColumns={visibleColumns}
                     allColumns={allColumns}
                     onEdit={handleOpen}
-                    onDelete={handleDelete}
+                    onDelete={handleUnlinkContact}
                     onRowClick={handleOpenDrawer}
                   />
                 )}
@@ -641,7 +660,14 @@ const Contacts = () => {
                   onLinkContact={handleLinkContact}
                 />
   
-                <ContactForm open={open} handleClose={handleClose} contact={selectedContact} handleSave={handleSave} />
+                <ContactForm
+                  open={open}
+                  handleClose={handleClose}
+                  contact={selectedContact}
+                  handleSave={handleSave}
+                  onLinkContact={handleLinkContact}
+                />
+  
               </Container>
             </Box>
           </Box>
@@ -652,4 +678,3 @@ const Contacts = () => {
 };
 
 export default Contacts;
-

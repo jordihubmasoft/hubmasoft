@@ -1,4 +1,3 @@
-// components/ContactTable.tsx
 import React from 'react';
 import {
   Table,
