@@ -514,20 +514,24 @@ const Profile: React.FC = () => {
 
             {/* Sección Datos Fiscales */}
             <Box id="fiscalData" sx={{ mt: 4 }}>
-              <FiscalDataForm
-                initialData={{
-                  companyName: formData.companyName,
-                  nif: formData.nie,
-                  commercialName: formData.commercialName,
-                  vatIdentification: formData.vatIdentification,
-                  address: formData.address,
-                  postalCode: formData.postalCode,
-                  province: formData.province,
-                  country: formData.country,
-                }}
-                onSave={() => {}}
-                onChange={handleFiscalDataChange}
-              />
+            <FiscalDataForm
+              initialData={{
+                companyName: formData.companyName,
+                nif: formData.nie,
+                commercialName: formData.commercialName,
+                vatIdentification: formData.vatIdentification,
+                address: formData.address,
+                postalCode: formData.postalCode,
+                province: formData.province,
+                country: formData.country,
+              }}
+              // Se pasa contactProfile y el nombre normal para la comparación
+              contactProfile={parseInt(formData.contactProfile)}
+              name={formData.name}
+              onSave={() => {}}
+              onChange={handleFiscalDataChange}
+            />
+
             </Box>
 
             {/* Sección Contacto */}

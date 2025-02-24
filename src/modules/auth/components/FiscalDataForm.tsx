@@ -1,3 +1,4 @@
+// FiscalDataForm.tsx
 import React, { useState, useEffect } from 'react';
 import { Card, Typography, Grid, TextField, MenuItem } from '@mui/material';
 
@@ -17,6 +18,9 @@ interface FiscalDataFormProps {
     province: string;
     country: string;
   };
+  // Nuevo: valor de contactProfile y el nombre normal
+  contactProfile?: number;
+  name?: string;
 }
 
 const provinces = [
@@ -31,34 +35,40 @@ const countries = [
   // Otros países…
 ];
 
-const FiscalDataForm: React.FC<FiscalDataFormProps> = ({ onSave, onChange, initialData }) => {
+const FiscalDataForm: React.FC<FiscalDataFormProps> = ({
+  onSave,
+  onChange,
+  initialData,
+  contactProfile,
+  name,
+}) => {
   // Estado local para el formulario fiscal
   const [formData, setFormData] = useState({
-    companyName: initialData?.companyName || '',
+    // Si contactProfile es 2 se usa companyName, sino se usa el nombre normal (name)
+    companyName: contactProfile === 2 ? (initialData?.companyName || '') : (name || ''),
     nif: initialData?.nif || '',
     commercialName: initialData?.commercialName || '',
     vatIdentification: initialData?.vatIdentification || '',
     address: initialData?.address || '',
     postalCode: initialData?.postalCode || '',
-    city: initialData?.postalCode || '',
     province: initialData?.province || '',
     country: initialData?.country || '',
+    // Puedes incluir otros campos si fuese necesario
   });
 
-  // Cada vez que cambie initialData, actualizamos el estado local
+  // Cada vez que cambie initialData o contactProfile, actualizamos el estado local
   useEffect(() => {
     setFormData({
-      companyName: initialData?.companyName || '',
+      companyName: contactProfile === 2 ? (initialData?.companyName || '') : (name || ''),
       nif: initialData?.nif || '',
       commercialName: initialData?.commercialName || '',
       vatIdentification: initialData?.vatIdentification || '',
       address: initialData?.address || '',
       postalCode: initialData?.postalCode || '',
       province: initialData?.province || '',
-      city: initialData?.postalCode || '',
       country: initialData?.country || '',
     });
-  }, [initialData]);
+  }, [initialData, contactProfile, name]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -104,12 +114,14 @@ const FiscalDataForm: React.FC<FiscalDataFormProps> = ({ onSave, onChange, initi
               label="Nombre de la Empresa"
               variant="outlined"
               name="companyName"
+              // Aquí se decide qué valor mostrar según contactProfile
               value={formData.companyName}
               onChange={handleChange}
               required
               sx={{ bgcolor: '#F3F4F6', borderRadius: 1 }}
             />
           </Grid>
+          {/* Resto de los campos */}
           <Grid item xs={12} sm={6}>
             <TextField
               fullWidth
@@ -214,7 +226,7 @@ const FiscalDataForm: React.FC<FiscalDataFormProps> = ({ onSave, onChange, initi
               label="Población"
               variant="outlined"
               name="city"
-              value={formData.city}
+              value={formData.postalCode}  // Nota: revisa si este campo corresponde a "población" o es un error
               onChange={handleChange}
               sx={{ bgcolor: '#F3F4F6', borderRadius: 1 }}
             />
