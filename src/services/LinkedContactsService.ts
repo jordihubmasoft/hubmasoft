@@ -43,6 +43,50 @@ export default class LinkedContactsService {
       console.error("Error en la solicitud:", err.message || err);
       throw new Error("Ocurrió un problema al obtener el contacto vinculado.");
     }
+
+
+  }
+
+  static async getPending(contactId: string, token: string): Promise<CommonResponse<LinkedContact[]>> {
+    try {
+      const baseURL = process.env.NEXT_PUBLIC_API?.replace(/\/+$/, '');
+      if (!baseURL) throw new Error("Base URL no está definido en las variables de entorno.");
+      const url = `${baseURL}/LinkedContact/pending/${contactId}`;
+  
+      const response = await fetch(url, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+      });
+  
+      if (response.ok) {
+        const resultData = await response.json();
+        return {
+          result: {
+            resultNumber: resultData.result.resultNumber,
+            errorMessage: resultData.result.errorMessage,
+          },
+          data: resultData.data as LinkedContact[],
+        };
+      } else {
+        let errorMessage = `Error al obtener solicitudes pendientes. Código de estado: ${response.status}`;
+        const clonedResponse = response.clone();
+        try {
+          const errorResponse = await response.json();
+          errorMessage = errorResponse.result?.errorMessage || errorMessage;
+        } catch {
+          const errorText = await clonedResponse.text();
+          errorMessage = `Error al obtener solicitudes pendientes: ${errorText}`;
+        }
+        console.error("Respuesta del servidor:", errorMessage);
+        throw new Error(errorMessage);
+      }
+    } catch (err: any) {
+      console.error("Error en la solicitud:", err.message || err);
+      throw new Error("Ocurrió un problema al obtener las solicitudes pendientes.");
+    }
   }
 
   static async addLinkedContact(ownerContactId: string, linkedContactId: string, token: string): Promise<CommonResponse<LinkedContact>> {
