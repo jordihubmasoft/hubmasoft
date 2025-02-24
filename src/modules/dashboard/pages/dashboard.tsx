@@ -656,30 +656,24 @@ const Dashboard = () => {
 
   // NUEVA FUNCIÓN PARA REFRESCAR LAS SOLICITUDES PENDIENTES
   const refetchPendingRequests = async () => {
-    if (!token || !contactId) return;
+    if (!token || !contactId) {
+      console.log("Token o contactId no definidos");
+      return;
+    }
   
     try {
-      const resp = await LinkedContactsService.getByContactId(contactId, token);
+      const resp = await LinkedContactsService.getPending(contactId, token);
       if (!resp.data) return;
   
-      // Usa directamente el array de vínculos (ya que resp.data es un array de LinkedContact)
-      const allLinks = resp.data;
-      
-      // Filtra las solicitudes pendientes
-      const pending = allLinks.filter((lc: any) =>
-        !lc.isApproved &&
-        (
-          lc.linkedContactId?.toLowerCase() === contactId.toLowerCase() ||
-          lc.ownerContactId?.toLowerCase() === contactId.toLowerCase()
-        )
-      );
+      // Aquí resp.data es el array de solicitudes pendientes (con isApproved = false)
+      const pending = resp.data; 
   
-      // Obtén los detalles del otro contacto en cada solicitud pendiente
+      // Para cada solicitud pendiente, obtenemos los datos del otro contacto
       const detailed = await Promise.all(
-        pending.map(async (lc: any) => {
+        pending.map(async (lc: LinkedContact) => {
           let contactData: Contact | null = null;
-          // Si el current contactId coincide con linkedContactId, entonces la solicitud es recibida y el otro contacto es ownerContactId, y viceversa.
-          const isReceived = lc.linkedContactId?.toLowerCase() === contactId.toLowerCase();
+          // Si mi contactId coincide con linkedContactId, entonces la solicitud es recibida
+          const isReceived = lc.linkedContactId.toLowerCase() === contactId.toLowerCase();
           const otherContactId = isReceived ? lc.ownerContactId : lc.linkedContactId;
           try {
             const cResp = await ContactService.getContactById(otherContactId, token);
@@ -687,17 +681,17 @@ const Dashboard = () => {
               contactData = cResp.data[0];
             }
           } catch (err) {
-            console.error("Error fetching contact data:", err);
+            console.error("Error al obtener datos del contacto:", err);
           }
           return { link: lc, contact: contactData };
         })
       );
-  
       setPendingRequests(detailed);
     } catch (error) {
       console.error("Error al obtener solicitudes pendientes:", error);
     }
   };
+  
   
   
   
