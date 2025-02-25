@@ -369,54 +369,7 @@ const DashboardPage = () => {
   };
   
   const sampleProducts = [
-    {
-      id: 1,
-      name: 'Coca Cola',
-      description: 'Refresco clásico con burbujas',
-      price: 1.5,
-      image: '/images/coca-cola.jpg',
-      category: 'Refrescos',
-    },
-    {
-      id: 2,
-      name: 'Fanta Naranja',
-      description: 'Refresco con sabor a naranja',
-      price: 1.5,
-      image: '/images/fanta-naranja.jpg',
-      category: 'Refrescos',
-    },
-    {
-      id: 3,
-      name: 'Cerveza Heineken',
-      description: 'Cerveza premium lager',
-      price: 2.0,
-      image: '/images/heineken.jpg',
-      category: 'Cerveza',
-    },
-    {
-      id: 4,
-      name: 'Agua Evian',
-      description: 'Agua mineral natural',
-      price: 1.2,
-      image: '/images/agua-evian.jpg',
-      category: 'Agua',
-    },
-    {
-      id: 5,
-      name: 'Red Bull',
-      description: 'Bebida energética',
-      price: 2.5,
-      image: '/images/red-bull.jpg',
-      category: 'Energéticas',
-    },
-    {
-      id: 6,
-      name: 'Vino Tinto Rioja',
-      description: 'Vino tinto de la región de Rioja',
-      price: 10.0,
-      image: '/images/vino-tinto.jpg',
-      category: 'Vino',
-    },
+    
     // Puedes añadir más productos aquí
   ];
   

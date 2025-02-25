@@ -36,7 +36,7 @@ function transformLocalToBackendPayload(contact: Omit<Contact, "id" | "userId">)
     postalCode: contact.codigoPostal,
     email: contact.email,
     phone: contact.telefono,
-    phone1: contact.movil, // Enviar el móvil como segundo teléfono
+    phone1: contact.movil,
     website: contact.sitioWeb,
     vatIdentification: contact.identificacionVAT,
     commercialName: contact.nombreComercial,
@@ -148,11 +148,9 @@ const initialFormData: Contact = {
 
 const Contacts = () => {
   const router = useRouter();
-  // Obtenemos token y ownerContactId del store
   const token = useAuthStore((state) => state.token);
   const ownerContactId = useAuthStore((state) => state.contactId);
 
-  // Estado para hidratación y redirección
   const [hydrated, setHydrated] = useState(false);
   useEffect(() => {
     setHydrated(true);
@@ -163,7 +161,6 @@ const Contacts = () => {
     }
   }, [hydrated, token, router]);
 
-  // Declaración de hooks
   const [open, setOpen] = useState(false);
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [contacts, setContacts] = useState<Contact[]>([]);
@@ -197,10 +194,8 @@ const Contacts = () => {
   const [linkedContacts, setLinkedContacts] = useState<LinkedContact[]>([]);
   const [loadingLinkedContacts, setLoadingLinkedContacts] = useState<boolean>(false);
   const [loadingContacts, setLoadingContacts] = useState<boolean>(false);
-  // Estado para controlar el polling de actualización
   const [isPolling, setIsPolling] = useState(false);
 
-  // Función para refrescar la lista de contactos desde el API
   const fetchContacts = async () => {
     if (token) {
       setLoadingContacts(true);
@@ -219,7 +214,6 @@ const Contacts = () => {
     }
   };
 
-  // Función para refrescar los contactos vinculados
   const fetchLinkedContacts = async () => {
     if (ownerContactId && token) {
       setLoadingLinkedContacts(true);
@@ -235,7 +229,6 @@ const Contacts = () => {
     }
   };
 
-  // Función de polling que refresca los datos cada 2 segundos hasta un máximo de intentos
   const startPollingUpdates = () => {
     setIsPolling(true);
     let attempts = 0;
@@ -251,12 +244,10 @@ const Contacts = () => {
     }, 2000);
   };
 
-  // Cargar contactos al iniciar
   useEffect(() => {
     fetchContacts();
   }, [token]);
 
-  // Actualizar columnas visibles desde localStorage
   useEffect(() => {
     const savedColumns =
       JSON.parse(localStorage.getItem("visibleColumns") || "[]") ||
@@ -268,7 +259,6 @@ const Contacts = () => {
     localStorage.setItem("visibleColumns", JSON.stringify(visibleColumns));
   }, [visibleColumns]);
 
-  // Actualizar datos de edición cuando cambia el contacto seleccionado
   useEffect(() => {
     setEditData(selectedContact);
   }, [selectedContact]);
@@ -290,12 +280,10 @@ const Contacts = () => {
     }
   }, [selectedContact]);
 
-  // Cargar contactos vinculados al cambiar ownerContactId/token
   useEffect(() => {
     fetchLinkedContacts();
   }, [ownerContactId, token]);
 
-  // Manejo de la búsqueda
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     const term = event.target.value.toLowerCase();
     setSearchTerm(term);
@@ -326,7 +314,6 @@ const Contacts = () => {
     setSelectedContact(null);
   };
 
-  // Función para vincular un contacto
   const handleLinkContact = async (personId: string) => {
     if (!ownerContactId || !token) return;
     try {
@@ -345,7 +332,6 @@ const Contacts = () => {
     }
   };
 
-  // Función para desvincular un contacto (solo elimina el vínculo)
   const handleUnlinkContact = async (linkedContactId: string) => {
     if (!ownerContactId || !token) return;
     try {
@@ -357,14 +343,12 @@ const Contacts = () => {
     }
   };
 
-  // Abrir el drawer para ver detalles del contacto
   const handleOpenDrawer = (contact: Contact) => {
     setSelectedContact(contact);
     setEditData(contact);
     setIsDrawerOpen(true);
   };
 
-  // Función para guardar (crear/actualizar) un contacto y refrescar la tabla
   const handleSave = async (contact: Contact) => {
     if (!token || !ownerContactId) {
       console.error("No hay token o ownerContactId disponible");
@@ -422,8 +406,8 @@ const Contacts = () => {
     }
   };
 
-  // Función para transformar el objeto del servicio al formato interno
-  function transformServiceContactToLocal(serviceContact: any): Contact {
+  // Función para transformar el objeto del servicio al formato interno, añadiendo 'registered'
+  function transformServiceContactToLocal(serviceContact: any): Contact & { registered: boolean } {
     return {
       id: serviceContact.id ? serviceContact.id.toString() : "",
       userId: serviceContact.userId ? serviceContact.userId.toString() : "",
@@ -459,10 +443,11 @@ const Contacts = () => {
       tipoIVA: serviceContact.extraInformation?.vatType ? [serviceContact.extraInformation.vatType] : [],
       informacionAdicional: "",
       extraInformation: serviceContact.extraInformation,
-    };
+      // Se determina 'registered' según contactProfile
+      registered: serviceContact.contactProfile === 1,
+    } as Contact & { registered: boolean };
   }
 
-  // Función para gestionar el menú de columnas
   const handleColumnToggle = (column: string) => {
     setVisibleColumns((prev) =>
       prev.includes(column) ? prev.filter((col) => col !== column) : [...prev, column]
@@ -477,7 +462,6 @@ const Contacts = () => {
     setAnchorEl(null);
   };
 
-  // Función para obtener los contactos vinculados
   const getLinkedContacts = (): Contact[] => {
     return contacts.filter((contact) =>
       linkedContacts.some(
@@ -486,7 +470,6 @@ const Contacts = () => {
     );
   };
 
-  // Se aplica la búsqueda y/o el filtro adicional
   const getFilteredContacts = () => {
     const linkedContactsList = getLinkedContacts();
     return linkedContactsList.filter((contact) => {
@@ -514,7 +497,6 @@ const Contacts = () => {
 
   return (
     <>
-      {/* Overlay de polling */}
       {isPolling && (
         <Box
           sx={{
@@ -533,7 +515,6 @@ const Contacts = () => {
           <CircularProgress />
         </Box>
       )}
-      {/* Condicionalmente mostramos un Loading si no se ha hidratado */}
       {!hydrated ? (
         <div></div>
       ) : (
@@ -566,12 +547,10 @@ const Contacts = () => {
                 p: 3,
                 transition: "margin-left 0.3s ease",
                 marginLeft: isMenuOpen ? "240px" : "70px",
-                // Se actualiza el maxWidth para que se adapte dinámicamente
                 maxWidth: `calc(100% - ${isMenuOpen ? 240 : 70}px)`,
                 minHeight: "calc(100vh - 64px)",
               }}
             >
-              {/* Se actualiza el Container para que ocupe todo el ancho disponible */}
               <Container maxWidth={false} disableGutters>
                 <Typography variant="h3" gutterBottom sx={{ color: "#1A1A40", fontWeight: "600" }}>
                   Contactos
