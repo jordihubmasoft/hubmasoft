@@ -30,11 +30,24 @@ const SubFamilyService = {
       },
       body: JSON.stringify(subFamilyData),
     });
+    
     if (!response.ok) {
       throw new Error(`Error creating sub-family: ${response.statusText}`);
     }
-    return await response.json();
+    
+    const text = await response.text();
+    if (text) {
+      return JSON.parse(text);
+    } else {
+      // Retornar un objeto con datos mínimos en caso de no haber contenido
+      return { 
+        id: `${Date.now()}`, 
+        familyId: subFamilyData.familyId, 
+        name: subFamilyData.name 
+      };
+    }
   },
+  
 
   updateSubFamily: async (
     subFamilyData: { subfamilyId: string; name: string },
@@ -51,8 +64,15 @@ const SubFamilyService = {
     if (!response.ok) {
       throw new Error(`Error updating sub-family: ${response.statusText}`);
     }
-    return await response.json();
+    const text = await response.text();
+    if (text) {
+      return JSON.parse(text);
+    } else {
+      // Si no hay respuesta, retornamos un objeto con los datos actualizados
+      return { id: subFamilyData.subfamilyId, name: subFamilyData.name } as SubFamily;
+    }
   },
+  
 
   deleteSubFamily: async (subFamilyId: string, token: string): Promise<void> => {
     const response = await fetch(`${BASE_URL}/Family/subfamilies/${subFamilyId}`, {
