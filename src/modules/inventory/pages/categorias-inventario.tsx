@@ -22,10 +22,13 @@ import {
   ListItem,
   ListItemText,
   Divider,
+  Tooltip,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import AddIcon from '@mui/icons-material/Add';
 import SearchIcon from '@mui/icons-material/Search';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
 import Header from 'components/Header';
 import Sidebar from 'components/Sidebar';
 import {
@@ -47,25 +50,29 @@ const COLORS = ['#2666CF', '#4CAF50', '#FFA500', '#FF5722', '#8E24AA'];
 
 const FamiliasInventario: React.FC = () => {
   const router = useRouter();
-  // Obtenemos el token desde el store (similar a la página de Contacts)
   const token = useAuthStore((state) => state.token);
 
-  // Estado para verificar la hidratación (igual que en Contacts)
+  // Estado de hidratación y autenticación
   const [hydrated, setHydrated] = useState(false);
   useEffect(() => {
     setHydrated(true);
   }, []);
 
-  // Redirigir a login si no hay token (una vez hidratado)
   useEffect(() => {
     if (hydrated && !token) {
       router.push('/auth/login');
     }
   }, [hydrated, token, router]);
 
+  // Estados principales
   const [familias, setFamilias] = useState<Family[]>([]);
   const [familiaExpandida, setFamiliaExpandida] = useState<string | null>(null);
   const [terminoBusqueda, setTerminoBusqueda] = useState('');
+  const [cargando, setCargando] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isMenuOpen, setIsMenuOpen] = useState(true);
+
+  // Estados para agregar nuevas familias y sub-familias
   const [dialogoAgregarFamiliaAbierto, setDialogoAgregarFamiliaAbierto] = useState(false);
   const [nuevaFamiliaData, setNuevaFamiliaData] = useState({
     name: '',
@@ -75,17 +82,27 @@ const FamiliasInventario: React.FC = () => {
   const [dialogoAgregarSubFamiliaAbierto, setDialogoAgregarSubFamiliaAbierto] = useState(false);
   const [familiaSeleccionadaId, setFamiliaSeleccionadaId] = useState<string | null>(null);
   const [nuevoNombreSubFamilia, setNuevoNombreSubFamilia] = useState('');
-  const [isMenuOpen, setIsMenuOpen] = useState(true);
-  const [cargando, setCargando] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
 
-  // Cargar las familias usando el token obtenido del store
+  // Estados para editar familias y sub-familias
+  const [editingFamily, setEditingFamily] = useState<Family | null>(null);
+  const [editingFamilyData, setEditingFamilyData] = useState({
+    name: '',
+    showInCatalog: false,
+    showInOrders: false,
+  });
+  const [editingSubFamily, setEditingSubFamily] = useState<{ familyId: string; subFamily: SubFamily } | null>(null);
+  const [editingSubFamilyName, setEditingSubFamilyName] = useState('');
+
+  // Estados para confirmación de eliminación
+  const [deleteFamily, setDeleteFamily] = useState<Family | null>(null);
+  const [deleteSubFamily, setDeleteSubFamily] = useState<{ familyId: string; subFamily: SubFamily } | null>(null);
+
+  // Cargar las familias y sus sub-familias
   const fetchFamilias = async (authToken: string) => {
     setCargando(true);
     setError(null);
     try {
       const familiasObtenidas: Family[] = await FamilyService.getAllFamilies(authToken);
-      // Para cada familia, obtener sus sub-familias
       const familiasConSubFamilias: Family[] = await Promise.all(
         familiasObtenidas.map(async (familia) => {
           try {
@@ -109,28 +126,28 @@ const FamiliasInventario: React.FC = () => {
     }
   };
 
-  // Cargar familias cuando haya token y se haya hidratado la app
   useEffect(() => {
     if (hydrated && token) {
       fetchFamilias(token);
     }
   }, [hydrated, token]);
 
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
+  };
+
   const handleExpandClick = (familyId: string) => {
     setFamiliaExpandida(familiaExpandida === familyId ? null : familyId);
   };
 
+  /* Agregar Familia */
   const handleAgregarFamiliaDialogOpen = () => {
     setDialogoAgregarFamiliaAbierto(true);
   };
 
   const handleAgregarFamiliaDialogClose = () => {
     setDialogoAgregarFamiliaAbierto(false);
-    setNuevaFamiliaData({
-      name: '',
-      showInCatalog: false,
-      showInOrders: false,
-    });
+    setNuevaFamiliaData({ name: '', showInCatalog: false, showInOrders: false });
   };
 
   const handleAgregarFamilia = async () => {
@@ -141,16 +158,10 @@ const FamiliasInventario: React.FC = () => {
     if (!token) return;
 
     try {
-      const nuevaFamilia: Family = await FamilyService.createFamily(
-        { name: nuevaFamiliaData.name },
-        token
-      );
-      
-      // Si el backend no asigna un id, asignamos uno temporal
+      const nuevaFamilia: Family = await FamilyService.createFamily({ name: nuevaFamiliaData.name }, token);
       if (!nuevaFamilia.id) {
         nuevaFamilia.id = `${Date.now()}`;
       }
-      
       nuevaFamilia.showInCatalog = nuevaFamiliaData.showInCatalog;
       nuevaFamilia.showInOrders = nuevaFamiliaData.showInOrders;
       nuevaFamilia.subFamilies = [];
@@ -162,6 +173,7 @@ const FamiliasInventario: React.FC = () => {
     }
   };
 
+  /* Agregar Sub-Familia */
   const handleAgregarSubFamiliaDialogOpen = (familyId: string) => {
     setFamiliaSeleccionadaId(familyId);
     setDialogoAgregarSubFamiliaAbierto(true);
@@ -181,13 +193,9 @@ const FamiliasInventario: React.FC = () => {
     if (!familiaSeleccionadaId || !token) return;
     try {
       const nuevaSubFamilia: SubFamily = await SubFamilyService.createSubFamily(
-        {
-          familyId: familiaSeleccionadaId,
-          name: nuevoNombreSubFamilia,
-        },
+        { familyId: familiaSeleccionadaId, name: nuevoNombreSubFamilia },
         token
       );
-      // Si el backend no asigna un id, asignamos uno temporal
       if (!nuevaSubFamilia.id) {
         nuevaSubFamilia.id = `${Date.now()}`;
       }
@@ -205,8 +213,127 @@ const FamiliasInventario: React.FC = () => {
     }
   };
 
-  const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);
+  /* Editar Familia */
+  const handleEditarFamilyDialogOpen = (familia: Family) => {
+    setEditingFamily(familia);
+    setEditingFamilyData({
+      name: familia.name,
+      showInCatalog: familia.showInCatalog || false,
+      showInOrders: familia.showInOrders || false,
+    });
+  };
+
+  const handleEditarFamilyDialogClose = () => {
+    setEditingFamily(null);
+  };
+
+  const handleEditarFamilySubmit = async () => {
+    if (!editingFamily || editingFamilyData.name.trim() === '' || !token) return;
+    try {
+      const updatedFamily: Family = await FamilyService.updateFamily(
+        { ...editingFamily, ...editingFamilyData },
+        token
+      );
+      setFamilias(
+        familias.map((familia) =>
+          familia.id === updatedFamily.id ? { ...familia, ...updatedFamily } : familia
+        )
+      );
+      handleEditarFamilyDialogClose();
+    } catch (error: any) {
+      console.error("Error al actualizar la familia:", error);
+      alert("Ocurrió un error al actualizar la familia.");
+    }
+  };
+
+  /* Eliminar Familia */
+  const handleDeleteFamily = (familia: Family) => {
+    setDeleteFamily(familia);
+  };
+
+  const handleConfirmDeleteFamily = async () => {
+    if (!deleteFamily || !token) return;
+    try {
+      await FamilyService.deleteFamily(deleteFamily.id, token);
+      setFamilias(familias.filter((familia) => familia.id !== deleteFamily.id));
+      setDeleteFamily(null);
+    } catch (error: any) {
+      console.error("Error al eliminar la familia:", error);
+      alert("Ocurrió un error al eliminar la familia.");
+    }
+  };
+
+  const handleCancelDeleteFamily = () => {
+    setDeleteFamily(null);
+  };
+
+  /* Editar Sub-Familia */
+  const handleEditarSubFamilyDialogOpen = (familyId: string, subFamily: SubFamily) => {
+    setEditingSubFamily({ familyId, subFamily });
+    setEditingSubFamilyName(subFamily.name);
+  };
+
+  const handleEditarSubFamilyDialogClose = () => {
+    setEditingSubFamily(null);
+    setEditingSubFamilyName('');
+  };
+
+  const handleEditarSubFamilySubmit = async () => {
+    if (!editingSubFamily || editingSubFamilyName.trim() === '' || !token) return;
+    try {
+      const updatedSubFamily: SubFamily = await SubFamilyService.updateSubFamily({
+        subfamilyId: editingSubFamily.subFamily.id,
+        name: editingSubFamilyName,
+      }, token);
+      setFamilias(
+        familias.map((familia) => {
+          if (familia.id === editingSubFamily.familyId) {
+            const updatedSubs = (familia.subFamilies || []).map((sub) =>
+              sub.id === updatedSubFamily.id ? { ...sub, ...updatedSubFamily } : sub
+            );
+            return { ...familia, subFamilies: updatedSubs };
+          }
+          return familia;
+        })
+      );
+      handleEditarSubFamilyDialogClose();
+    } catch (error: any) {
+      console.error("Error al actualizar la sub-familia:", error);
+      alert("Ocurrió un error al actualizar la sub-familia.");
+    }
+  };
+
+  /* Eliminar Sub-Familia */
+  const handleDeleteSubFamily = (familyId: string, subFamily: SubFamily) => {
+    setDeleteSubFamily({ familyId, subFamily });
+  };
+
+  const handleConfirmDeleteSubFamily = async () => {
+    if (!deleteSubFamily || !token) return;
+    try {
+      await SubFamilyService.deleteSubFamily(deleteSubFamily.subFamily.id, token);
+      setFamilias(
+        familias.map((familia) => {
+          if (familia.id === deleteSubFamily.familyId) {
+            return {
+              ...familia,
+              subFamilies: familia.subFamilies?.filter(
+                (sub) => sub.id !== deleteSubFamily.subFamily.id
+              ),
+            };
+          }
+          return familia;
+        })
+      );
+      setDeleteSubFamily(null);
+    } catch (error: any) {
+      console.error("Error al eliminar la sub-familia:", error);
+      alert("Ocurrió un error al eliminar la sub-familia.");
+    }
+  };
+
+  const handleCancelDeleteSubFamily = () => {
+    setDeleteSubFamily(null);
   };
 
   const getChartData = () => {
@@ -218,7 +345,6 @@ const FamiliasInventario: React.FC = () => {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', bgcolor: '#F3F4F6' }}>
-      {/* Header y Sidebar */}
       <Header isMenuOpen={isMenuOpen} />
       <Box sx={{ display: 'flex', flexGrow: 1, pt: '64px' }}>
         <Box
@@ -236,13 +362,12 @@ const FamiliasInventario: React.FC = () => {
           <Sidebar isMenuOpen={isMenuOpen} toggleMenu={toggleMenu} />
         </Box>
 
-        {/* Contenido Principal */}
         <Box
           sx={{
             flexGrow: 1,
             bgcolor: '#F3F4F6',
             p: 3,
-            marginLeft: isMenuOpen ? '240px' : '70px',
+            ml: isMenuOpen ? '240px' : '70px',
             transition: 'margin-left 0.3s ease',
             overflowY: 'auto',
             height: 'calc(100vh - 64px)',
@@ -253,7 +378,7 @@ const FamiliasInventario: React.FC = () => {
               Familias de Inventario
             </Typography>
 
-            {/* Barra de Búsqueda y Botón para Añadir Familia */}
+            {/* Barra de búsqueda y botón para añadir familia */}
             <Box sx={{ display: 'flex', mb: 4 }}>
               <TextField
                 variant="outlined"
@@ -288,14 +413,16 @@ const FamiliasInventario: React.FC = () => {
               </Button>
             </Box>
 
-            {/* Indicadores de Carga y Error */}
             {cargando ? (
-              <Typography variant="h6" sx={{ color: '#1A1A40' }}>Cargando familias...</Typography>
+              <Typography variant="h6" sx={{ color: '#1A1A40' }}>
+                Cargando familias...
+              </Typography>
             ) : error ? (
-              <Typography variant="h6" sx={{ color: 'red' }}>{error}</Typography>
+              <Typography variant="h6" sx={{ color: 'red' }}>
+                {error}
+              </Typography>
             ) : (
               <>
-                {/* Tarjetas de Familias */}
                 <Grid container spacing={3}>
                   {familias
                     .filter((familia) =>
@@ -317,9 +444,21 @@ const FamiliasInventario: React.FC = () => {
                             title={familia.name}
                             sx={{ backgroundColor: '#2666CF', color: '#ffffff' }}
                             action={
-                              <IconButton onClick={() => handleExpandClick(familia.id)} sx={{ color: '#ffffff' }}>
-                                <ExpandMoreIcon />
-                              </IconButton>
+                              <Box>
+                                <Tooltip title="Editar Familia">
+                                  <IconButton onClick={() => handleEditarFamilyDialogOpen(familia)}>
+                                    <EditIcon sx={{ color: '#ffffff' }} />
+                                  </IconButton>
+                                </Tooltip>
+                                <Tooltip title="Eliminar Familia">
+                                  <IconButton onClick={() => handleDeleteFamily(familia)}>
+                                    <DeleteIcon sx={{ color: '#ffffff' }} />
+                                  </IconButton>
+                                </Tooltip>
+                                <IconButton onClick={() => handleExpandClick(familia.id)} sx={{ color: '#ffffff' }}>
+                                  <ExpandMoreIcon />
+                                </IconButton>
+                              </Box>
                             }
                           />
                           <Collapse in={familiaExpandida === familia.id} timeout="auto" unmountOnExit>
@@ -330,7 +469,31 @@ const FamiliasInventario: React.FC = () => {
                               <List dense>
                                 {familia.subFamilies && familia.subFamilies.length > 0 ? (
                                   familia.subFamilies.map((subFamilia) => (
-                                    <ListItem key={subFamilia.id}>
+                                    <ListItem
+                                      key={subFamilia.id}
+                                      secondaryAction={
+                                        <Box>
+                                          <Tooltip title="Editar Sub-Familia">
+                                            <IconButton
+                                              edge="end"
+                                              onClick={() =>
+                                                handleEditarSubFamilyDialogOpen(familia.id, subFamilia)
+                                              }
+                                            >
+                                              <EditIcon />
+                                            </IconButton>
+                                          </Tooltip>
+                                          <Tooltip title="Eliminar Sub-Familia">
+                                            <IconButton
+                                              edge="end"
+                                              onClick={() => handleDeleteSubFamily(familia.id, subFamilia)}
+                                            >
+                                              <DeleteIcon />
+                                            </IconButton>
+                                          </Tooltip>
+                                        </Box>
+                                      }
+                                    >
                                       <ListItemText primary={subFamilia.name} />
                                     </ListItem>
                                   ))
@@ -364,7 +527,7 @@ const FamiliasInventario: React.FC = () => {
                     ))}
                 </Grid>
 
-                {/* Gráfico de Pastel */}
+                {/* Gráfico de pastel */}
                 <Box sx={{ mt: 5 }}>
                   <Typography variant="h6" gutterBottom sx={{ color: '#1A1A40', fontWeight: '600' }}>
                     Distribución de Sub-Familias por Familia
@@ -384,7 +547,7 @@ const FamiliasInventario: React.FC = () => {
               </>
             )}
 
-            {/* Diálogo para Añadir Familia */}
+            {/* Diálogo Agregar Familia */}
             <Dialog open={dialogoAgregarFamiliaAbierto} onClose={handleAgregarFamiliaDialogClose} maxWidth="sm" fullWidth>
               <DialogTitle>Añadir Nueva Familia</DialogTitle>
               <DialogContent>
@@ -399,9 +562,7 @@ const FamiliasInventario: React.FC = () => {
                   control={
                     <Checkbox
                       checked={nuevaFamiliaData.showInCatalog}
-                      onChange={(e) =>
-                        setNuevaFamiliaData({ ...nuevaFamiliaData, showInCatalog: e.target.checked })
-                      }
+                      onChange={(e) => setNuevaFamiliaData({ ...nuevaFamiliaData, showInCatalog: e.target.checked })}
                     />
                   }
                   label="Mostrar en Catálogo"
@@ -410,9 +571,7 @@ const FamiliasInventario: React.FC = () => {
                   control={
                     <Checkbox
                       checked={nuevaFamiliaData.showInOrders}
-                      onChange={(e) =>
-                        setNuevaFamiliaData({ ...nuevaFamiliaData, showInOrders: e.target.checked })
-                      }
+                      onChange={(e) => setNuevaFamiliaData({ ...nuevaFamiliaData, showInOrders: e.target.checked })}
                     />
                   }
                   label="Mostrar en Pedidos"
@@ -420,17 +579,13 @@ const FamiliasInventario: React.FC = () => {
               </DialogContent>
               <DialogActions>
                 <Button onClick={handleAgregarFamiliaDialogClose}>Cancelar</Button>
-                <Button
-                  onClick={handleAgregarFamilia}
-                  variant="contained"
-                  sx={{ bgcolor: '#2666CF', color: '#ffffff', '&:hover': { bgcolor: '#1A4C97' } }}
-                >
+                <Button onClick={handleAgregarFamilia} variant="contained" sx={{ bgcolor: '#2666CF', color: '#ffffff', '&:hover': { bgcolor: '#1A4C97' } }}>
                   Crear Familia
                 </Button>
               </DialogActions>
             </Dialog>
 
-            {/* Diálogo para Añadir Sub-Familia */}
+            {/* Diálogo Agregar Sub-Familia */}
             <Dialog open={dialogoAgregarSubFamiliaAbierto} onClose={handleAgregarSubFamiliaDialogClose} maxWidth="sm" fullWidth>
               <DialogTitle>Añadir Nueva Sub-Familia</DialogTitle>
               <DialogContent>
@@ -447,12 +602,97 @@ const FamiliasInventario: React.FC = () => {
               </DialogContent>
               <DialogActions>
                 <Button onClick={handleAgregarSubFamiliaDialogClose}>Cancelar</Button>
-                <Button
-                  onClick={handleAgregarSubFamilia}
-                  variant="contained"
-                  sx={{ bgcolor: '#2666CF', color: '#ffffff', '&:hover': { bgcolor: '#1A4C97' } }}
-                >
+                <Button onClick={handleAgregarSubFamilia} variant="contained" sx={{ bgcolor: '#2666CF', color: '#ffffff', '&:hover': { bgcolor: '#1A4C97' } }}>
                   Crear Sub-Familia
+                </Button>
+              </DialogActions>
+            </Dialog>
+
+            {/* Diálogo Editar Familia */}
+            <Dialog open={!!editingFamily} onClose={handleEditarFamilyDialogClose} maxWidth="sm" fullWidth>
+              <DialogTitle>Editar Familia</DialogTitle>
+              <DialogContent>
+                <TextField
+                  fullWidth
+                  label="Nombre de la familia"
+                  value={editingFamilyData.name}
+                  onChange={(e) => setEditingFamilyData({ ...editingFamilyData, name: e.target.value })}
+                  sx={{ mb: 2 }}
+                />
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={editingFamilyData.showInCatalog}
+                      onChange={(e) => setEditingFamilyData({ ...editingFamilyData, showInCatalog: e.target.checked })}
+                    />
+                  }
+                  label="Mostrar en Catálogo"
+                />
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={editingFamilyData.showInOrders}
+                      onChange={(e) => setEditingFamilyData({ ...editingFamilyData, showInOrders: e.target.checked })}
+                    />
+                  }
+                  label="Mostrar en Pedidos"
+                />
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={handleEditarFamilyDialogClose}>Cancelar</Button>
+                <Button onClick={handleEditarFamilySubmit} variant="contained" sx={{ bgcolor: '#2666CF', color: '#ffffff', '&:hover': { bgcolor: '#1A4C97' } }}>
+                  Guardar Cambios
+                </Button>
+              </DialogActions>
+            </Dialog>
+
+            {/* Diálogo Confirmar Eliminación de Familia */}
+            <Dialog open={!!deleteFamily} onClose={handleCancelDeleteFamily} maxWidth="xs" fullWidth>
+              <DialogTitle>Confirmar Eliminación</DialogTitle>
+              <DialogContent>
+                <Typography>¿Está seguro de eliminar la familia "{deleteFamily?.name}"?</Typography>
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={handleCancelDeleteFamily}>Cancelar</Button>
+                <Button onClick={handleConfirmDeleteFamily} variant="contained" color="error">
+                  Eliminar
+                </Button>
+              </DialogActions>
+            </Dialog>
+
+            {/* Diálogo Editar Sub-Familia */}
+            <Dialog open={!!editingSubFamily} onClose={handleEditarSubFamilyDialogClose} maxWidth="sm" fullWidth>
+              <DialogTitle>Editar Sub-Familia</DialogTitle>
+              <DialogContent>
+                <TextField
+                  fullWidth
+                  label="Nombre de la sub-familia"
+                  value={editingSubFamilyName}
+                  onChange={(e) => setEditingSubFamilyName(e.target.value)}
+                  sx={{ mb: 2 }}
+                />
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={handleEditarSubFamilyDialogClose}>Cancelar</Button>
+                <Button onClick={handleEditarSubFamilySubmit} variant="contained" sx={{ bgcolor: '#2666CF', color: '#ffffff', '&:hover': { bgcolor: '#1A4C97' } }}>
+                  Guardar Cambios
+                </Button>
+              </DialogActions>
+            </Dialog>
+
+            {/* Diálogo Confirmar Eliminación de Sub-Familia */}
+            <Dialog open={!!deleteSubFamily} onClose={handleCancelDeleteSubFamily} maxWidth="xs" fullWidth>
+              <DialogTitle>Confirmar Eliminación</DialogTitle>
+              <DialogContent>
+                <Typography>
+                  ¿Está seguro de eliminar la sub-familia "
+                  {deleteSubFamily?.subFamily.name}"?
+                </Typography>
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={handleCancelDeleteSubFamily}>Cancelar</Button>
+                <Button onClick={handleConfirmDeleteSubFamily} variant="contained" color="error">
+                  Eliminar
                 </Button>
               </DialogActions>
             </Dialog>
