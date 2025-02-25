@@ -11,6 +11,8 @@ import {
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import CancelIcon from '@mui/icons-material/Cancel';
 import { v4 as uuidv4 } from 'uuid';
 import { Contact } from '../../../types/Contact';
 
@@ -36,7 +38,7 @@ const ContactTable: React.FC<ContactTableProps> = ({
   onDelete,
   onRowClick,
 }) => {
-  // Creamos un arreglo de columnas visibles ordenado según el orden definido en allColumns
+  // Ordenamos las columnas visibles según el orden definido en allColumns
   const sortedVisibleColumns = allColumns.filter((column) =>
     visibleColumns.includes(column.id)
   );
@@ -57,6 +59,8 @@ const ContactTable: React.FC<ContactTableProps> = ({
           }}
         >
           <TableRow>
+            {/* Nueva columna “Registered” */}
+            <TableCell>Registered</TableCell>
             {sortedVisibleColumns.map((column) => (
               <TableCell key={column.id}>{column.label}</TableCell>
             ))}
@@ -72,6 +76,14 @@ const ContactTable: React.FC<ContactTableProps> = ({
                 sx={{ '&:hover': { bgcolor: '#F1F1F1', cursor: 'pointer' } }}
                 onClick={() => onRowClick(contact)}
               >
+                {/* Usamos una aserción para acceder a la propiedad extra 'registered' */}
+                <TableCell>
+                  {(contact as Contact & { registered: boolean }).registered ? (
+                    <CheckCircleIcon sx={{ color: 'green', fontSize: '1.5em' }} />
+                  ) : (
+                    <CancelIcon sx={{ color: 'red', fontSize: '1.5em' }} />
+                  )}
+                </TableCell>
                 {sortedVisibleColumns.map((column) => (
                   <TableCell
                     key={column.id}
