@@ -244,7 +244,6 @@ const Contacts = () => {
       attempts++;
       await fetchContacts();
       await fetchLinkedContacts();
-      // Aquí podrías agregar lógica para detener el polling si se detecta la actualización esperada
       if (attempts >= maxAttempts) {
         clearInterval(intervalId);
         setIsPolling(false);
@@ -401,7 +400,7 @@ const Contacts = () => {
             setContacts((prevContacts) => [...prevContacts, newContact]);
             setLinkedContacts((prevLinked) => [
               ...prevLinked,
-              { ownerContactId: ownerContactId, linkedContactId: newContact.id, isApproved:false },
+              { ownerContactId: ownerContactId, linkedContactId: newContact.id, isApproved: false },
             ]);
           } else {
             console.error("No se puede vincular el contacto debido a un ID inválido.");
@@ -567,11 +566,13 @@ const Contacts = () => {
                 p: 3,
                 transition: "margin-left 0.3s ease",
                 marginLeft: isMenuOpen ? "240px" : "70px",
-                maxWidth: "calc(100% - 240px)",
+                // Se actualiza el maxWidth para que se adapte dinámicamente
+                maxWidth: `calc(100% - ${isMenuOpen ? 240 : 70}px)`,
                 minHeight: "calc(100vh - 64px)",
               }}
             >
-              <Container maxWidth="xl">
+              {/* Se actualiza el Container para que ocupe todo el ancho disponible */}
+              <Container maxWidth={false} disableGutters>
                 <Typography variant="h3" gutterBottom sx={{ color: "#1A1A40", fontWeight: "600" }}>
                   Contactos
                 </Typography>
@@ -667,7 +668,6 @@ const Contacts = () => {
                   handleSave={handleSave}
                   onLinkContact={handleLinkContact}
                 />
-
               </Container>
             </Box>
           </Box>
