@@ -79,9 +79,6 @@ const FamiliasInventario: React.FC = () => {
     showInCatalog: false,
     showInOrders: false,
   });
-  // Nuevo estado para capturar el texto de subfamilias en el formulario
-  const [nuevaFamiliaSubfamilias, setNuevaFamiliaSubfamilias] = useState('');
-
   const [dialogoAgregarSubFamiliaAbierto, setDialogoAgregarSubFamiliaAbierto] = useState(false);
   const [familiaSeleccionadaId, setFamiliaSeleccionadaId] = useState<string | null>(null);
   const [nuevoNombreSubFamilia, setNuevoNombreSubFamilia] = useState('');
@@ -151,7 +148,6 @@ const FamiliasInventario: React.FC = () => {
   const handleAgregarFamiliaDialogClose = () => {
     setDialogoAgregarFamiliaAbierto(false);
     setNuevaFamiliaData({ name: '', showInCatalog: false, showInOrders: false });
-    setNuevaFamiliaSubfamilias('');
   };
 
   const handleAgregarFamilia = async () => {
@@ -162,52 +158,14 @@ const FamiliasInventario: React.FC = () => {
     if (!token) return;
 
     try {
-      // 1. Crear la familia principal
-      const nuevaFamilia: Family = await FamilyService.createFamily(
-        { name: nuevaFamiliaData.name },
-        token
-      );
-
-      // Asegurarnos de que la familia tenga un ID
+      const nuevaFamilia: Family = await FamilyService.createFamily({ name: nuevaFamiliaData.name }, token);
       if (!nuevaFamilia.id) {
         nuevaFamilia.id = `${Date.now()}`;
       }
-
-      // Actualizar propiedades locales
       nuevaFamilia.showInCatalog = nuevaFamiliaData.showInCatalog;
       nuevaFamilia.showInOrders = nuevaFamiliaData.showInOrders;
-
-      // 2. Si el usuario ingresó subfamilias, crearlas automáticamente
-      const subfamilyNames = nuevaFamiliaSubfamilias
-        .split(',')
-        .map((sub) => sub.trim())
-        .filter((sub) => sub.length > 0);
-
-      let createdSubFamilies: SubFamily[] = [];
-      if (subfamilyNames.length > 0) {
-        // Creamos cada subfamilia en el backend
-        createdSubFamilies = await Promise.all(
-          subfamilyNames.map(async (subName) => {
-            const nuevaSub = await SubFamilyService.createSubFamily(
-              { familyId: nuevaFamilia.id!, name: subName },
-              token
-            );
-            // Asignar un ID si el backend no lo envía
-            if (!nuevaSub.id) {
-              nuevaSub.id = `${Date.now()}`;
-            }
-            return nuevaSub;
-          })
-        );
-      }
-
-      // 3. Agregar las subfamilias creadas a la familia recién creada
-      nuevaFamilia.subFamilies = createdSubFamilies;
-
-      // 4. Actualizar estado local
+      nuevaFamilia.subFamilies = [];
       setFamilias([...familias, nuevaFamilia]);
-
-      // Cerrar el diálogo y limpiar formularios
       handleAgregarFamiliaDialogClose();
     } catch (error: any) {
       console.error("Error al crear la familia:", error);
@@ -215,7 +173,7 @@ const FamiliasInventario: React.FC = () => {
     }
   };
 
-  /* Agregar Sub-Familia (modal independiente) */
+  /* Agregar Sub-Familia */
   const handleAgregarSubFamiliaDialogOpen = (familyId: string) => {
     setFamiliaSeleccionadaId(familyId);
     setDialogoAgregarSubFamiliaAbierto(true);
@@ -323,13 +281,10 @@ const FamiliasInventario: React.FC = () => {
   const handleEditarSubFamilySubmit = async () => {
     if (!editingSubFamily || editingSubFamilyName.trim() === '' || !token) return;
     try {
-      const updatedSubFamily: SubFamily = await SubFamilyService.updateSubFamily(
-        {
-          subfamilyId: editingSubFamily.subFamily.id,
-          name: editingSubFamilyName,
-        },
-        token
-      );
+      const updatedSubFamily: SubFamily = await SubFamilyService.updateSubFamily({
+        subfamilyId: editingSubFamily.subFamily.id,
+        name: editingSubFamilyName,
+      }, token);
       setFamilias(
         familias.map((familia) => {
           if (familia.id === editingSubFamily.familyId) {
@@ -500,10 +455,7 @@ const FamiliasInventario: React.FC = () => {
                                     <DeleteIcon sx={{ color: '#ffffff' }} />
                                   </IconButton>
                                 </Tooltip>
-                                <IconButton
-                                  onClick={() => handleExpandClick(familia.id)}
-                                  sx={{ color: '#ffffff' }}
-                                >
+                                <IconButton onClick={() => handleExpandClick(familia.id)} sx={{ color: '#ffffff' }}>
                                   <ExpandMoreIcon />
                                 </IconButton>
                               </Box>
@@ -534,9 +486,7 @@ const FamiliasInventario: React.FC = () => {
                                           <Tooltip title="Eliminar Sub-Familia">
                                             <IconButton
                                               edge="end"
-                                              onClick={() =>
-                                                handleDeleteSubFamily(familia.id, subFamilia)
-                                              }
+                                              onClick={() => handleDeleteSubFamily(familia.id, subFamilia)}
                                             >
                                               <DeleteIcon />
                                             </IconButton>
@@ -584,14 +534,7 @@ const FamiliasInventario: React.FC = () => {
                   </Typography>
                   <ResponsiveContainer width="100%" height={300}>
                     <PieChart>
-                      <Pie
-                        data={getChartData()}
-                        innerRadius={80}
-                        outerRadius={120}
-                        paddingAngle={5}
-                        dataKey="value"
-                        label
-                      >
+                      <Pie data={getChartData()} innerRadius={80} outerRadius={120} paddingAngle={5} dataKey="value" label>
                         {getChartData().map((entry, index) => (
                           <Cell key={`cell-${entry.name}`} fill={COLORS[index % COLORS.length]} />
                         ))}
@@ -605,88 +548,45 @@ const FamiliasInventario: React.FC = () => {
             )}
 
             {/* Diálogo Agregar Familia */}
-            <Dialog
-              open={dialogoAgregarFamiliaAbierto}
-              onClose={handleAgregarFamiliaDialogClose}
-              maxWidth="sm"
-              fullWidth
-            >
-              <DialogTitle>Nueva familia</DialogTitle>
+            <Dialog open={dialogoAgregarFamiliaAbierto} onClose={handleAgregarFamiliaDialogClose} maxWidth="sm" fullWidth>
+              <DialogTitle>Añadir Nueva Familia</DialogTitle>
               <DialogContent>
-                {/* Nombre de la familia */}
                 <TextField
                   fullWidth
                   label="Nombre de la familia"
                   value={nuevaFamiliaData.name}
-                  onChange={(e) =>
-                    setNuevaFamiliaData({ ...nuevaFamiliaData, name: e.target.value })
-                  }
+                  onChange={(e) => setNuevaFamiliaData({ ...nuevaFamiliaData, name: e.target.value })}
                   sx={{ mb: 2 }}
-                />
-
-                {/* Subfamilias (separadas por comas) */}
-                <TextField
-                  fullWidth
-                  label="Agregar subfamilias dentro de la familia"
-                  placeholder="Cafés, Refrescos, Aguas"
-                  value={nuevaFamiliaSubfamilias}
-                  onChange={(e) => setNuevaFamiliaSubfamilias(e.target.value)}
-                  sx={{ mb: 2 }}
-                />
-
-                {/* Checkboxes */}
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={nuevaFamiliaData.showInOrders}
-                      onChange={(e) =>
-                        setNuevaFamiliaData({
-                          ...nuevaFamiliaData,
-                          showInOrders: e.target.checked,
-                        })
-                      }
-                    />
-                  }
-                  label="Mostrar grupo en pedidos (Vista inventario)"
                 />
                 <FormControlLabel
                   control={
                     <Checkbox
                       checked={nuevaFamiliaData.showInCatalog}
-                      onChange={(e) =>
-                        setNuevaFamiliaData({
-                          ...nuevaFamiliaData,
-                          showInCatalog: e.target.checked,
-                        })
-                      }
+                      onChange={(e) => setNuevaFamiliaData({ ...nuevaFamiliaData, showInCatalog: e.target.checked })}
                     />
                   }
-                  label="Mostrar grupo en catálogo"
+                  label="Mostrar en Catálogo"
                 />
-
-                <Typography variant="body2" sx={{ mt: 2, color: 'text.secondary' }}>
-                  Ejemplos: "bebidas, ropa, menaje"
-                </Typography>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={nuevaFamiliaData.showInOrders}
+                      onChange={(e) => setNuevaFamiliaData({ ...nuevaFamiliaData, showInOrders: e.target.checked })}
+                    />
+                  }
+                  label="Mostrar en Pedidos"
+                />
               </DialogContent>
               <DialogActions>
                 <Button onClick={handleAgregarFamiliaDialogClose}>Cancelar</Button>
-                <Button
-                  onClick={handleAgregarFamilia}
-                  variant="contained"
-                  sx={{ bgcolor: '#2666CF', color: '#ffffff', '&:hover': { bgcolor: '#1A4C97' } }}
-                >
-                  Crear
+                <Button onClick={handleAgregarFamilia} variant="contained" sx={{ bgcolor: '#2666CF', color: '#ffffff', '&:hover': { bgcolor: '#1A4C97' } }}>
+                  Crear Familia
                 </Button>
               </DialogActions>
             </Dialog>
 
             {/* Diálogo Agregar Sub-Familia */}
-            <Dialog
-              open={dialogoAgregarSubFamiliaAbierto}
-              onClose={handleAgregarSubFamiliaDialogClose}
-              maxWidth="sm"
-              fullWidth
-            >
+            <Dialog open={dialogoAgregarSubFamiliaAbierto} onClose={handleAgregarSubFamiliaDialogClose} maxWidth="sm" fullWidth>
               <DialogTitle>Añadir Nueva Sub-Familia</DialogTitle>
               <DialogContent>
                 <TextField
@@ -702,44 +602,28 @@ const FamiliasInventario: React.FC = () => {
               </DialogContent>
               <DialogActions>
                 <Button onClick={handleAgregarSubFamiliaDialogClose}>Cancelar</Button>
-                <Button
-                  onClick={handleAgregarSubFamilia}
-                  variant="contained"
-                  sx={{ bgcolor: '#2666CF', color: '#ffffff', '&:hover': { bgcolor: '#1A4C97' } }}
-                >
+                <Button onClick={handleAgregarSubFamilia} variant="contained" sx={{ bgcolor: '#2666CF', color: '#ffffff', '&:hover': { bgcolor: '#1A4C97' } }}>
                   Crear Sub-Familia
                 </Button>
               </DialogActions>
             </Dialog>
 
             {/* Diálogo Editar Familia */}
-            <Dialog
-              open={!!editingFamily}
-              onClose={handleEditarFamilyDialogClose}
-              maxWidth="sm"
-              fullWidth
-            >
+            <Dialog open={!!editingFamily} onClose={handleEditarFamilyDialogClose} maxWidth="sm" fullWidth>
               <DialogTitle>Editar Familia</DialogTitle>
               <DialogContent>
                 <TextField
                   fullWidth
                   label="Nombre de la familia"
                   value={editingFamilyData.name}
-                  onChange={(e) =>
-                    setEditingFamilyData({ ...editingFamilyData, name: e.target.value })
-                  }
+                  onChange={(e) => setEditingFamilyData({ ...editingFamilyData, name: e.target.value })}
                   sx={{ mb: 2 }}
                 />
                 <FormControlLabel
                   control={
                     <Checkbox
                       checked={editingFamilyData.showInCatalog}
-                      onChange={(e) =>
-                        setEditingFamilyData({
-                          ...editingFamilyData,
-                          showInCatalog: e.target.checked,
-                        })
-                      }
+                      onChange={(e) => setEditingFamilyData({ ...editingFamilyData, showInCatalog: e.target.checked })}
                     />
                   }
                   label="Mostrar en Catálogo"
@@ -748,12 +632,7 @@ const FamiliasInventario: React.FC = () => {
                   control={
                     <Checkbox
                       checked={editingFamilyData.showInOrders}
-                      onChange={(e) =>
-                        setEditingFamilyData({
-                          ...editingFamilyData,
-                          showInOrders: e.target.checked,
-                        })
-                      }
+                      onChange={(e) => setEditingFamilyData({ ...editingFamilyData, showInOrders: e.target.checked })}
                     />
                   }
                   label="Mostrar en Pedidos"
@@ -761,23 +640,14 @@ const FamiliasInventario: React.FC = () => {
               </DialogContent>
               <DialogActions>
                 <Button onClick={handleEditarFamilyDialogClose}>Cancelar</Button>
-                <Button
-                  onClick={handleEditarFamilySubmit}
-                  variant="contained"
-                  sx={{ bgcolor: '#2666CF', color: '#ffffff', '&:hover': { bgcolor: '#1A4C97' } }}
-                >
+                <Button onClick={handleEditarFamilySubmit} variant="contained" sx={{ bgcolor: '#2666CF', color: '#ffffff', '&:hover': { bgcolor: '#1A4C97' } }}>
                   Guardar Cambios
                 </Button>
               </DialogActions>
             </Dialog>
 
             {/* Diálogo Confirmar Eliminación de Familia */}
-            <Dialog
-              open={!!deleteFamily}
-              onClose={handleCancelDeleteFamily}
-              maxWidth="xs"
-              fullWidth
-            >
+            <Dialog open={!!deleteFamily} onClose={handleCancelDeleteFamily} maxWidth="xs" fullWidth>
               <DialogTitle>Confirmar Eliminación</DialogTitle>
               <DialogContent>
                 <Typography>¿Está seguro de eliminar la familia "{deleteFamily?.name}"?</Typography>
@@ -791,12 +661,7 @@ const FamiliasInventario: React.FC = () => {
             </Dialog>
 
             {/* Diálogo Editar Sub-Familia */}
-            <Dialog
-              open={!!editingSubFamily}
-              onClose={handleEditarSubFamilyDialogClose}
-              maxWidth="sm"
-              fullWidth
-            >
+            <Dialog open={!!editingSubFamily} onClose={handleEditarSubFamilyDialogClose} maxWidth="sm" fullWidth>
               <DialogTitle>Editar Sub-Familia</DialogTitle>
               <DialogContent>
                 <TextField
@@ -809,27 +674,19 @@ const FamiliasInventario: React.FC = () => {
               </DialogContent>
               <DialogActions>
                 <Button onClick={handleEditarSubFamilyDialogClose}>Cancelar</Button>
-                <Button
-                  onClick={handleEditarSubFamilySubmit}
-                  variant="contained"
-                  sx={{ bgcolor: '#2666CF', color: '#ffffff', '&:hover': { bgcolor: '#1A4C97' } }}
-                >
+                <Button onClick={handleEditarSubFamilySubmit} variant="contained" sx={{ bgcolor: '#2666CF', color: '#ffffff', '&:hover': { bgcolor: '#1A4C97' } }}>
                   Guardar Cambios
                 </Button>
               </DialogActions>
             </Dialog>
 
             {/* Diálogo Confirmar Eliminación de Sub-Familia */}
-            <Dialog
-              open={!!deleteSubFamily}
-              onClose={handleCancelDeleteSubFamily}
-              maxWidth="xs"
-              fullWidth
-            >
+            <Dialog open={!!deleteSubFamily} onClose={handleCancelDeleteSubFamily} maxWidth="xs" fullWidth>
               <DialogTitle>Confirmar Eliminación</DialogTitle>
               <DialogContent>
                 <Typography>
-                  ¿Está seguro de eliminar la sub-familia "{deleteSubFamily?.subFamily.name}"?
+                  ¿Está seguro de eliminar la sub-familia "
+                  {deleteSubFamily?.subFamily.name}"?
                 </Typography>
               </DialogContent>
               <DialogActions>
