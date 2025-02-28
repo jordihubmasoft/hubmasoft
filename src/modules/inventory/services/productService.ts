@@ -1,156 +1,163 @@
-// services/productService.ts
-
 import { Product } from '../types/Product';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API?.replace(/\/+$/, '');
 
-class ProductService {
+const ProductService = {
   /**
-   * Obtiene todos los productos (endpoint: GET /Product/Get).
+   * Obtiene todos los productos (GET /Product)
    */
-  static async getAll(token: string) {
-    try {
-      const response = await fetch(`${BASE_URL}/Product`, {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error('Error al obtener la lista de productos');
-      }
-
-      const data = await response.json();
-      return { data };
-    } catch (error) {
-      console.error(error);
-      throw error;
+  getAllProducts: async (token: string): Promise<Product[]> => {
+    const response = await fetch(`${BASE_URL}/Product`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    if (!response.ok) {
+      throw new Error(`Error fetching products: ${response.statusText}`);
     }
-  }
+    return await response.json();
+  },
 
   /**
-   * Obtiene productos filtrados por ContactId (endpoint: GET /Product/GetByContactId).
+   * Obtiene productos por ContactId (GET /Product/contact/{ContactId})
    */
-  static async getByContactId(contactId: string, token: string) {
-    try {
-      const response = await fetch(`${BASE_URL}/GetByContactId?contactId=${contactId}`, {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error('Error al obtener productos por ContactId');
-      }
-
-      const data = await response.json();
-      return { data };
-    } catch (error) {
-      console.error(error);
-      throw error;
+  getProductsByContactId: async (contactId: string, token: string): Promise<Product[]> => {
+    const response = await fetch(`${BASE_URL}/Product/contact/${contactId}`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    if (!response.ok) {
+      throw new Error(`Error fetching products by contactId: ${response.statusText}`);
     }
-  }
+    return await response.json();
+  },
 
   /**
-   * Crea un nuevo producto (endpoint: POST /Product/Create).
+   * Crea un nuevo producto (POST /Product)
+   *
+   * Cuerpo de ejemplo:
+   * {
+   *   "name": "test",
+   *   "description": "string",
+   *   "reference": "string",
+   *   "companyCode": "string",
+   *   "tags": "string",
+   *   "stock": 0,
+   *   "price": 0,
+   *   "purchasePrice": 0,
+   *   "costValue": 0,
+   *   "sellsValue": 0,
+   *   "priceWithoutVAT": 0,
+   *   "percentageVAT": 0,
+   *   "contactId": "{{ContactId}}",
+   *   "installationId": [
+   *     "string"
+   *   ]
+   * }
    */
-  static async create(product: Product, token: string) {
-    try {
-      // Se construye el payload sin el wrapper "productRequest"
-      const payload = {
-        Name: product.nombre,
-        Description: product.descripcion,
-        ContactId: product.contactId,
-        Reference: product.referencia,
-        BarCode: product.codigoBarras,
-        ManufacturingCode: product.codigoFabricacion,
-        CompanyCode: product.familia,
-        Tags: "", // O product.tags si lo tienes
-        Weight: parseFloat(product.peso) || 0,
-        RecommendedPrice: parseFloat(product.precioRecomendado) || 0,
-        AvarageCost: parseFloat(product.costeMedio) || 0,
-        Supplier: product.proveedor,
-        WareHouse: product.almacenPredeterminado,
-        RateName: product.nombreTarifa,
-        Stock: product.cantidad,
-        SubFamilyId: null, // O product.subFamilyId si dispones de él
-        SubFamily: product.subFamilia || null,
-      };
-
-      // Se envía el payload directamente en el body
-      const response = await fetch(`${BASE_URL}/Product`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (!response.ok) {
-        throw new Error('Error al crear el producto');
-      }
-
-      const data = await response.json();
-      return { data };
-    } catch (error) {
-      console.error(error);
-      throw error;
+  createProduct: async (productData: Product, token: string): Promise<Product> => {
+    const response = await fetch(`${BASE_URL}/Product`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        name: productData.nombre || '',
+        description: productData.descripcion || '',
+        reference: productData.referencia || '',
+        companyCode: productData.familia || '',
+        tags: productData.subFamilia || '',
+        stock: productData.cantidad ? Number(productData.cantidad) : 0,
+        price: productData.precio ? Number(productData.precio) : 0,
+        purchasePrice: productData.precioCompraTotal ? Number(productData.precioCompraTotal) : 0,
+        costValue: 0,
+        sellsValue: 0,
+        priceWithoutVAT: 0,
+        percentageVAT: productData.iva ? Number(productData.iva) : 0,
+        contactId: productData.contactId || '',
+        installationId: ['string'],
+      }),
+    });
+    if (!response.ok) {
+      throw new Error(`Error creating product: ${response.statusText}`);
     }
-  }
+    return await response.json();
+  },
 
   /**
-   * Actualiza un producto existente (endpoint: PUT /Product/UpdateProduct).
+   * Actualiza un producto existente (PUT /Product)
+   *
+   * Cuerpo de ejemplo:
+   * {
+   *   "name": "test prueba",
+   *   "description": "pruebas",
+   *   "reference": "string",
+   *   "companyCode": "string",
+   *   "tags": "string",
+   *   "price": 0,
+   *   "purchasePrice": 0,
+   *   "costValue": 0,
+   *   "sellsValue": 0,
+   *   "priceWithoutVAT": 0,
+   *   "percentageVAT": 0,
+   *   "contactId": "string",
+   *   "installationId": [
+   *     "6E7C36DD-4121-4C81-97C2-9CA075020129"
+   *   ],
+   *   "productId": "70BD503E-DCE2-4C0E-8176-A44A60CADC32"
+   * }
    */
-  static async update(product: Product, token: string) {
-    try {
-      const response = await fetch(`${BASE_URL}/UpdateProduct`, {
-        method: 'PUT',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(product),
-      });
-
-      if (!response.ok) {
-        throw new Error('Error al actualizar el producto');
-      }
-
-      const data = await response.json();
-      return { data };
-    } catch (error) {
-      console.error(error);
-      throw error;
+  updateProduct: async (productData: Product, token: string): Promise<Product> => {
+    const response = await fetch(`${BASE_URL}/Product`, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        name: productData.nombre || '',
+        description: productData.descripcion || '',
+        reference: productData.referencia || '',
+        companyCode: productData.familia || '',
+        tags: productData.subFamilia || '',
+        price: productData.precio ? Number(productData.precio) : 0,
+        purchasePrice: productData.precioCompraTotal ? Number(productData.precioCompraTotal) : 0,
+        costValue: 0,
+        sellsValue: 0,
+        priceWithoutVAT: 0,
+        percentageVAT: productData.iva ? Number(productData.iva) : 0,
+        contactId: productData.contactId || '',
+        installationId: ['string'],
+        productId: productData.id || '',
+      }),
+    });
+    if (!response.ok) {
+      throw new Error(`Error updating product: ${response.statusText}`);
     }
-  }
+    return await response.json();
+  },
 
   /**
-   * Elimina un producto (endpoint: DELETE /Product/Delete).
-   * Se asume que se pasa como query param: /Delete?productId=XX
+   * Elimina un producto (DELETE /Product/{ProductId})
    */
-  static async delete(productId: number | string, token: string) {
-    try {
-      const response = await fetch(`${BASE_URL}/Delete?productId=${productId}`, {
-        method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error('Error al eliminar el producto');
-      }
-
-      const data = await response.json();
-      return { data };
-    } catch (error) {
-      console.error(error);
-      throw error;
+  deleteProduct: async (id: number | string, token: string): Promise<void> => {
+    const response = await fetch(`${BASE_URL}/Product/${id}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    if (!response.ok) {
+      throw new Error(`Error deleting product: ${response.statusText}`);
     }
-  }
-}
+  },
+};
 
 export default ProductService;

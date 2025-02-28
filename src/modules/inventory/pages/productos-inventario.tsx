@@ -683,9 +683,9 @@ const Productos = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await ProductService.getAll(token);
-      if (response?.data) {
-        const mappedProducts = response.data.map((p: any) => ({
+      const response = await ProductService.getAllProducts(token);
+      if (response) {
+        const mappedProducts = response.map((p: any) => ({
           referencia: p.reference,
           nombre: p.name,
           descripcion: p.description,
@@ -750,17 +750,17 @@ const Productos = () => {
     try {
       if (product.id) {
         // Actualizar producto existente
-        const response = await ProductService.update(product, token);
-        if (response?.data) {
+        const response = await ProductService.updateProduct(product, token);
+        if (response) {
           setProducts((prev) =>
-            prev.map((p) => (p.id === product.id ? response.data : p))
+            prev.map((p) => (p.id === product.id ? response : p))
           );
         }
       } else {
         // Crear nuevo producto
-        const response = await ProductService.create(product, token);
-        if (response?.data) {
-          setProducts((prev) => [...prev, response.data]);
+        const response = await ProductService.createProduct(product, token);
+        if (response) {
+          setProducts((prev) => [...prev, response]);
         }
       }
     } catch (err) {
@@ -773,7 +773,7 @@ const Productos = () => {
   const handleDelete = async (productId: number | string) => {
     if (!token) return;
     try {
-      await ProductService.delete(productId, token);
+      await ProductService.deleteProduct(productId, token);
       setProducts((prev) => prev.filter((p) => p.id !== productId));
     } catch (err) {
       console.error(err);
