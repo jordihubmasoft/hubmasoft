@@ -706,12 +706,22 @@ const Dashboard = () => {
   const handleApprove = async (ownerContactId: string, linkedContactId: string) => {
     if (!token || !contactId) return;
     try {
+      // Primero, aprobar la solicitud recibida (por ejemplo, Pepe → Juan)
       await LinkedContactsService.approveLinkedContact(ownerContactId, linkedContactId, token);
+      
+      // Luego, crear la solicitud inversa (Juan → Pepe)
+      await LinkedContactsService.addLinkedContact(linkedContactId, ownerContactId, token);
+      
+      // Y, automáticamente, aprobar dicha solicitud inversa para evitar que Pepe tenga que hacer nada
+      await LinkedContactsService.approveLinkedContact(linkedContactId, ownerContactId, token);
+      
       await refetchPendingRequests();
     } catch (err) {
       console.error("Error al aprobar la solicitud:", err);
     }
   };
+  
+  
 
   // RECHAZAR SOLICITUD
   const handleReject = async (ownerContactId: string, linkedContactId: string) => {

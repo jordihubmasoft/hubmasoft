@@ -34,6 +34,7 @@ import { SubFamily } from '../types/subFamily';
 const SubFamilyPage: React.FC = () => {
   const router = useRouter();
   const token = useAuthStore((state) => state.token);
+  const contactId = useAuthStore((state) => state.contactId);
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
@@ -66,24 +67,26 @@ const SubFamilyPage: React.FC = () => {
   // Estado para búsqueda
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Cargar las familias y, de cada una, sus sub-familias
+  // Modificación: obtener las familias y sus sub-familias desde el endpoint que devuelve todo
   const fetchFamilies = async () => {
+    if (!token || !contactId) return;
     setLoading(true);
     setError(null);
     try {
-      const familiesObtained: Family[] = await FamilyService.getAllFamilies(token!);
-      const familiesWithSubs: Family[] = await Promise.all(
-        familiesObtained.map(async (family) => {
-          try {
-            const subFamiliesObtained: SubFamily[] = await SubFamilyService.getSubFamiliesByFamilyId(family.id, token!);
-            return { ...family, subFamilies: subFamiliesObtained };
-          } catch (err) {
-            console.error(`Error al obtener sub-familias de la familia ${family.id}`, err);
-            return { ...family, subFamilies: [] };
-          }
-        })
-      );
-      setFamilies(familiesWithSubs);
+      const BASE_URL = process.env.NEXT_PUBLIC_API?.replace(/\/+$/, '');
+      const response = await fetch(`${BASE_URL}/Family/contact/${contactId}`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      if (!response.ok) {
+        throw new Error(`Error fetching families: ${response.statusText}`);
+      }
+      const json = await response.json();
+      // Asumimos que json.data contiene el array de familias con la propiedad subFamilies
+      setFamilies(json.data);
     } catch (err) {
       console.error('Error al cargar las familias', err);
       setError('Error al cargar las familias.');
@@ -93,12 +96,12 @@ const SubFamilyPage: React.FC = () => {
   };
 
   useEffect(() => {
-    if (hydrated && token) {
+    if (hydrated && token && contactId) {
       fetchFamilies();
     }
-  }, [hydrated, token]);
+  }, [hydrated, token, contactId]);
 
-  // Aplanamos todas las sub-familias agregando el nombre y el id de la familia
+  // Aplanamos todas las sub-familias agregando el nombre e id de la familia
   const allSubFamilies = families.flatMap((family) =>
     (family.subFamilies || []).map((sub) => ({
       ...sub,
@@ -123,19 +126,20 @@ const SubFamilyPage: React.FC = () => {
   };
 
   const handleAddSubFamily = async () => {
+    if (!token || !contactId) return;
     if (newSubFamilyName.trim() === '' || selectedFamilyId.trim() === '') {
       alert('Debe ingresar un nombre y seleccionar una familia.');
       return;
     }
     try {
       const newSub: SubFamily = await SubFamilyService.createSubFamily(
-        { familyId: selectedFamilyId, name: newSubFamilyName },
-        token!
+        { contactId, familyId: selectedFamilyId, name: newSubFamilyName },
+        token
       );
       if (!newSub.id) {
         newSub.id = `${Date.now()}`;
       }
-      // Actualizamos el estado agregando la nueva sub-familia a la familia correspondiente
+      // Se agrega la nueva sub-familia a la familia correspondiente
       setFamilies((prevFamilies) =>
         prevFamilies.map((family) =>
           family.id === selectedFamilyId
@@ -162,11 +166,12 @@ const SubFamilyPage: React.FC = () => {
   };
 
   const handleEditSubFamily = async () => {
-    if (!editingSubFamily || editingSubFamilyName.trim() === '') return;
+    if (!editingSubFamily || editingSubFamilyName.trim() === '' || !token || !contactId) return;
     try {
       const updatedSub: SubFamily = await SubFamilyService.updateSubFamily(
+        editingSubFamily.subFamily.id,
         { subfamilyId: editingSubFamily.subFamily.id, name: editingSubFamilyName },
-        token!
+        token
       );
       setFamilies((prevFamilies) =>
         prevFamilies.map((family) => {
@@ -198,9 +203,9 @@ const SubFamilyPage: React.FC = () => {
   };
 
   const handleDeleteSubFamily = async () => {
-    if (!deleteSubFamily) return;
+    if (!deleteSubFamily || !token || !contactId) return;
     try {
-      await SubFamilyService.deleteSubFamily(deleteSubFamily.subFamily.id, token!);
+      await SubFamilyService.deleteSubFamily(deleteSubFamily.subFamily.id, contactId, token);
       setFamilies((prevFamilies) =>
         prevFamilies.map((family) => {
           if (family.id === deleteSubFamily.familyId) {
@@ -226,6 +231,8 @@ const SubFamilyPage: React.FC = () => {
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
+
+  if (!hydrated) return null;
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', bgcolor: '#F3F4F6' }}>
