@@ -175,7 +175,7 @@ const Instalaciones = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await InstalationService.getAllInstalations(token);
+      const response = await InstalationService.getAllInstalations(token, contactId);
       const dataArray = Array.isArray(response) ? response : (response as any).data || [];
       setInstalaciones(dataArray as Instalation[]);
     } catch (err: any) {
@@ -253,7 +253,7 @@ const Instalaciones = () => {
           country: newInstalation.country,
         },
       };
-  
+
       await InstalationService.createInstalation(payload, token);
       fetchInstalaciones();
       setSnackbarMessage('Nueva instalación añadida');
@@ -344,7 +344,13 @@ const Instalaciones = () => {
       };
 
       await InstalationService.updateInstalation(updatedInstalation, token);
-      fetchInstalaciones();
+
+      // Actualizamos el estado local para reflejar los cambios sin recargar la página
+      setInstalaciones((prev) =>
+        prev.map((inst) => (inst.id === updatedInstalation.id ? updatedInstalation : inst))
+      );
+      setSelectedInstalacion(updatedInstalation);
+
       setSnackbarMessage('Instalación actualizada');
       setSnackbarOpen(true);
       handleEditDialogClose();
@@ -510,6 +516,13 @@ const Instalaciones = () => {
                         onClick={handleEditDialogOpen}
                       >
                         Editar
+                      </Button>
+                      <Button
+                        variant="contained"
+                        color="error"
+                        onClick={() => handleDeleteDialogOpen(selectedInstalacion.id)}
+                      >
+                        Eliminar
                       </Button>
                     </Box>
                     <Typography variant="h4" sx={{ mb: 3 }}>

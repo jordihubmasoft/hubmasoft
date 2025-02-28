@@ -4,8 +4,8 @@ import { CreateInstalationDto } from '../types/createInstalationDto';
 const BASE_URL = process.env.NEXT_PUBLIC_API?.replace(/\/+$/, '');
 
 const InstalationService = {
-  getAllInstalations: async (token: string): Promise<Instalation[]> => {
-    const response = await fetch(`${BASE_URL}/Instalations`, {
+  getAllInstalations: async (token: string, contactId: string): Promise<Instalation[]> => {
+    const response = await fetch(`${BASE_URL}/Instalations/contact/${contactId}`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
