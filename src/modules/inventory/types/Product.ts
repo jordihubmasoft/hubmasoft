@@ -8,7 +8,7 @@ export interface Product {
     contactId?: string;
   
     referencia: string;
-    name: string;
+    nombre: string;
     descripcion: string;
     familia: string;
     subFamilia: string;
