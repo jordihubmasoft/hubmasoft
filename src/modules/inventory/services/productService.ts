@@ -60,7 +60,7 @@ class ProductService {
     try {
       // Se construye el payload sin el wrapper "productRequest"
       const payload = {
-        Name: product.nombre,
+        Name: product.name,
         Description: product.descripcion,
         ContactId: product.contactId,
         Reference: product.referencia,

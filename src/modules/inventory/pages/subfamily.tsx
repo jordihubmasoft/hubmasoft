@@ -18,24 +18,86 @@ import {
   FormControl,
   InputLabel,
   Tooltip,
+  Checkbox,
+  FormControlLabel,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Header from 'components/Header';
 import Sidebar from 'components/Sidebar';
+
+// Services
 import FamilyService from '../services/familyService';
 import SubFamilyService from '../services/subFamilyService';
-import { useRouter } from 'next/router';
-import useAuthStore from '../../../store/useAuthStore';
+import ProductService from '../services/productService';
+
+// Types
 import { Family } from '../types/family';
 import { SubFamily } from '../types/subFamily';
+import { Product } from '../types/Product';
+
+import { useRouter } from 'next/router';
+import useAuthStore from '../../../store/useAuthStore';
 
 const SubFamilyPage: React.FC = () => {
   const router = useRouter();
   const token = useAuthStore((state) => state.token);
+  const contactId = useAuthStore((state) => state.contactId);
   const [hydrated, setHydrated] = useState(false);
 
+  // -------------------------------
+  // Estados para familias / productos
+  // -------------------------------
+  const [families, setFamilies] = useState<Family[]>([]);
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // -------------------------------
+  // Estados para búsqueda
+  // -------------------------------
+  const [searchTerm, setSearchTerm] = useState('');
+
+  // -------------------------------
+  // Estados para creación/edición de subfamilia
+  // -------------------------------
+  const [openAddDialog, setOpenAddDialog] = useState(false);
+
+  // Campos del formulario "Nueva Subfamilia"
+  const [newSubFamilyName, setNewSubFamilyName] = useState('');
+  const [selectedFamilyId, setSelectedFamilyId] = useState('');
+  const [showInCatalog, setShowInCatalog] = useState(false);
+  const [showInOrders, setShowInOrders] = useState(false);
+  const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
+
+  // Edición
+  const [editingSubFamily, setEditingSubFamily] =
+    useState<{ familyId: string; subFamily: SubFamily } | null>(null);
+  const [editingSubFamilyName, setEditingSubFamilyName] = useState('');
+  const [editingShowInCatalog, setEditingShowInCatalog] = useState(false);
+  const [editingShowInOrders, setEditingShowInOrders] = useState(false);
+  const [editingSelectedProductIds, setEditingSelectedProductIds] = useState<string[]>([]);
+
+  // -------------------------------
+  // Estado para confirmar eliminación de sub-familia
+  // -------------------------------
+  const [deleteSubFamily, setDeleteSubFamily] = useState<{
+    familyId: string;
+    subFamily: SubFamily;
+  } | null>(null);
+
+  // -------------------------------
+  // Manejo del Sidebar
+  // -------------------------------
+  const [isMenuOpen, setIsMenuOpen] = useState(true);
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
+  };
+
+  // -------------------------------
+  // Efectos iniciales
+  // -------------------------------
   useEffect(() => {
     setHydrated(true);
   }, []);
@@ -46,44 +108,34 @@ const SubFamilyPage: React.FC = () => {
     }
   }, [hydrated, token, router]);
 
-  // Estados para almacenar las familias y sus sub-familias
-  const [families, setFamilies] = useState<Family[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
+  useEffect(() => {
+    if (hydrated && token && contactId) {
+      fetchFamilies();
+      fetchAllProducts();
+    }
+  }, [hydrated, token, contactId]);
 
-  // Estados para el diálogo de creación de sub-familia
-  const [openAddDialog, setOpenAddDialog] = useState(false);
-  const [newSubFamilyName, setNewSubFamilyName] = useState('');
-  const [selectedFamilyId, setSelectedFamilyId] = useState('');
-
-  // Estados para editar sub-familia
-  const [editingSubFamily, setEditingSubFamily] = useState<{ familyId: string; subFamily: SubFamily } | null>(null);
-  const [editingSubFamilyName, setEditingSubFamilyName] = useState('');
-
-  // Estado para confirmar eliminación de sub-familia
-  const [deleteSubFamily, setDeleteSubFamily] = useState<{ familyId: string; subFamily: SubFamily } | null>(null);
-
-  // Estado para búsqueda
-  const [searchTerm, setSearchTerm] = useState('');
-
-  // Cargar las familias y, de cada una, sus sub-familias
+  // -------------------------------
+  // Fetch de familias (con subfamilias)
+  // -------------------------------
   const fetchFamilies = async () => {
+    if (!token || !contactId) return;
     setLoading(true);
     setError(null);
     try {
-      const familiesObtained: Family[] = await FamilyService.getAllFamilies(token!);
-      const familiesWithSubs: Family[] = await Promise.all(
-        familiesObtained.map(async (family) => {
-          try {
-            const subFamiliesObtained: SubFamily[] = await SubFamilyService.getSubFamiliesByFamilyId(family.id, token!);
-            return { ...family, subFamilies: subFamiliesObtained };
-          } catch (err) {
-            console.error(`Error al obtener sub-familias de la familia ${family.id}`, err);
-            return { ...family, subFamilies: [] };
-          }
-        })
-      );
-      setFamilies(familiesWithSubs);
+      const BASE_URL = process.env.NEXT_PUBLIC_API?.replace(/\/+$/, '');
+      const response = await fetch(`${BASE_URL}/Family/contact/${contactId}`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      if (!response.ok) {
+        throw new Error(`Error fetching families: ${response.statusText}`);
+      }
+      const json = await response.json();
+      setFamilies(json.data); // data es el array de familias con subFamilies
     } catch (err) {
       console.error('Error al cargar las familias', err);
       setError('Error al cargar las familias.');
@@ -92,50 +144,86 @@ const SubFamilyPage: React.FC = () => {
     }
   };
 
-  useEffect(() => {
-    if (hydrated && token) {
-      fetchFamilies();
+  // -------------------------------
+  // Fetch de productos (para agregarlos a la subfamilia)
+  // -------------------------------
+  const fetchAllProducts = async () => {
+    if (!token || !contactId) return;
+    try {
+      // Ajusta este método según tu API. Aquí usamos getByContactId de ejemplo.
+      const { data } = await ProductService.getByContactId(contactId, token);
+      // data debería ser un array de productos
+      setAllProducts(data);
+    } catch (error) {
+      console.error('Error al obtener productos', error);
     }
-  }, [hydrated, token]);
+  };
 
-  // Aplanamos todas las sub-familias agregando el nombre y el id de la familia
+  // -------------------------------
+  // Aplanar subfamilias
+  // -------------------------------
   const allSubFamilies = families.flatMap((family) =>
     (family.subFamilies || []).map((sub) => ({
       ...sub,
       familyName: family.name,
       familyId: family.id,
+      // Opcionalmente, si tu backend ya guarda showInCatalog, showInOrders, etc.
+      // showInCatalog: sub.showInCatalog,
+      // showInOrders: sub.showInOrders
     }))
   );
 
+  // -------------------------------
+  // Filtro de subfamilias
+  // -------------------------------
   const filteredSubFamilies = allSubFamilies.filter((sub) =>
     sub.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Manejo del diálogo para agregar sub-familia
+  // =========================================================
+  //                 CREACIÓN DE SUBFAMILIA
+  // =========================================================
   const handleOpenAddDialog = () => {
     setOpenAddDialog(true);
+    // Limpiar estados del formulario
+    setNewSubFamilyName('');
+    setSelectedFamilyId('');
+    setShowInCatalog(false);
+    setShowInOrders(false);
+    setSelectedProductIds([]);
   };
 
   const handleCloseAddDialog = () => {
     setOpenAddDialog(false);
-    setNewSubFamilyName('');
-    setSelectedFamilyId('');
   };
 
   const handleAddSubFamily = async () => {
-    if (newSubFamilyName.trim() === '' || selectedFamilyId.trim() === '') {
+    if (!token || !contactId) return;
+    if (!newSubFamilyName.trim() || !selectedFamilyId.trim()) {
       alert('Debe ingresar un nombre y seleccionar una familia.');
       return;
     }
+
     try {
+      // 1) Creamos la subfamilia en el backend
+      //    Suponiendo que tu backend soporta showInCatalog y showInOrders
       const newSub: SubFamily = await SubFamilyService.createSubFamily(
-        { familyId: selectedFamilyId, name: newSubFamilyName },
-        token!
+        {
+          contactId,
+          familyId: selectedFamilyId,
+          name: newSubFamilyName,
+          // showInCatalog,
+          // showInOrders
+        },
+        token
       );
+
+      // Aseguramos un ID
       if (!newSub.id) {
         newSub.id = `${Date.now()}`;
       }
-      // Actualizamos el estado agregando la nueva sub-familia a la familia correspondiente
+
+      // 2) Actualizamos localmente la lista de familias => agregamos la subfamilia
       setFamilies((prevFamilies) =>
         prevFamilies.map((family) =>
           family.id === selectedFamilyId
@@ -143,6 +231,25 @@ const SubFamilyPage: React.FC = () => {
             : family
         )
       );
+
+      // 3) Asignar los productos seleccionados a esta subfamilia (si aplica)
+      if (selectedProductIds.length > 0) {
+        for (const productId of selectedProductIds) {
+          const productToUpdate = allProducts.find((p) => p.id === productId);
+          if (productToUpdate) {
+            // Aquí ajusta la lógica de update según tu API.
+            // Suponiendo que el product tiene una prop subFamilyId.
+            await ProductService.update(
+              {
+                ...productToUpdate,
+                // subFamilyId: newSub.id,
+              },
+              token
+            );
+          }
+        }
+      }
+
       handleCloseAddDialog();
     } catch (err) {
       console.error('Error al crear la sub-familia', err);
@@ -150,24 +257,46 @@ const SubFamilyPage: React.FC = () => {
     }
   };
 
-  // Manejo del diálogo para editar sub-familia
+  // =========================================================
+  //                  EDICIÓN DE SUBFAMILIA
+  // =========================================================
   const handleOpenEditDialog = (familyId: string, subFamily: SubFamily) => {
     setEditingSubFamily({ familyId, subFamily });
     setEditingSubFamilyName(subFamily.name);
+    // Si el backend retorna showInCatalog / showInOrders, aquí podrías setearlos:
+    // setEditingShowInCatalog(subFamily.showInCatalog || false);
+    // setEditingShowInOrders(subFamily.showInOrders || false);
+
+    // Opcionalmente, si guardas los productos en cada subfamilia,
+    // setEditingSelectedProductIds([...los ids de productos que ya tenía asignados...])
+    setEditingSelectedProductIds([]);
   };
 
   const handleCloseEditDialog = () => {
     setEditingSubFamily(null);
     setEditingSubFamilyName('');
+    setEditingShowInCatalog(false);
+    setEditingShowInOrders(false);
+    setEditingSelectedProductIds([]);
   };
 
   const handleEditSubFamily = async () => {
-    if (!editingSubFamily || editingSubFamilyName.trim() === '') return;
+    if (!editingSubFamily || !editingSubFamilyName.trim() || !token || !contactId) return;
     try {
+      // Llamada a updateSubFamily.
+      // Asumimos que subFamilyId y name son suficientes (ajusta según tu API).
       const updatedSub: SubFamily = await SubFamilyService.updateSubFamily(
-        { subfamilyId: editingSubFamily.subFamily.id, name: editingSubFamilyName },
-        token!
+        editingSubFamily.subFamily.id,
+        {
+          subfamilyId: editingSubFamily.subFamily.id,
+          name: editingSubFamilyName,
+          // showInCatalog: editingShowInCatalog,
+          // showInOrders: editingShowInOrders,
+        },
+        token
       );
+
+      // Actualizamos en el estado local
       setFamilies((prevFamilies) =>
         prevFamilies.map((family) => {
           if (family.id === editingSubFamily.familyId) {
@@ -181,6 +310,25 @@ const SubFamilyPage: React.FC = () => {
           return family;
         })
       );
+
+      // Si cambió la selección de productos, aquí deberíamos hacer las llamadas
+      // a productService.update(...) para asignar o desasignar subFamilyId a cada producto.
+      // Por simplicidad, este ejemplo solo asigna a los seleccionados:
+      if (editingSelectedProductIds.length > 0) {
+        for (const productId of editingSelectedProductIds) {
+          const productToUpdate = allProducts.find((p) => p.id === productId);
+          if (productToUpdate) {
+            await ProductService.update(
+              {
+                ...productToUpdate,
+                // subFamilyId: updatedSub.id,
+              },
+              token
+            );
+          }
+        }
+      }
+
       handleCloseEditDialog();
     } catch (err) {
       console.error('Error al actualizar la sub-familia', err);
@@ -188,7 +336,9 @@ const SubFamilyPage: React.FC = () => {
     }
   };
 
-  // Manejo para eliminar sub-familia
+  // =========================================================
+  //                ELIMINACIÓN DE SUBFAMILIA
+  // =========================================================
   const handleOpenDeleteDialog = (familyId: string, subFamily: SubFamily) => {
     setDeleteSubFamily({ familyId, subFamily });
   };
@@ -198,9 +348,9 @@ const SubFamilyPage: React.FC = () => {
   };
 
   const handleDeleteSubFamily = async () => {
-    if (!deleteSubFamily) return;
+    if (!deleteSubFamily || !token || !contactId) return;
     try {
-      await SubFamilyService.deleteSubFamily(deleteSubFamily.subFamily.id, token!);
+      await SubFamilyService.deleteSubFamily(deleteSubFamily.subFamily.id, contactId, token);
       setFamilies((prevFamilies) =>
         prevFamilies.map((family) => {
           if (family.id === deleteSubFamily.familyId) {
@@ -221,16 +371,16 @@ const SubFamilyPage: React.FC = () => {
     }
   };
 
-  // Estado para el Sidebar
-  const [isMenuOpen, setIsMenuOpen] = useState(true);
-  const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);
-  };
+  // =========================================================
+  //          Render principal de la página
+  // =========================================================
+  if (!hydrated) return null;
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', bgcolor: '#F3F4F6' }}>
       <Header isMenuOpen={isMenuOpen} />
       <Box sx={{ display: 'flex', flexGrow: 1, pt: '64px' }}>
+        {/* SIDEBAR */}
         <Box
           sx={{
             width: isMenuOpen ? '240px' : '70px',
@@ -246,6 +396,7 @@ const SubFamilyPage: React.FC = () => {
           <Sidebar isMenuOpen={isMenuOpen} toggleMenu={toggleMenu} />
         </Box>
 
+        {/* CONTENIDO */}
         <Box
           sx={{
             flexGrow: 1,
@@ -326,7 +477,9 @@ const SubFamilyPage: React.FC = () => {
                               </IconButton>
                             </Tooltip>
                             <Tooltip title="Eliminar Sub-Familia">
-                              <IconButton onClick={() => handleOpenDeleteDialog(sub.familyId, sub)}>
+                              <IconButton
+                                onClick={() => handleOpenDeleteDialog(sub.familyId, sub)}
+                              >
                                 <DeleteIcon sx={{ color: '#ffffff' }} />
                               </IconButton>
                             </Tooltip>
@@ -342,9 +495,11 @@ const SubFamilyPage: React.FC = () => {
         </Box>
       </Box>
 
-      {/* Diálogo para agregar una nueva sub-familia */}
+      {/* -------------------------------------
+          DIALOGO: CREAR NUEVA SUB-FAMILIA
+      ------------------------------------- */}
       <Dialog open={openAddDialog} onClose={handleCloseAddDialog} maxWidth="sm" fullWidth>
-        <DialogTitle>Añadir Nueva Sub-Familia</DialogTitle>
+        <DialogTitle>Nueva Subfamilia</DialogTitle>
         <DialogContent>
           <TextField
             fullWidth
@@ -353,7 +508,8 @@ const SubFamilyPage: React.FC = () => {
             onChange={(e) => setNewSubFamilyName(e.target.value)}
             sx={{ mb: 2 }}
           />
-          <FormControl fullWidth>
+
+          <FormControl fullWidth sx={{ mb: 2 }}>
             <InputLabel id="select-family-label">Familia</InputLabel>
             <Select
               labelId="select-family-label"
@@ -368,7 +524,54 @@ const SubFamilyPage: React.FC = () => {
               ))}
             </Select>
           </FormControl>
+
+          {/* Checkboxes */}
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={showInCatalog}
+                onChange={(e) => setShowInCatalog(e.target.checked)}
+              />
+            }
+            label="Mostrar grupo en catálogo"
+          />
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={showInOrders}
+                onChange={(e) => setShowInOrders(e.target.checked)}
+              />
+            }
+            label="Mostrar grupo en pedidos (vista inventario)"
+          />
+
+          {/* Multi-select para agregar productos existentes */}
+          <FormControl fullWidth sx={{ mt: 2 }}>
+            <InputLabel id="select-products-label">Agregar productos</InputLabel>
+            <Select
+              labelId="select-products-label"
+              multiple
+              value={selectedProductIds}
+              onChange={(e) => {
+                const value = e.target.value;
+                setSelectedProductIds(typeof value === 'string' ? value.split(',') : value);
+              }}
+              renderValue={(selected) => {
+                // Muestra los nombres de los productos
+                const names = allProducts
+                  .map((p) => p.name || p.name); // Ajusta según tu campo
+                return names.join(', ');
+              }}
+            >
+              {allProducts.map((product) => (
+                <MenuItem key={product.id} value={product.id}>
+                  {product.name || product.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
         </DialogContent>
+
         <DialogActions>
           <Button onClick={handleCloseAddDialog}>Cancelar</Button>
           <Button
@@ -376,12 +579,14 @@ const SubFamilyPage: React.FC = () => {
             variant="contained"
             sx={{ bgcolor: '#2666CF', color: '#ffffff', '&:hover': { bgcolor: '#1A4C97' } }}
           >
-            Crear Sub-Familia
+            Crear
           </Button>
         </DialogActions>
       </Dialog>
 
-      {/* Diálogo para editar sub-familia */}
+      {/* -------------------------------------
+          DIALOGO: EDITAR SUB-FAMILIA
+      ------------------------------------- */}
       <Dialog open={!!editingSubFamily} onClose={handleCloseEditDialog} maxWidth="sm" fullWidth>
         <DialogTitle>Editar Sub-Familia</DialogTitle>
         <DialogContent>
@@ -392,7 +597,53 @@ const SubFamilyPage: React.FC = () => {
             onChange={(e) => setEditingSubFamilyName(e.target.value)}
             sx={{ mb: 2 }}
           />
+
+          {/* Checkboxes */}
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={editingShowInCatalog}
+                onChange={(e) => setEditingShowInCatalog(e.target.checked)}
+              />
+            }
+            label="Mostrar grupo en catálogo"
+          />
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={editingShowInOrders}
+                onChange={(e) => setEditingShowInOrders(e.target.checked)}
+              />
+            }
+            label="Mostrar grupo en pedidos (vista inventario)"
+          />
+
+          {/* Multi-select para (re)asignar productos */}
+          <FormControl fullWidth sx={{ mt: 2 }}>
+            <InputLabel id="edit-products-label">Productos en la sub-familia</InputLabel>
+            <Select
+              labelId="edit-products-label"
+              multiple
+              value={editingSelectedProductIds}
+              onChange={(e) => {
+                const value = e.target.value;
+                setEditingSelectedProductIds(typeof value === 'string' ? value.split(',') : value);
+              }}
+              renderValue={(selected) => {
+                const names = allProducts
+                  .map((p) => p.name || p.name);
+                return names.join(', ');
+              }}
+            >
+              {allProducts.map((product) => (
+                <MenuItem key={product.id} value={product.id}>
+                  {product.name || product.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
         </DialogContent>
+
         <DialogActions>
           <Button onClick={handleCloseEditDialog}>Cancelar</Button>
           <Button
@@ -405,7 +656,9 @@ const SubFamilyPage: React.FC = () => {
         </DialogActions>
       </Dialog>
 
-      {/* Diálogo para confirmar eliminación de sub-familia */}
+      {/* -------------------------------------
+          DIALOGO: ELIMINAR SUB-FAMILIA
+      ------------------------------------- */}
       <Dialog open={!!deleteSubFamily} onClose={handleCloseDeleteDialog} maxWidth="xs" fullWidth>
         <DialogTitle>Confirmar Eliminación</DialogTitle>
         <DialogContent>

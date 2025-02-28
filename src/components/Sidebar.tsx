@@ -326,7 +326,7 @@ const Sidebar = ({ isMenuOpen, toggleMenu }) => {
               <ListItemText primary={t('sidebar.controlPanel')} sx={{ color: '#6C757D' }} />
             </ListItem>
             {/* Submenus with "+" button */}
-            {['/inventory/instalaciones-inventario', '/inventory/productos-inventario', '/inventory/categorias-inventario','/inventory/subfamilias', '/inventory/pedidosDeVenta-inventario', '/inventory/albaranes-ventas', '/inventory/albaranes-compras'].map((path, index) => (
+            {['/inventory/instalaciones-inventario', '/inventory/productos-inventario', '/inventory/categorias-inventario','/inventory/subfamilias', '/inventory/pedidosDeVenta-inventario', '/sales/albaranes-ventas', '/purchases/albaranes-compras'].map((path, index) => (
               <ListItem
                 sx={{ pl: 4, '&:hover': { bgcolor: '#E3F2FD', transform: 'scale(1.05)', transition: 'transform 0.2s ease' } }}
                 onClick={() => handleItemClick(path)}

@@ -3,12 +3,12 @@
 export interface Product {
     // Campo opcional en caso de que lo devuelva tu API
     id?: number | string;
-  
+    
     // Asigna el contactId si tu API lo requiere (por ejemplo, para asociar el producto con un usuario/contacto).
     contactId?: string;
   
     referencia: string;
-    nombre: string;
+    name: string;
     descripcion: string;
     familia: string;
     subFamilia: string;

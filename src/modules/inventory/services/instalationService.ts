@@ -33,7 +33,7 @@ const InstalationService = {
   },
 
   createInstalation: async (instData: CreateInstalationDto, token: string): Promise<Instalation> => {
-    const response = await fetch(`${BASE_URL}/Instalations`, {
+    const response = await fetch(`${BASE_URL}/Instalations/`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,

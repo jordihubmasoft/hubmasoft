@@ -1,4 +1,5 @@
 export interface CreateInstalationDto {
+    contactId: string;
     name: string;
     email: string;
     phone: string;
