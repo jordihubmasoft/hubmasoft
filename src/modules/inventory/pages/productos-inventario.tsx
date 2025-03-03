@@ -45,8 +45,12 @@ import Header from 'components/Header';
 import Sidebar from 'components/Sidebar';
 
 import ProductService from '../services/productService';
-// Importa el tipo de producto de una única ruta para evitar conflictos
+// Importa el tipo de producto para evitar conflictos
 import { Product } from '../types/Product';
+
+// IMPORTANTE: Se importa el servicio y tipo de Instalación
+import InstalationService from '../services/instalationService';
+import { Instalation } from '../types/instalation';
 
 // Columnas de la tabla de productos
 const allColumns = [
@@ -72,11 +76,10 @@ const ProductFormPage = ({
   handleBack: () => void;
   handleSave: (p: Product) => void;
 }) => {
-  // Se recupera el token y además el usuario (para obtener el ContactId)
   const token = useAuthStore((state) => state.token);
   const user = useAuthStore((state) => state.contactId);
 
-  // Estado inicial: si se está editando se carga el producto; de lo contrario, se inicializan todos los campos en vacío
+  // Estado inicial: si se está editando se carga el producto; si no, se inicializan los campos vacíos
   const [formData, setFormData] = useState<Product>(
     product || {
       referencia: '',
@@ -89,7 +92,6 @@ const ProductFormPage = ({
       iva: '',
       descuento: '',
       codigoBarras: '',
-      // campos opcionales para API
       codigoFabricacion: '',
       peso: '',
       nombreTarifa: '',
@@ -106,10 +108,36 @@ const ProductFormPage = ({
       almacenPredeterminado: '',
       cantidad: 0,
       contactId: '',
+      // Se añade el campo para el id de la instalación como tuple de 1 elemento
+      installationId: [''] as [string],
     }
   );
 
-  // Modificamos handleChange para convertir el valor del campo "cantidad" a número
+  // Estado para almacenar las instalaciones obtenidas
+  const [installations, setInstallations] = useState<Instalation[]>([]);
+
+  // Obtener instalaciones al montar el componente
+  useEffect(() => {
+    const fetchInstallations = async () => {
+      try {
+        const instResponse: any = await InstalationService.getAllInstalations(token, user);
+        const instData = Array.isArray(instResponse) ? instResponse : instResponse.data;
+
+        if (Array.isArray(instData)) {
+          setInstallations(instData);
+        } else {
+          setInstallations([]);
+        }
+      } catch (err) {
+        console.error("Error al obtener instalaciones:", err);
+      }
+    };
+    if (token) {
+      fetchInstallations();
+    }
+  }, [token, user]);
+
+  // Convertir el valor del campo "cantidad" a número
   const handleChange = (
     e:
       | React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -122,7 +150,7 @@ const ProductFormPage = ({
     }));
   };
 
-  // Al enviar el formulario se utiliza directamente el objeto de estado (inyectando el ContactId)
+  // Al enviar el formulario, se utiliza el objeto de estado (inyectando el ContactId)
   const handleSubmit = () => {
     const productToSave: Product = { ...formData, contactId: user || '' };
     handleSave(productToSave);
@@ -221,6 +249,33 @@ const ProductFormPage = ({
                 onChange={handleChange}
                 sx={{ borderRadius: 2 }}
               />
+            </Grid>
+
+            {/* NUEVA SECCIÓN: Desplegable para seleccionar la Instalación */}
+            <Grid item xs={12}>
+              <FormControl fullWidth variant="outlined">
+                <InputLabel id="installation-label">Instalación</InputLabel>
+                <Select
+                  labelId="installation-label"
+                  label="Instalación"
+                  name="installationId"
+                  value={formData.installationId ? formData.installationId[0] : ''}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      // Se actualiza el tuple con el valor seleccionado
+                      installationId: [e.target.value as string] as [string],
+                    }))
+                  }
+                >
+                  {Array.isArray(installations) &&
+                    installations.map((inst) => (
+                      <MenuItem key={inst.id} value={inst.id}>
+                        {inst.name}
+                      </MenuItem>
+                    ))}
+                </Select>
+              </FormControl>
             </Grid>
           </Grid>
         </CardContent>
@@ -540,6 +595,7 @@ const ProductFormPage = ({
               </Grid>
               <Grid item xs>
                 <TextField
+                  name="buscarVariante"  // Added name attribute for autofill/accessibility
                   fullWidth
                   variant="outlined"
                   placeholder="Buscar Variante"
@@ -648,30 +704,26 @@ const Productos = () => {
   const router = useRouter();
   const token = useAuthStore((state) => state.token);
 
-  // Estado de hidratación (similar a FamiliasInventario)
+  // Estado de hidratación
   const [hydrated, setHydrated] = useState(false);
   useEffect(() => {
     setHydrated(true);
   }, []);
 
-  // Redirección a login si no existe token (una vez hidratado)
+  // Redirección a login si no existe token (después de hidratar)
   useEffect(() => {
     if (hydrated && !token) {
       router.push('/auth/login');
     }
   }, [hydrated, token, router]);
 
-  // Estado para manejar sidebar, carga y errores
+  // Estados para sidebar, carga, errores, productos y edición
   const [isMenuOpen, setIsMenuOpen] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  // Lista de productos y control de edición
   const [products, setProducts] = useState<Product[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-
-  // Columnas visibles y menú
   const [visibleColumns, setVisibleColumns] = useState(
     allColumns.map((col) => col.id)
   );
@@ -689,12 +741,11 @@ const Productos = () => {
           referencia: p.reference,
           nombre: p.name,
           descripcion: p.description,
-          // Puedes mapear "familia" según lo que necesites, por ejemplo:
           familia: p.companyCode,
           subFamilia: p.subFamily || '',
-          unidadMedida: '', // No disponible en la API, definir según necesidad
+          unidadMedida: '',
           precio: p.recommendedPrice?.toString() || '',
-          iva: '', // Definir si lo tienes en algún otro campo o dejar vacío
+          iva: '',
           descuento: '',
           codigoBarras: p.barCode,
           codigoFabricacion: p.manufacturingCode,
@@ -713,7 +764,9 @@ const Productos = () => {
           almacenPredeterminado: p.wareHouse,
           cantidad: p.stock,
           id: p.id,
-          contactId: '' // o asignar el valor correspondiente si lo tienes
+          contactId: '',
+          // Se asigna installationId como tuple de 1 elemento (vacío por defecto)
+          installationId: [''] as [string],
         }));
         setProducts(mappedProducts);
       }
@@ -760,14 +813,18 @@ const Productos = () => {
         // Crear nuevo producto
         const response = await ProductService.createProduct(product, token);
         if (response) {
+          // Opción A: Actualizar el estado agregando el producto devuelto
           setProducts((prev) => [...prev, response]);
+          
+          // Opción B (alternativa): Volver a obtener la lista completa desde el backend
+          // await fetchProducts();
         }
       }
     } catch (err) {
       console.error(err);
-      // Aquí podrías manejar el error, por ejemplo mostrando una alerta
     }
   };
+  
 
   // Eliminar producto
   const handleDelete = async (productId: number | string) => {
@@ -858,6 +915,7 @@ const Productos = () => {
 
                 <Box sx={{ display: 'flex', mb: 3, flexWrap: 'wrap', gap: 2 }}>
                   <TextField
+                    name="buscarProducto"  // Added name attribute for autofill/accessibility
                     variant="outlined"
                     placeholder="Buscar..."
                     fullWidth

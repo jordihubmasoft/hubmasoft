@@ -39,79 +39,46 @@ const ProductService = {
 
   /**
    * Crea un nuevo producto (POST /Product)
-   *
-   * Cuerpo de ejemplo:
-   * {
-   *   "name": "test",
-   *   "description": "string",
-   *   "reference": "string",
-   *   "companyCode": "string",
-   *   "tags": "string",
-   *   "stock": 0,
-   *   "price": 0,
-   *   "purchasePrice": 0,
-   *   "costValue": 0,
-   *   "sellsValue": 0,
-   *   "priceWithoutVAT": 0,
-   *   "percentageVAT": 0,
-   *   "contactId": "{{ContactId}}",
-   *   "installationId": [
-   *     "string"
-   *   ]
-   * }
    */
   createProduct: async (productData: Product, token: string): Promise<Product> => {
-    const response = await fetch(`${BASE_URL}/Product`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        name: productData.nombre || '',
-        description: productData.descripcion || '',
-        reference: productData.referencia || '',
-        companyCode: productData.familia || '',
-        tags: productData.subFamilia || '',
-        stock: productData.cantidad ? Number(productData.cantidad) : 0,
-        price: productData.precio ? Number(productData.precio) : 0,
-        purchasePrice: productData.precioCompraTotal ? Number(productData.precioCompraTotal) : 0,
-        costValue: 0,
-        sellsValue: 0,
-        priceWithoutVAT: 0,
-        percentageVAT: productData.iva ? Number(productData.iva) : 0,
-        contactId: productData.contactId || '',
-        installationId: ['string'],
-      }),
-    });
-    if (!response.ok) {
-      throw new Error(`Error creating product: ${response.statusText}`);
-    }
-    return await response.json();
-  },
+  const response = await fetch(`${BASE_URL}/Product`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      name: productData.nombre || 'Default Name',
+      description: productData.descripcion || 'Default description',
+      reference: productData.referencia || '',
+      companyCode: productData.familia || '',
+      tags: productData.subFamilia || '',
+      stock: productData.cantidad ? Number(productData.cantidad) : 0,
+      price: productData.precio ? Number(productData.precio) : 0,
+      purchasePrice: productData.precioCompraTotal ? Number(productData.precioCompraTotal) : 0,
+      costValue: 0,
+      sellsValue: 0,
+      priceWithoutVAT: 0,
+      percentageVAT: productData.iva ? Number(productData.iva) : 0,
+      contactId: productData.contactId || '',
+      installationId:
+        productData.installationId && productData.installationId[0] !== ''
+          ? [productData.installationId[0]]
+          : []
+    }),
+    
+    
+  });
+  if (!response.ok) {
+    throw new Error(`Error creating product: ${response.statusText}`);
+  }
+  return await response.json();
+},
+
+  
 
   /**
    * Actualiza un producto existente (PUT /Product)
-   *
-   * Cuerpo de ejemplo:
-   * {
-   *   "name": "test prueba",
-   *   "description": "pruebas",
-   *   "reference": "string",
-   *   "companyCode": "string",
-   *   "tags": "string",
-   *   "price": 0,
-   *   "purchasePrice": 0,
-   *   "costValue": 0,
-   *   "sellsValue": 0,
-   *   "priceWithoutVAT": 0,
-   *   "percentageVAT": 0,
-   *   "contactId": "string",
-   *   "installationId": [
-   *     "6E7C36DD-4121-4C81-97C2-9CA075020129"
-   *   ],
-   *   "productId": "70BD503E-DCE2-4C0E-8176-A44A60CADC32"
-   * }
    */
   updateProduct: async (productData: Product, token: string): Promise<Product> => {
     const response = await fetch(`${BASE_URL}/Product`, {
@@ -133,7 +100,8 @@ const ProductService = {
         priceWithoutVAT: 0,
         percentageVAT: productData.iva ? Number(productData.iva) : 0,
         contactId: productData.contactId || '',
-        installationId: ['string'],
+        // Se actualiza con el id de la instalación seleccionada
+        installationId: productData.installationId ? [productData.installationId] : [],
         productId: productData.id || '',
       }),
     });

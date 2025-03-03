@@ -28,4 +28,5 @@ export interface Product {
   almacenPredeterminado: string;
   cantidad: number;
   contactId: string;
+  installationId: string[];
 }
