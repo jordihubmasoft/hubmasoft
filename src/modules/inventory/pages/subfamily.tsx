@@ -18,18 +18,29 @@ import {
   FormControl,
   InputLabel,
   Tooltip,
+  FormControlLabel,
+  Checkbox,
+  Divider,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Header from 'components/Header';
 import Sidebar from 'components/Sidebar';
-import FamilyService from '../services/familyService';
-import SubFamilyService from '../services/subFamilyService';
 import { useRouter } from 'next/router';
 import useAuthStore from '../../../store/useAuthStore';
+
+import FamilyService from '../services/familyService';
+import SubFamilyService from '../services/subFamilyService';
 import { Family } from '../types/family';
 import { SubFamily } from '../types/subFamily';
+
+// Tipo de producto (ajusta según tu modelo real)
+interface Product {
+  id: string;
+  name: string;
+  // otros campos...
+}
 
 const SubFamilyPage: React.FC = () => {
   const router = useRouter();
@@ -47,27 +58,21 @@ const SubFamilyPage: React.FC = () => {
     }
   }, [hydrated, token, router]);
 
-  // Estados para almacenar las familias y sus sub-familias
+  // --------------------------------------------
+  // Estados para almacenar las familias y subfamilias
+  // --------------------------------------------
   const [families, setFamilies] = useState<Family[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Estados para el diálogo de creación de sub-familia
-  const [openAddDialog, setOpenAddDialog] = useState(false);
-  const [newSubFamilyName, setNewSubFamilyName] = useState('');
-  const [selectedFamilyId, setSelectedFamilyId] = useState('');
-
-  // Estados para editar sub-familia
-  const [editingSubFamily, setEditingSubFamily] = useState<{ familyId: string; subFamily: SubFamily } | null>(null);
-  const [editingSubFamilyName, setEditingSubFamilyName] = useState('');
-
-  // Estado para confirmar eliminación de sub-familia
-  const [deleteSubFamily, setDeleteSubFamily] = useState<{ familyId: string; subFamily: SubFamily } | null>(null);
-
+  // --------------------------------------------
   // Estado para búsqueda
+  // --------------------------------------------
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Modificación: obtener las familias y sus sub-familias desde el endpoint que devuelve todo
+  // --------------------------------------------
+  // Obtener las familias con sus sub-familias
+  // --------------------------------------------
   const fetchFamilies = async () => {
     if (!token || !contactId) return;
     setLoading(true);
@@ -85,8 +90,7 @@ const SubFamilyPage: React.FC = () => {
         throw new Error(`Error fetching families: ${response.statusText}`);
       }
       const json = await response.json();
-      // Asumimos que json.data contiene el array de familias con la propiedad subFamilies
-      setFamilies(json.data);
+      setFamilies(json.data); // Asumimos que json.data contiene el array de familias
     } catch (err) {
       console.error('Error al cargar las familias', err);
       setError('Error al cargar las familias.');
@@ -114,35 +118,115 @@ const SubFamilyPage: React.FC = () => {
     sub.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Manejo del diálogo para agregar sub-familia
+  // --------------------------------------------
+  // Estado y funciones para crear nueva sub-familia
+  // --------------------------------------------
+  const [openAddDialog, setOpenAddDialog] = useState(false);
+
+  // En lugar de tener un estado para "name" y otro para "familyId", 
+  // creamos un objeto que contenga todos los campos necesarios.
+  const [newSubFamilyData, setNewSubFamilyData] = useState<{
+    name: string;
+    familyId: string;
+    showInOrders: boolean;
+    showInCatalog: boolean;
+    order: number;
+    productIds: string[];
+    imageFile: File | null;
+  }>({
+    name: '',
+    familyId: '',
+    showInOrders: false,
+    showInCatalog: false,
+    order: 0,
+    productIds: [],
+    imageFile: null,
+  });
+
   const handleOpenAddDialog = () => {
     setOpenAddDialog(true);
   };
 
   const handleCloseAddDialog = () => {
     setOpenAddDialog(false);
-    setNewSubFamilyName('');
-    setSelectedFamilyId('');
+    // Reseteamos el formulario
+    setNewSubFamilyData({
+      name: '',
+      familyId: '',
+      showInOrders: false,
+      showInCatalog: false,
+      order: 0,
+      productIds: [],
+      imageFile: null,
+    });
   };
 
+  // --------------------------------------------
+  // Estados y lógica para obtener y filtrar productos
+  // --------------------------------------------
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [productSearch, setProductSearch] = useState('');
+
+  useEffect(() => {
+    const fetchAllProducts = async () => {
+      try {
+        if (!token) return;
+        const BASE_URL = process.env.NEXT_PUBLIC_API?.replace(/\/+$/, '');
+        const resp = await fetch(`${BASE_URL}/Product`, {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+        if (!resp.ok) throw new Error('Error al obtener productos');
+        const json = await resp.json();
+        // Ajusta según tu API (json.data o similar)
+        setAllProducts(json.data ?? json);
+      } catch (error) {
+        console.error('Error al obtener productos:', error);
+      }
+    };
+
+    fetchAllProducts();
+  }, [token]);
+
+  const filteredProducts = allProducts.filter((p) =>
+    p.name?.toLowerCase().includes(productSearch.toLowerCase())
+  );
+
+  // --------------------------------------------
+  // Crear sub-familia (con campos extra)
+  // --------------------------------------------
   const handleAddSubFamily = async () => {
     if (!token || !contactId) return;
-    if (newSubFamilyName.trim() === '' || selectedFamilyId.trim() === '') {
+    if (newSubFamilyData.name.trim() === '' || newSubFamilyData.familyId.trim() === '') {
       alert('Debe ingresar un nombre y seleccionar una familia.');
       return;
     }
     try {
-      const newSub: SubFamily = await SubFamilyService.createSubFamily(
-        { contactId, familyId: selectedFamilyId, name: newSubFamilyName },
-        token
-      );
+      // Construimos el payload con los campos nuevos.
+      // Ajusta la lógica si tu backend requiere FormData para la imagen.
+      const payload = {
+        contactId,
+        familyId: newSubFamilyData.familyId,
+        name: newSubFamilyData.name,
+        showInOrders: newSubFamilyData.showInOrders,
+        showInCatalog: newSubFamilyData.showInCatalog,
+        order: newSubFamilyData.order,
+        productIds: newSubFamilyData.productIds,
+        // imageFile: newSubFamilyData.imageFile, // Manejo según tu API
+      };
+
+      const newSub: SubFamily = await SubFamilyService.createSubFamily(payload, token);
+
       if (!newSub.id) {
         newSub.id = `${Date.now()}`;
       }
       // Se agrega la nueva sub-familia a la familia correspondiente
       setFamilies((prevFamilies) =>
         prevFamilies.map((family) =>
-          family.id === selectedFamilyId
+          family.id === newSubFamilyData.familyId
             ? { ...family, subFamilies: [...(family.subFamilies || []), newSub] }
             : family
         )
@@ -154,7 +238,15 @@ const SubFamilyPage: React.FC = () => {
     }
   };
 
-  // Manejo del diálogo para editar sub-familia
+  // --------------------------------------------
+  // Editar sub-familia
+  // --------------------------------------------
+  const [editingSubFamily, setEditingSubFamily] = useState<{
+    familyId: string;
+    subFamily: SubFamily;
+  } | null>(null);
+  const [editingSubFamilyName, setEditingSubFamilyName] = useState('');
+
   const handleOpenEditDialog = (familyId: string, subFamily: SubFamily) => {
     setEditingSubFamily({ familyId, subFamily });
     setEditingSubFamilyName(subFamily.name);
@@ -193,7 +285,14 @@ const SubFamilyPage: React.FC = () => {
     }
   };
 
-  // Manejo para eliminar sub-familia
+  // --------------------------------------------
+  // Eliminar sub-familia
+  // --------------------------------------------
+  const [deleteSubFamily, setDeleteSubFamily] = useState<{
+    familyId: string;
+    subFamily: SubFamily;
+  } | null>(null);
+
   const handleOpenDeleteDialog = (familyId: string, subFamily: SubFamily) => {
     setDeleteSubFamily({ familyId, subFamily });
   };
@@ -226,7 +325,9 @@ const SubFamilyPage: React.FC = () => {
     }
   };
 
+  // --------------------------------------------
   // Estado para el Sidebar
+  // --------------------------------------------
   const [isMenuOpen, setIsMenuOpen] = useState(true);
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -351,30 +452,185 @@ const SubFamilyPage: React.FC = () => {
 
       {/* Diálogo para agregar una nueva sub-familia */}
       <Dialog open={openAddDialog} onClose={handleCloseAddDialog} maxWidth="sm" fullWidth>
-        <DialogTitle>Añadir Nueva Sub-Familia</DialogTitle>
-        <DialogContent>
-          <TextField
-            fullWidth
-            label="Nombre de la sub-familia"
-            value={newSubFamilyName}
-            onChange={(e) => setNewSubFamilyName(e.target.value)}
-            sx={{ mb: 2 }}
-          />
-          <FormControl fullWidth>
-            <InputLabel id="select-family-label">Familia</InputLabel>
-            <Select
-              labelId="select-family-label"
-              value={selectedFamilyId}
-              label="Familia"
-              onChange={(e) => setSelectedFamilyId(e.target.value as string)}
-            >
-              {families.map((family) => (
-                <MenuItem key={family.id} value={family.id}>
-                  {family.name}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+        <DialogTitle sx={{ fontWeight: 600 }}>Nueva Sub-Familia</DialogTitle>
+        <DialogContent dividers>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            {/* Sección Información Básica */}
+            <Box>
+              <Typography variant="h6" sx={{ mb: 2 }}>
+                Información Básica
+              </Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    label="Nombre de la sub-familia"
+                    value={newSubFamilyData.name}
+                    onChange={(e) =>
+                      setNewSubFamilyData((prev) => ({ ...prev, name: e.target.value }))
+                    }
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <FormControl fullWidth>
+                    <InputLabel id="select-family-label">Familia</InputLabel>
+                    <Select
+                      labelId="select-family-label"
+                      value={newSubFamilyData.familyId}
+                      label="Familia"
+                      onChange={(e) =>
+                        setNewSubFamilyData((prev) => ({
+                          ...prev,
+                          familyId: e.target.value as string,
+                        }))
+                      }
+                    >
+                      {families.map((family) => (
+                        <MenuItem key={family.id} value={family.id}>
+                          {family.name}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+              </Grid>
+            </Box>
+
+            <Divider />
+
+            {/* Sección Opciones de Visualización */}
+            <Box>
+              <Typography variant="h6" sx={{ mb: 2 }}>
+                Opciones de Visualización
+              </Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={12}>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={newSubFamilyData.showInOrders}
+                        onChange={(e) =>
+                          setNewSubFamilyData((prev) => ({
+                            ...prev,
+                            showInOrders: e.target.checked,
+                          }))
+                        }
+                      />
+                    }
+                    label="Mostrar grupo en pedidos (Vista inventario)"
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={newSubFamilyData.showInCatalog}
+                        onChange={(e) =>
+                          setNewSubFamilyData((prev) => ({
+                            ...prev,
+                            showInCatalog: e.target.checked,
+                          }))
+                        }
+                      />
+                    }
+                    label="Mostrar grupo en catálogo"
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    type="number"
+                    label="Orden"
+                    fullWidth
+                    value={newSubFamilyData.order}
+                    onChange={(e) =>
+                      setNewSubFamilyData((prev) => ({
+                        ...prev,
+                        order: Number(e.target.value),
+                      }))
+                    }
+                  />
+                </Grid>
+              </Grid>
+            </Box>
+
+            <Divider />
+
+            {/* Sección Imagen */}
+            <Box>
+              <Typography variant="h6" sx={{ mb: 2 }}>
+                Imagen
+              </Typography>
+              <TextField
+                type="file"
+                fullWidth
+                inputProps={{ accept: 'image/*' }}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                  if (e.target.files && e.target.files.length > 0) {
+                    setNewSubFamilyData((prev) => ({
+                      ...prev,
+                      imageFile: e.target.files![0],
+                    }));
+                  }
+                }}
+              />
+            </Box>
+
+            <Divider />
+
+            {/* Sección Selección de Productos */}
+            <Box>
+              <Typography variant="h6" sx={{ mb: 2 }}>
+                Agregar Productos
+              </Typography>
+              <TextField
+                label="Buscar producto..."
+                fullWidth
+                value={productSearch}
+                onChange={(e) => setProductSearch(e.target.value)}
+                sx={{ mb: 2 }}
+              />
+              <Box
+                sx={{
+                  maxHeight: '200px',
+                  overflowY: 'auto',
+                  border: '1px solid #ccc',
+                  borderRadius: 2,
+                  p: 1,
+                }}
+              >
+                {filteredProducts.length === 0 ? (
+                  <Typography variant="body2" color="textSecondary">
+                    No se encontraron productos
+                  </Typography>
+                ) : (
+                  filteredProducts.map((product) => (
+                    <FormControlLabel
+                      key={product.id}
+                      control={
+                        <Checkbox
+                          checked={newSubFamilyData.productIds.includes(product.id)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setNewSubFamilyData((prev) => ({
+                                ...prev,
+                                productIds: [...prev.productIds, product.id],
+                              }));
+                            } else {
+                              setNewSubFamilyData((prev) => ({
+                                ...prev,
+                                productIds: prev.productIds.filter((id) => id !== product.id),
+                              }));
+                            }
+                          }}
+                        />
+                      }
+                      label={product.name}
+                    />
+                  ))
+                )}
+              </Box>
+            </Box>
+          </Box>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseAddDialog}>Cancelar</Button>
