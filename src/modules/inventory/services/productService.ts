@@ -100,8 +100,11 @@ const ProductService = {
         priceWithoutVAT: 0,
         percentageVAT: productData.iva ? Number(productData.iva) : 0,
         contactId: productData.contactId || '',
-        // Se actualiza con el id de la instalación seleccionada
-        installationId: productData.installationId ? [productData.installationId] : [],
+        // Aquí se utiliza el primer elemento del array installationId
+        installationId: 
+          productData.installationId && productData.installationId[0] !== ''
+            ? [productData.installationId[0]]
+            : [],
         productId: productData.id || '',
       }),
     });
@@ -110,6 +113,7 @@ const ProductService = {
     }
     return await response.json();
   },
+  
 
   /**
    * Elimina un producto (DELETE /Product/{ProductId})

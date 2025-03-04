@@ -18,6 +18,12 @@ import {
   Tabs,
   Tab,
   MenuItem,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -35,6 +41,10 @@ import InstalationService from '../services/instalationService';
 import { CreateInstalationDto } from '../types/createInstalationDto';
 import { useRouter } from 'next/router';
 import useAuthStore from '../../../store/useAuthStore';
+
+// Import para la tabla de productos
+import ProductService from '../services/productService';
+import { Product } from '../types/Product';
 
 // Registro y configuración de Chart.js
 import {
@@ -156,6 +166,11 @@ const Instalaciones = () => {
     province: '',
     country: '',
   });
+
+  // Estados para los productos asociados a la instalación seleccionada
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loadingProducts, setLoadingProducts] = useState<boolean>(false);
+  const [errorProducts, setErrorProducts] = useState<string | null>(null);
 
   // Evitamos errores en SSR
   useEffect(() => {
@@ -295,7 +310,6 @@ const Instalaciones = () => {
   // -- Editar instalación --
   const handleEditDialogOpen = () => {
     if (!selectedInstalacion) return;
-
     // Pre-cargamos el formulario con los datos de la instalación seleccionada
     setEditForm({
       name: selectedInstalacion.name || '',
@@ -324,10 +338,7 @@ const Instalaciones = () => {
 
   const handleUpdateInstalacion = async () => {
     if (!token || !selectedInstalacion) return;
-
     try {
-      // Construimos un objeto Instalation completo, usando la instalación original
-      // y mezclando los valores del formulario de edición
       const updatedInstalation: Instalation = {
         ...selectedInstalacion,
         name: editForm.name,
@@ -342,15 +353,11 @@ const Instalaciones = () => {
           country: editForm.country,
         },
       };
-
       await InstalationService.updateInstalation(updatedInstalation, token);
-
-      // Actualizamos el estado local para reflejar los cambios sin recargar la página
       setInstalaciones((prev) =>
         prev.map((inst) => (inst.id === updatedInstalation.id ? updatedInstalation : inst))
       );
       setSelectedInstalacion(updatedInstalation);
-
       setSnackbarMessage('Instalación actualizada');
       setSnackbarOpen(true);
       handleEditDialogClose();
@@ -360,6 +367,31 @@ const Instalaciones = () => {
       setSnackbarOpen(true);
     }
   };
+
+  // -- Productos asociados a la instalación --
+  const fetchProductsForInstallation = async () => {
+    if (!token || !selectedInstalacion) return;
+    setLoadingProducts(true);
+    setErrorProducts(null);
+    try {
+      const allProducts = await ProductService.getAllProducts(token);
+      const filteredProducts = allProducts.filter((p: Product) =>
+        p.installationId && p.installationId.includes(selectedInstalacion.id)
+      );
+      setProducts(filteredProducts);
+    } catch (err) {
+      console.error(err);
+      setErrorProducts("Error al cargar los productos");
+    } finally {
+      setLoadingProducts(false);
+    }
+  };
+
+  useEffect(() => {
+    if (selectedInstalacion && tabIndex === 1) {
+      fetchProductsForInstallation();
+    }
+  }, [selectedInstalacion, tabIndex, token]);
 
   // -- Otros --
   const handleSnackbarClose = () => {
@@ -503,25 +535,13 @@ const Instalaciones = () => {
                   // VISTA DE DETALLE DE UNA INSTALACIÓN SELECCIONADA
                   <Paper sx={{ p: 3, borderRadius: 2, mt: 2 }}>
                     <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
-                      <Button
-                        variant="outlined"
-                        startIcon={<CloseIcon />}
-                        onClick={handleBack}
-                      >
+                      <Button variant="outlined" startIcon={<CloseIcon />} onClick={handleBack}>
                         Atrás
                       </Button>
-                      <Button
-                        variant="contained"
-                        color="primary"
-                        onClick={handleEditDialogOpen}
-                      >
+                      <Button variant="contained" color="primary" onClick={handleEditDialogOpen}>
                         Editar
                       </Button>
-                      <Button
-                        variant="contained"
-                        color="error"
-                        onClick={() => handleDeleteDialogOpen(selectedInstalacion.id)}
-                      >
+                      <Button variant="contained" color="error" onClick={() => handleDeleteDialogOpen(selectedInstalacion.id)}>
                         Eliminar
                       </Button>
                     </Box>
@@ -563,7 +583,36 @@ const Instalaciones = () => {
                           <MenuItem>Exportar a PDF</MenuItem>
                         </Box>
                         <Box sx={{ flexGrow: 1 }}>
-                          <Typography variant="body1">Tabla de productos</Typography>
+                          {loadingProducts ? (
+                            <Typography variant="body1">Cargando productos...</Typography>
+                          ) : errorProducts ? (
+                            <Typography variant="body1" color="error">{errorProducts}</Typography>
+                          ) : (
+                            <TableContainer component={Paper}>
+                              <Table>
+                                <TableHead>
+                                  <TableRow>
+                                    <TableCell>Referencia</TableCell>
+                                    <TableCell>Nombre</TableCell>
+                                    <TableCell>Descripción</TableCell>
+                                    <TableCell>Precio</TableCell>
+                                    <TableCell>Stock</TableCell>
+                                  </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                  {products.map((product) => (
+                                    <TableRow key={product.id}>
+                                      <TableCell>{product.referencia}</TableCell>
+                                      <TableCell>{product.nombre}</TableCell>
+                                      <TableCell>{product.descripcion}</TableCell>
+                                      <TableCell>{product.precio}</TableCell>
+                                      <TableCell>{product.cantidad}</TableCell>
+                                    </TableRow>
+                                  ))}
+                                </TableBody>
+                              </Table>
+                            </TableContainer>
+                          )}
                         </Box>
                       </Box>
                     )}
@@ -675,11 +724,7 @@ const Instalaciones = () => {
           <Button onClick={handleDeleteDialogClose} color="primary">
             Cancelar
           </Button>
-          <Button
-            onClick={() => selectedInstalacion && handleDelete(selectedInstalacion.id)}
-            color="error"
-            autoFocus
-          >
+          <Button onClick={() => selectedInstalacion && handleDelete(selectedInstalacion.id)} color="error" autoFocus>
             Eliminar
           </Button>
         </DialogActions>

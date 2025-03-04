@@ -45,12 +45,12 @@ import Header from 'components/Header';
 import Sidebar from 'components/Sidebar';
 
 import ProductService from '../services/productService';
-// Importa el tipo de producto para evitar conflictos
 import { Product } from '../types/Product';
 
-// IMPORTANTE: Se importa el servicio y tipo de Instalación
+// Se importa el servicio de Instalación y de Familias (para categorías reales)
 import InstalationService from '../services/instalationService';
 import { Instalation } from '../types/instalation';
+import FamilyService from '../services/familyService'; // NUEVO: Servicio de Familias
 
 // Columnas de la tabla de productos
 const allColumns = [
@@ -112,9 +112,47 @@ const ProductFormPage = ({
       installationId: [''] as [string],
     }
   );
+  useEffect(() => {
+    if (product) {
+      setFormData(product);
+    } else {
+      // Si es "crear", reiniciamos el formulario a valores por defecto
+      setFormData({
+        referencia: '',
+        nombre: '',
+        descripcion: '',
+        familia: '',
+        subFamilia: '',
+        unidadMedida: '',
+        precio: '',
+        iva: '',
+        descuento: '',
+        codigoBarras: '',
+        codigoFabricacion: '',
+        peso: '',
+        nombreTarifa: '',
+        subtotal: '',
+        impuestos: '',
+        total: '',
+        tarifas: '',
+        precioRecomendado: '',
+        proveedor: '',
+        costeMedio: '',
+        precioCompraSubtotal: '',
+        precioCompraImpuestos: '',
+        precioCompraTotal: '',
+        almacenPredeterminado: '',
+        cantidad: 0,
+        contactId: '',
+        installationId: [''] as [string],
+      });
+    }
+  }, [product]);
 
   // Estado para almacenar las instalaciones obtenidas
   const [installations, setInstallations] = useState<Instalation[]>([]);
+  // NUEVO: Estado para almacenar las familias reales
+  const [families, setFamilies] = useState<any[]>([]);
 
   // Obtener instalaciones al montar el componente
   useEffect(() => {
@@ -122,7 +160,6 @@ const ProductFormPage = ({
       try {
         const instResponse: any = await InstalationService.getAllInstalations(token, user);
         const instData = Array.isArray(instResponse) ? instResponse : instResponse.data;
-
         if (Array.isArray(instData)) {
           setInstallations(instData);
         } else {
@@ -134,6 +171,21 @@ const ProductFormPage = ({
     };
     if (token) {
       fetchInstallations();
+    }
+  }, [token, user]);
+
+  // NUEVO: Obtener familias reales desde FamilyService
+  useEffect(() => {
+    const fetchFamilies = async () => {
+      try {
+        const result = await FamilyService.getAllFamilies(user, token);
+        setFamilies(result);
+      } catch (err) {
+        console.error("Error al obtener familias:", err);
+      }
+    };
+    if (token) {
+      fetchFamilies();
     }
   }, [token, user]);
 
@@ -251,7 +303,7 @@ const ProductFormPage = ({
               />
             </Grid>
 
-            {/* NUEVA SECCIÓN: Desplegable para seleccionar la Instalación */}
+            {/* Desplegable para seleccionar la Instalación */}
             <Grid item xs={12}>
               <FormControl fullWidth variant="outlined">
                 <InputLabel id="installation-label">Instalación</InputLabel>
@@ -263,7 +315,6 @@ const ProductFormPage = ({
                   onChange={(e) =>
                     setFormData((prev) => ({
                       ...prev,
-                      // Se actualiza el tuple con el valor seleccionado
                       installationId: [e.target.value as string] as [string],
                     }))
                   }
@@ -289,6 +340,7 @@ const ProductFormPage = ({
           </Typography>
           <Divider sx={{ mb: 2 }} />
           <Grid container spacing={3}>
+            {/* Familia */}
             <Grid item xs={12} sm={6}>
               <FormControl fullWidth variant="outlined" sx={{ borderRadius: 2 }}>
                 <InputLabel>Familia</InputLabel>
@@ -298,14 +350,22 @@ const ProductFormPage = ({
                   value={formData.familia || ''}
                   onChange={handleChange}
                 >
-                  <MenuItem value="Familia 1">Familia 1</MenuItem>
-                  <MenuItem value="Familia 2">Familia 2</MenuItem>
-                  <MenuItem value="Familia 3">Familia 3</MenuItem>
+                  {families.map((family: any) => (
+                    <MenuItem key={family.id} value={family.id}>
+                      {family.name}
+                    </MenuItem>
+                  ))}
                 </Select>
               </FormControl>
             </Grid>
+            {/* Sub-familia: desactivado hasta que se seleccione una familia */}
             <Grid item xs={12} sm={6}>
-              <FormControl fullWidth variant="outlined" sx={{ borderRadius: 2 }}>
+              <FormControl
+                fullWidth
+                variant="outlined"
+                sx={{ borderRadius: 2 }}
+                disabled={!formData.familia}
+              >
                 <InputLabel>Sub-familia</InputLabel>
                 <Select
                   label="Sub-familia"
@@ -313,9 +373,12 @@ const ProductFormPage = ({
                   value={formData.subFamilia || ''}
                   onChange={handleChange}
                 >
-                  <MenuItem value="Sub-familia 1">Sub-familia 1</MenuItem>
-                  <MenuItem value="Sub-familia 2">Sub-familia 2</MenuItem>
-                  <MenuItem value="Sub-familia 3">Sub-familia 3</MenuItem>
+                  {families.find((family: any) => family.id === formData.familia)
+                    ?.subFamilies?.map((sub: any) => (
+                      <MenuItem key={sub.id} value={sub.id}>
+                        {sub.name}
+                      </MenuItem>
+                    )) || []}
                 </Select>
               </FormControl>
             </Grid>
@@ -765,7 +828,6 @@ const Productos = () => {
           cantidad: p.stock,
           id: p.id,
           contactId: '',
-          // Se asigna installationId como tuple de 1 elemento (vacío por defecto)
           installationId: [''] as [string],
         }));
         setProducts(mappedProducts);
@@ -802,29 +864,17 @@ const Productos = () => {
     if (!token) return;
     try {
       if (product.id) {
-        // Actualizar producto existente
-        const response = await ProductService.updateProduct(product, token);
-        if (response) {
-          setProducts((prev) =>
-            prev.map((p) => (p.id === product.id ? response : p))
-          );
-        }
+        await ProductService.updateProduct(product, token);
       } else {
-        // Crear nuevo producto
-        const response = await ProductService.createProduct(product, token);
-        if (response) {
-          // Opción A: Actualizar el estado agregando el producto devuelto
-          setProducts((prev) => [...prev, response]);
-          
-          // Opción B (alternativa): Volver a obtener la lista completa desde el backend
-          // await fetchProducts();
-        }
+        await ProductService.createProduct(product, token);
       }
+      // Refrescar la tabla: volver a obtener la lista completa de productos
+      await fetchProducts();
+      handleBack();
     } catch (err) {
       console.error(err);
     }
   };
-  
 
   // Eliminar producto
   const handleDelete = async (productId: number | string) => {
@@ -894,11 +944,7 @@ const Productos = () => {
               }}
             >
               <Container maxWidth="xl">
-                <Typography
-                  variant="h3"
-                  gutterBottom
-                  sx={{ color: '#1A1A40', fontWeight: '700' }}
-                >
+                <Typography variant="h3" gutterBottom sx={{ color: '#1A1A40', fontWeight: '700' }}>
                   Productos
                 </Typography>
 
@@ -915,7 +961,7 @@ const Productos = () => {
 
                 <Box sx={{ display: 'flex', mb: 3, flexWrap: 'wrap', gap: 2 }}>
                   <TextField
-                    name="buscarProducto"  // Added name attribute for autofill/accessibility
+                    name="buscarProducto"
                     variant="outlined"
                     placeholder="Buscar..."
                     fullWidth
