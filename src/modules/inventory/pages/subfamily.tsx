@@ -24,6 +24,7 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
+  Autocomplete,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
@@ -44,6 +45,13 @@ interface Product {
   id: string;
   name: string;
   // otros campos...
+}
+
+// Definición de Contact para el Autocomplete
+interface Contact {
+  id: string;
+  nombre: string;
+  nif?: string;
 }
 
 const SubFamilyPage: React.FC = () => {
@@ -94,7 +102,7 @@ const SubFamilyPage: React.FC = () => {
         throw new Error(`Error fetching families: ${response.statusText}`);
       }
       const json = await response.json();
-      setFamilies(json.data); // Asumimos que json.data contiene el array de familias
+      setFamilies(json.data); // Se asume que json.data es el array de familias
     } catch (err) {
       console.error('Error al cargar las familias', err);
       setError('Error al cargar las familias.');
@@ -124,6 +132,7 @@ const SubFamilyPage: React.FC = () => {
 
   // --------------------------------------------
   // Estado y funciones para crear nueva sub-familia
+  // Se agrega la propiedad "allowedUsers" para usuarios que pueden ver
   // --------------------------------------------
   const [openAddDialog, setOpenAddDialog] = useState(false);
 
@@ -135,6 +144,7 @@ const SubFamilyPage: React.FC = () => {
     order: number;
     productIds: string[];
     imageFile: File | null;
+    allowedUsers: Contact[];
   }>({
     name: '',
     familyId: '',
@@ -143,6 +153,7 @@ const SubFamilyPage: React.FC = () => {
     order: 0,
     productIds: [],
     imageFile: null,
+    allowedUsers: [],
   });
 
   const handleOpenAddDialog = () => {
@@ -160,6 +171,7 @@ const SubFamilyPage: React.FC = () => {
       order: 0,
       productIds: [],
       imageFile: null,
+      allowedUsers: [],
     });
   };
 
@@ -183,7 +195,6 @@ const SubFamilyPage: React.FC = () => {
         });
         if (!resp.ok) throw new Error('Error al obtener productos');
         const json = await resp.json();
-        // Ajusta según tu API (json.data o similar)
         setAllProducts(json.data ?? json);
       } catch (error) {
         console.error('Error al obtener productos:', error);
@@ -198,7 +209,7 @@ const SubFamilyPage: React.FC = () => {
   );
 
   // --------------------------------------------
-  // Crear sub-familia (con campos extra)
+  // Crear sub-familia
   // --------------------------------------------
   const handleAddSubFamily = async () => {
     if (!token || !contactId) return;
@@ -207,8 +218,6 @@ const SubFamilyPage: React.FC = () => {
       return;
     }
     try {
-      // Construimos el payload con los campos nuevos.
-      // Ajusta la lógica si tu backend requiere FormData para la imagen.
       const payload = {
         contactId,
         familyId: newSubFamilyData.familyId,
@@ -217,15 +226,13 @@ const SubFamilyPage: React.FC = () => {
         showInCatalog: newSubFamilyData.showInCatalog,
         order: newSubFamilyData.order,
         productIds: newSubFamilyData.productIds,
-        // imageFile: newSubFamilyData.imageFile, // Manejo según tu API
+        // allowedUsers no se envía al backend (solo UI)
       };
 
       const newSub: SubFamily = await SubFamilyService.createSubFamily(payload, token);
-
       if (!newSub.id) {
         newSub.id = `${Date.now()}`;
       }
-      // Se agrega la nueva sub-familia a la familia correspondiente
       setFamilies((prevFamilies) =>
         prevFamilies.map((family) =>
           family.id === newSubFamilyData.familyId
@@ -241,7 +248,8 @@ const SubFamilyPage: React.FC = () => {
   };
 
   // --------------------------------------------
-  // Editar sub-familia usando el mismo formulario que al crear
+  // Editar sub-familia
+  // Se agrega la propiedad "allowedUsers" también en el formulario de edición
   // --------------------------------------------
   const [editingSubFamilyData, setEditingSubFamilyData] = useState<{
     id: string;
@@ -252,6 +260,7 @@ const SubFamilyPage: React.FC = () => {
     order: number;
     productIds: string[];
     imageFile: File | null;
+    allowedUsers: Contact[];
   } | null>(null);
 
   const handleOpenEditDialog = (familyId: string, subFamily: SubFamily) => {
@@ -264,6 +273,7 @@ const SubFamilyPage: React.FC = () => {
       order: null,
       productIds: [],
       imageFile: null,
+      allowedUsers: [],
     });
   };
 
@@ -272,12 +282,7 @@ const SubFamilyPage: React.FC = () => {
   };
 
   const handleEditSubFamily = async () => {
-    if (
-      !editingSubFamilyData ||
-      editingSubFamilyData.name.trim() === '' ||
-      !token ||
-      !contactId
-    )
+    if (!editingSubFamilyData || editingSubFamilyData.name.trim() === '' || !token || !contactId)
       return;
     try {
       const payload = {
@@ -288,7 +293,7 @@ const SubFamilyPage: React.FC = () => {
         showInCatalog: editingSubFamilyData.showInCatalog,
         order: editingSubFamilyData.order,
         productIds: editingSubFamilyData.productIds,
-        // imageFile: editingSubFamilyData.imageFile, // Ajusta según tu API
+        // allowedUsers no se envía al backend (solo UI)
       };
       const updatedSub: SubFamily = await SubFamilyService.updateSubFamily(
         editingSubFamilyData.id,
@@ -361,6 +366,29 @@ const SubFamilyPage: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(true);
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
+  };
+
+  // ----------------------------------------------------------
+  // Nueva sección para Autocomplete de contactos para sub-familia (para la vista en el Accordion)
+  // ----------------------------------------------------------
+  const [contactOptions, setContactOptions] = useState<Contact[]>([]);
+  const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [subfamilyContacts, setSubfamilyContacts] = useState<Record<string, Contact[]>>({});
+
+  const searchContacts = async (text: string) => {
+    if (!token) return;
+    try {
+      // Llamada simulada; reemplazar con la llamada real cuando esté listo.
+      const simulatedResponse = {
+        data: [
+          { id: '1', nombre: 'Juan Pérez', nif: '12345678A' },
+          { id: '2', nombre: 'María García', nif: '87654321B' },
+        ],
+      };
+      setContactOptions(simulatedResponse.data);
+    } catch (err) {
+      console.error('Error buscando contactos:', err);
+    }
   };
 
   if (!hydrated) return null;
@@ -449,7 +477,6 @@ const SubFamilyPage: React.FC = () => {
                       >
                         <Box sx={{ flexGrow: 1 }}>
                           <Typography variant="h6">{sub.name}</Typography>
-                          <Typography variant="body2">{`Familia: ${sub.familyName}`}</Typography>
                         </Box>
                         <Box>
                           <Tooltip title="Editar Sub-Familia">
@@ -476,19 +503,54 @@ const SubFamilyPage: React.FC = () => {
                       </AccordionSummary>
                       <AccordionDetails>
                         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                          <TextField
-                            label="Nombre de la sub-familia"
-                            value={sub.name}
-                            fullWidth
-                            InputProps={{ readOnly: true }}
+                          {/* Sección para productos asignados (no funcional, vacío por ahora) */}
+                          <Typography variant="body1" sx={{ fontWeight: '500', mb: 1 }}>
+                            Productos asignados:
+                          </Typography>
+                          <Typography variant="body2" color="textSecondary">
+                            No hay productos asignados.
+                          </Typography>
+                          {/* Sección para Autocomplete de contactos (vista de la sub-familia) */}
+                          <Typography variant="body1" sx={{ fontWeight: '500', mb: 1, mt: 2 }}>
+                            Contactos que pueden visualizar la sub-familia:
+                          </Typography>
+                          <Autocomplete
+                            multiple
+                            options={contactOptions}
+                            getOptionLabel={(option: Contact) => option.nombre}
+                            value={subfamilyContacts[sub.id] || []}
+                            onChange={(event, newValue) => {
+                              setSubfamilyContacts((prev) => ({
+                                ...prev,
+                                [sub.id]: newValue,
+                              }));
+                            }}
+                            onInputChange={(event, newInputValue) => {
+                              if (searchTimeout) clearTimeout(searchTimeout);
+                              const timeout = setTimeout(() => {
+                                if (newInputValue.trim().length > 0) {
+                                  searchContacts(newInputValue.trim());
+                                } else {
+                                  setContactOptions([]);
+                                }
+                              }, 300);
+                              setSearchTimeout(timeout);
+                            }}
+                            renderInput={(params) => (
+                              <TextField
+                                {...params}
+                                variant="outlined"
+                                size="small"
+                                placeholder="Buscar contactos..."
+                              />
+                            )}
+                            renderOption={(props, option) => (
+                              <li {...props} key={option.id}>
+                                {option.nombre} {option.nif ? `(${option.nif})` : ''}
+                              </li>
+                            )}
+                            sx={{ mt: 1 }}
                           />
-                          <TextField
-                            label="Familia"
-                            value={sub.familyName}
-                            fullWidth
-                            InputProps={{ readOnly: true }}
-                          />
-                          {/* Aquí puedes agregar otros detalles como vista previa de imagen o lista de productos */}
                         </Box>
                       </AccordionDetails>
                     </Accordion>
@@ -587,18 +649,7 @@ const SubFamilyPage: React.FC = () => {
                   />
                 </Grid>
                 <Grid item xs={12}>
-                  <TextField
-                    type="number"
-                    label="Orden"
-                    fullWidth
-                    value={newSubFamilyData.order}
-                    onChange={(e) =>
-                      setNewSubFamilyData((prev) => ({
-                        ...prev,
-                        order: Number(e.target.value),
-                      }))
-                    }
-                  />
+                  
                 </Grid>
               </Grid>
             </Box>
@@ -680,6 +731,44 @@ const SubFamilyPage: React.FC = () => {
                 )}
               </Box>
             </Box>
+
+            <Divider />
+
+            {/* Sección Autocomplete para Usuarios que pueden ver */}
+            <Box>
+              <Typography variant="h6" sx={{ mb: 2 }}>
+                Usuarios que pueden ver:
+              </Typography>
+              <Autocomplete
+                multiple
+                options={contactOptions}
+                getOptionLabel={(option: Contact) => option.nombre}
+                value={newSubFamilyData.allowedUsers || []}
+                onChange={(event, newValue) =>
+                  setNewSubFamilyData((prev) => ({ ...prev, allowedUsers: newValue }))
+                }
+                onInputChange={(event, newInputValue) => {
+                  if (searchTimeout) clearTimeout(searchTimeout);
+                  const timeout = setTimeout(() => {
+                    if (newInputValue.trim().length > 0) {
+                      searchContacts(newInputValue.trim());
+                    } else {
+                      setContactOptions([]);
+                    }
+                  }, 300);
+                  setSearchTimeout(timeout);
+                }}
+                renderInput={(params) => (
+                  <TextField {...params} variant="outlined" size="small" placeholder="Buscar usuarios..." />
+                )}
+                renderOption={(props, option) => (
+                  <li {...props} key={option.id}>
+                    {option.nombre} {option.nif ? `(${option.nif})` : ''}
+                  </li>
+                )}
+                sx={{ mt: 1 }}
+              />
+            </Box>
           </Box>
         </DialogContent>
         <DialogActions>
@@ -694,7 +783,7 @@ const SubFamilyPage: React.FC = () => {
         </DialogActions>
       </Dialog>
 
-      {/* Diálogo para editar sub-familia (mismo formulario que para crear) */}
+      {/* Diálogo para editar sub-familia */}
       <Dialog open={!!editingSubFamilyData} onClose={handleCloseEditDialog} maxWidth="sm" fullWidth>
         <DialogTitle sx={{ fontWeight: 600 }}>Editar Sub-Familia</DialogTitle>
         <DialogContent dividers>
@@ -780,17 +869,7 @@ const SubFamilyPage: React.FC = () => {
                   />
                 </Grid>
                 <Grid item xs={12}>
-                  <TextField
-                    type="number"
-                    label="Orden"
-                    fullWidth
-                    value={editingSubFamilyData?.order || 0}
-                    onChange={(e) =>
-                      setEditingSubFamilyData((prev) =>
-                        prev ? { ...prev, order: Number(e.target.value) } : prev
-                      )
-                    }
-                  />
+                  
                 </Grid>
               </Grid>
             </Box>
@@ -878,6 +957,46 @@ const SubFamilyPage: React.FC = () => {
                   ))
                 )}
               </Box>
+            </Box>
+
+            <Divider />
+
+            {/* Sección Autocomplete para Usuarios que pueden ver (en edición) */}
+            <Box>
+              <Typography variant="h6" sx={{ mb: 2 }}>
+                Usuarios que pueden ver:
+              </Typography>
+              <Autocomplete
+                multiple
+                options={contactOptions}
+                getOptionLabel={(option: Contact) => option.nombre}
+                value={editingSubFamilyData?.allowedUsers || []}
+                onChange={(event, newValue) =>
+                  setEditingSubFamilyData((prev) =>
+                    prev ? { ...prev, allowedUsers: newValue } : prev
+                  )
+                }
+                onInputChange={(event, newInputValue) => {
+                  if (searchTimeout) clearTimeout(searchTimeout);
+                  const timeout = setTimeout(() => {
+                    if (newInputValue.trim().length > 0) {
+                      searchContacts(newInputValue.trim());
+                    } else {
+                      setContactOptions([]);
+                    }
+                  }, 300);
+                  setSearchTimeout(timeout);
+                }}
+                renderInput={(params) => (
+                  <TextField {...params} variant="outlined" size="small" placeholder="Buscar usuarios..." />
+                )}
+                renderOption={(props, option) => (
+                  <li {...props} key={option.id}>
+                    {option.nombre} {option.nif ? `(${option.nif})` : ''}
+                  </li>
+                )}
+                sx={{ mt: 1 }}
+              />
             </Box>
           </Box>
         </DialogContent>
