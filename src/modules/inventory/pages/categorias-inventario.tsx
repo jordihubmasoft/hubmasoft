@@ -23,7 +23,8 @@ import {
   ListItemText,
   Divider,
   Tooltip,
-  Chip
+  Chip,
+  Autocomplete,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import AddIcon from '@mui/icons-material/Add';
@@ -40,12 +41,22 @@ import {
   Legend,
   Tooltip as RechartsTooltip,
 } from 'recharts';
+
 import { Family } from '../types/family';
 import { SubFamily } from '../types/subFamily';
 import FamilyService from '../services/familyService';
 import SubFamilyService from '../services/subFamilyService';
 import { useRouter } from 'next/router';
 import useAuthStore from '../../../store/useAuthStore';
+
+// ---------- Ejemplo de interfaz Contact ----------
+interface Contact {
+  id: string;
+  nombre: string;
+  nif?: string;
+  // otros campos que manejes...
+}
+// -------------------------------------------------------
 
 const COLORS = ['#2666CF', '#4CAF50', '#FFA500', '#FF5722', '#8E24AA'];
 
@@ -54,7 +65,7 @@ const FamiliasInventario: React.FC = () => {
   const token = useAuthStore((state) => state.token);
   const contactId = useAuthStore((state) => state.contactId);
 
-  // Estado para la hidratación: evita renderizar hasta que se ejecute el useEffect
+  // Estado para la hidratación
   const [hydrated, setHydrated] = useState(false);
   useEffect(() => {
     setHydrated(true);
@@ -80,8 +91,6 @@ const FamiliasInventario: React.FC = () => {
     showInCatalog: false,
     showInOrders: false,
   });
-
-  // Para capturar subfamilias en el formulario de nueva familia
   const [tempSubFamily, setTempSubFamily] = useState('');
   const [subFamilies, setSubFamilies] = useState<string[]>([]);
 
@@ -103,6 +112,36 @@ const FamiliasInventario: React.FC = () => {
   const [deleteFamily, setDeleteFamily] = useState<Family | null>(null);
   const [deleteSubFamily, setDeleteSubFamily] = useState<{ familyId: string; subFamily: SubFamily } | null>(null);
 
+  // --------------------------------------------------------------------
+  // NUEVO: Manejo de Autocomplete de contactos (simulado)
+  // --------------------------------------------------------------------
+  const [contactOptions, setContactOptions] = useState<Contact[]>([]); // Lista de contactos sugeridos
+  const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(null);
+  // Estado para almacenar la selección de contactos por familia (solo para la UI)
+  const [selectedContacts, setSelectedContacts] = useState<Record<string, Contact[]>>({});
+
+  // Función para "buscar" contactos (simulada)
+  const searchContacts = async (text: string) => {
+    if (!token) return;
+    try {
+      // Aquí deberías hacer la llamada real al servicio.
+      // Por ejemplo:
+      // const response = await ContactService.getContactsWithFiltersV2({ text }, token);
+      // setContactOptions(response.data.map(mapBackendContactToLocal));
+      // Para este ejemplo, simulamos una respuesta:
+      const simulatedResponse = {
+        data: [
+          { id: '1', nombre: 'Juan Pérez', nif: '12345678A' },
+          { id: '2', nombre: 'María García', nif: '87654321B' },
+        ],
+      };
+      setContactOptions(simulatedResponse.data);
+    } catch (err) {
+      console.error('Error buscando contactos:', err);
+    }
+  };
+  // --------------------------------------------------------------------
+
   useEffect(() => {
     if (token && contactId) {
       fetchFamilias();
@@ -114,7 +153,6 @@ const FamiliasInventario: React.FC = () => {
     setCargando(true);
     setError(null);
     try {
-      // Usamos directamente la respuesta del endpoint, que ya incluye las subfamilias
       const familiasObtenidas = await FamilyService.getAllFamilies(contactId, token);
       setFamilias(familiasObtenidas);
     } catch (error) {
@@ -164,42 +202,33 @@ const FamiliasInventario: React.FC = () => {
       alert('El nombre de la familia no puede estar vacío.');
       return;
     }
-  
     try {
-      // 1. Crear la familia. El servidor NO devuelve el ID en la respuesta:
       await FamilyService.createFamily(
         { contactId, name: nuevaFamiliaData.name },
         token
       );
-  
-      // 2. Llamar a GET /Family/contact/{contactId} para obtener todas las familias.
+      // Recargamos la lista de familias
       const familiasActualizadas = await FamilyService.getAllFamilies(contactId, token);
-  
-      // 3. Buscar la familia recién creada por su nombre (o algún otro criterio).
-      //    Si el nombre no es único, considerá otra forma de identificarla.
+      // Buscamos la familia recién creada
       const familiaNueva = familiasActualizadas.find(
         (f) => f.name === nuevaFamiliaData.name
       );
-  
       if (!familiaNueva) {
         throw new Error('No se pudo encontrar la familia recién creada.');
       }
-  
-      // 4. Crear subfamilias, usando el ID de la familia que obtuvimos en el GET.
+      // Creamos subfamilias
       if (subFamilies.length > 0) {
         for (const nombreSubFamilia of subFamilies) {
           await SubFamilyService.createSubFamily(
             {
               contactId,
-              familyId: familiaNueva.id, // <-- Aquí sí tenemos el ID
-              name: nombreSubFamilia
+              familyId: familiaNueva.id,
+              name: nombreSubFamilia,
             },
             token
           );
         }
       }
-  
-      // 5. Cerrar el diálogo y refrescar la lista
       handleAgregarFamiliaDialogClose();
       fetchFamilias();
     } catch (error: any) {
@@ -207,11 +236,6 @@ const FamiliasInventario: React.FC = () => {
       alert('Ocurrió un error al crear la familia o las subfamilias.');
     }
   };
-  
-  
-  
-  
-  
 
   /* Agregar Sub-Familia */
   const handleAgregarSubFamiliaDialogOpen = (familyId: string) => {
@@ -277,7 +301,6 @@ const FamiliasInventario: React.FC = () => {
         { familyId: editingFamily.id, name: editingFamilyData.name },
         token
       );
-      // Recargar la lista de familias para reflejar el cambio
       await fetchFamilias();
       handleEditarFamilyDialogClose();
     } catch (error: any) {
@@ -285,8 +308,6 @@ const FamiliasInventario: React.FC = () => {
       alert('Ocurrió un error al actualizar la familia.');
     }
   };
-  
-  
 
   /* Eliminar Familia */
   const handleDeleteFamily = (familia: Family) => {
@@ -320,10 +341,8 @@ const FamiliasInventario: React.FC = () => {
     setEditingSubFamilyName('');
   };
 
-  // En tu componente React:
   const handleEditarSubFamilySubmit = async () => {
     if (!editingSubFamily || editingSubFamilyName.trim() === '' || !token) return;
-  
     try {
       await SubFamilyService.updateSubFamily(
         editingSubFamily.subFamily.id,
@@ -333,8 +352,6 @@ const FamiliasInventario: React.FC = () => {
         },
         token
       );
-  
-      // Recargar las familias para reflejar la actualización automáticamente
       await fetchFamilias();
       handleEditarSubFamilyDialogClose();
     } catch (error: any) {
@@ -342,8 +359,6 @@ const FamiliasInventario: React.FC = () => {
       alert('Ocurrió un error al actualizar la sub-familia.');
     }
   };
-  
-
 
   /* Eliminar Sub-Familia */
   const handleDeleteSubFamily = (familyId: string, subFamily: SubFamily) => {
@@ -507,6 +522,7 @@ const FamiliasInventario: React.FC = () => {
                           />
                           <Collapse in={familiaExpandida === familia.id} timeout="auto" unmountOnExit>
                             <CardContent>
+                              {/* Sub-Familias */}
                               <Typography variant="body1" sx={{ fontWeight: '500', mb: 1 }}>
                                 Sub-Familias:
                               </Typography>
@@ -547,16 +563,6 @@ const FamiliasInventario: React.FC = () => {
                                   </Typography>
                                 )}
                               </List>
-
-                              <Divider sx={{ mt: 2, mb: 2 }} />
-                              <FormControlLabel
-                                control={<Checkbox checked={familia.showInCatalog || false} disabled />}
-                                label="Mostrar en Catálogo"
-                              />
-                              <FormControlLabel
-                                control={<Checkbox checked={familia.showInOrders || false} disabled />}
-                                label="Mostrar en Pedidos"
-                              />
                               <Button
                                 variant="text"
                                 startIcon={<AddIcon />}
@@ -565,6 +571,63 @@ const FamiliasInventario: React.FC = () => {
                               >
                                 Añadir Sub-Familia
                               </Button>
+
+                              <Divider sx={{ my: 2 }} />
+
+                              {/* Checkboxes de familia */}
+                              <FormControlLabel
+                                control={<Checkbox checked={familia.showInCatalog || false} disabled />}
+                                label="Mostrar en Catálogo"
+                              />
+                              <FormControlLabel
+                                control={<Checkbox checked={familia.showInOrders || false} disabled />}
+                                label="Mostrar en Pedidos"
+                              />
+
+                              <Divider sx={{ my: 2 }} />
+
+                              {/* Autocomplete simulado: Contactos que pueden visualizar la familia */}
+                              <Typography variant="body1" sx={{ fontWeight: '500', mb: 1 }}>
+                                Contactos que pueden visualizar la familia:
+                              </Typography>
+                              <Autocomplete
+                                multiple
+                                options={contactOptions}
+                                getOptionLabel={(option: Contact) => option.nombre}
+                                // Se usa el estado local para almacenar la selección sin modificar la familia
+                                value={selectedContacts[familia.id] || []}
+                                onChange={(event, newValue) => {
+                                  setSelectedContacts((prev) => ({
+                                    ...prev,
+                                    [familia.id]: newValue,
+                                  }));
+                                }}
+                                onInputChange={(event, newInputValue) => {
+                                  if (searchTimeout) clearTimeout(searchTimeout);
+                                  const timeout = setTimeout(() => {
+                                    if (newInputValue.trim().length > 0) {
+                                      searchContacts(newInputValue.trim());
+                                    } else {
+                                      setContactOptions([]);
+                                    }
+                                  }, 300);
+                                  setSearchTimeout(timeout);
+                                }}
+                                renderInput={(params) => (
+                                  <TextField
+                                    {...params}
+                                    variant="outlined"
+                                    size="small"
+                                    placeholder="Buscar contactos..."
+                                  />
+                                )}
+                                renderOption={(props, option) => (
+                                  <li {...props} key={option.id}>
+                                    {option.nombre} {option.nif ? `(${option.nif})` : ''}
+                                  </li>
+                                )}
+                                sx={{ mt: 1 }}
+                              />
                             </CardContent>
                           </Collapse>
                         </Card>

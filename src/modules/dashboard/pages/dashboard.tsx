@@ -776,10 +776,21 @@ const Dashboard = () => {
               p: 3,
               transition: "margin-left 0.3s ease",
               marginLeft: isMenuOpen ? "240px" : "70px",
-              maxWidth: "calc(100% - 240px)",
+              width: `calc(100% - ${isMenuOpen ? "240px" : "70px"})`, // Se adapta al sidebar
+              boxSizing: "border-box", // Asegura que el padding se calcule correctamente
             }}
           >
-            <Container maxWidth="xl" sx={{ px: { xs: 2, sm: 3, md: 5 }, width: "100%" }}>
+            <Container
+              maxWidth={false} // Deshabilitamos el maxWidth de MUI
+              sx={{
+                px: { xs: 2, sm: 3, md: 4 }, // Ajusta aquí los márgenes horizontales a tu gusto
+                width: "100%",
+                marginLeft: "auto",
+                marginRight: "auto",
+                // Si quieres un tope en pantallas muy grandes, puedes usar por ejemplo:
+                // maxWidth: "1600px",
+              }}
+            >
               <Typography
                 variant="h3"
                 gutterBottom
@@ -848,7 +859,7 @@ const Dashboard = () => {
                   <IconButton
                     onClick={handleMenuClick}
                     sx={{
-                      background: "linear-gradient(90deg, #2666CF, #6A82FB)",
+                      background: "linear-gradient(90deg, #FFA500,rgb(255, 189, 67))",
                       color: "#ffffff",
                       fontWeight: "500",
                       textTransform: "none",

@@ -24,6 +24,11 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  Card,
+  CardContent,
+  CardActionArea,
+  Checkbox,
+  FormControlLabel
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -33,20 +38,9 @@ import {
   GridOn as GridOnIcon,
   Warehouse as WarehouseIcon,
 } from '@mui/icons-material';
-import { Line } from 'react-chartjs-2';
 import Header from 'components/Header';
 import Sidebar from 'components/Sidebar';
-import { Instalation } from '../types/instalation';
-import InstalationService from '../services/instalationService';
-import { CreateInstalationDto } from '../types/createInstalationDto';
-import { useRouter } from 'next/router';
-import useAuthStore from '../../../store/useAuthStore';
-
-// Import para la tabla de productos
-import ProductService from '../services/productService';
-import { Product } from '../types/Product';
-
-// Registro y configuración de Chart.js
+import { Line } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -58,6 +52,14 @@ import {
   Legend,
   ChartOptions,
 } from 'chart.js';
+import InstalationService from '../services/instalationService';
+import ProductService from '../services/productService';
+import useAuthStore from '../../../store/useAuthStore';
+import { Instalation } from '../types/instalation';
+import { Product } from '../types/Product';
+import { CreateInstalationDto } from '../types/createInstalationDto';
+import { useRouter } from 'next/router';
+import InstalacionForm from '../components/InstalacionForm';
 
 ChartJS.register(
   CategoryScale,
@@ -90,10 +92,10 @@ const chartOptions: ChartOptions<'line'> = {
   plugins: {
     legend: {
       display: true,
-      position: 'bottom' as const,
+      position: 'bottom',
     },
     tooltip: {
-      mode: 'index' as const,
+      mode: 'index',
       intersect: false,
     },
   },
@@ -112,20 +114,30 @@ const chartOptions: ChartOptions<'line'> = {
 };
 
 interface NewInstalationForm {
-  name: string;
+  nombre: string;
   email: string;
-  phone: string;
-  direction: string;
-  city: string;
-  postalCode: string;
-  province: string;
-  country: string;
+  telefono: string;
+  movil: string;
+  direccion: string;
+  poblacion: string;
+  codigoPostal: string;
+  provincia: string;
+  pais: string;
+  nombreGerente: string;
+  emailGerente: string;
+  telefonoGerente: string;
+  movilGerente: string;
+  icono: string;
+  color: string;
+  cuentaContable: string;
+  esAlmacenPrincipal: boolean;
 }
 
 const Instalaciones = () => {
   const router = useRouter();
   const token = useAuthStore((state) => state.token);
-  const contactId = useAuthStore((state) => state.contactId); // Se obtiene el contactId del usuario autenticado
+  const contactId = useAuthStore((state) => state.contactId);
+
   const [hydrated, setHydrated] = useState(false);
   const [instalaciones, setInstalaciones] = useState<Instalation[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
@@ -136,55 +148,66 @@ const Instalaciones = () => {
   const [viewMode, setViewMode] = useState<'detailed' | 'compact'>('detailed');
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [tabIndex, setTabIndex] = useState(0);
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [addDialogOpen, setAddDialogOpen] = useState(false);
 
-  // -- Estados para la edición --
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editForm, setEditForm] = useState<NewInstalationForm>({
-    name: '',
+    nombre: '',
     email: '',
-    phone: '',
-    direction: '',
-    city: '',
-    postalCode: '',
-    province: '',
-    country: '',
+    telefono: '',
+    movil: '',
+    direccion: '',
+    poblacion: '',
+    codigoPostal: '',
+    provincia: '',
+    pais: '',
+    nombreGerente: '',
+    emailGerente: '',
+    telefonoGerente: '',
+    movilGerente: '',
+    icono: '',
+    color: '#4290b3',
+    cuentaContable: '',
+    esAlmacenPrincipal: false,
   });
 
-  // Estado para el formulario de creación
   const [newInstalation, setNewInstalation] = useState<NewInstalationForm>({
-    name: '',
+    nombre: '',
     email: '',
-    phone: '',
-    direction: '',
-    city: '',
-    postalCode: '',
-    province: '',
-    country: '',
+    telefono: '',
+    movil: '',
+    direccion: '',
+    poblacion: '',
+    codigoPostal: '',
+    provincia: '',
+    pais: '',
+    nombreGerente: '',
+    emailGerente: '',
+    telefonoGerente: '',
+    movilGerente: '',
+    icono: '',
+    color: '#4290b3',
+    cuentaContable: '',
+    esAlmacenPrincipal: false,
   });
 
-  // Estados para los productos asociados a la instalación seleccionada
   const [products, setProducts] = useState<Product[]>([]);
   const [loadingProducts, setLoadingProducts] = useState<boolean>(false);
   const [errorProducts, setErrorProducts] = useState<string | null>(null);
 
-  // Evitamos errores en SSR
   useEffect(() => {
     setHydrated(true);
   }, []);
 
-  // Redirigir al login si no hay token
   useEffect(() => {
     if (hydrated && !token) {
       router.push('/auth/login');
     }
   }, [hydrated, token, router]);
 
-  // Cargar instalaciones
   const fetchInstalaciones = async () => {
     if (!token) return;
     setLoading(true);
@@ -207,12 +230,10 @@ const Instalaciones = () => {
     }
   }, [hydrated, token]);
 
-  // Manejo de búsqueda
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
   };
 
-  // Al hacer clic en una card, se selecciona la instalación para verla en detalle
   const handleCardClick = (instalacion: Instalation) => {
     setSelectedInstalacion(instalacion);
     setIsEditing(true);
@@ -224,7 +245,7 @@ const Instalaciones = () => {
     setTabIndex(0);
   };
 
-  // -- Crear instalación --
+  // Diálogo de Añadir almacén
   const handleAddDialogOpen = () => {
     setAddDialogOpen(true);
   };
@@ -232,56 +253,72 @@ const Instalaciones = () => {
   const handleAddDialogClose = () => {
     setAddDialogOpen(false);
     setNewInstalation({
-      name: '',
+      nombre: '',
       email: '',
-      phone: '',
-      direction: '',
-      city: '',
-      postalCode: '',
-      province: '',
-      country: '',
+      telefono: '',
+      movil: '',
+      direccion: '',
+      poblacion: '',
+      codigoPostal: '',
+      provincia: '',
+      pais: '',
+      nombreGerente: '',
+      emailGerente: '',
+      telefonoGerente: '',
+      movilGerente: '',
+      icono: '',
+      color: '#4290b3',
+      cuentaContable: '',
+      esAlmacenPrincipal: false,
     });
   };
 
-  const handleNewInstalationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setNewInstalation((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+  const handleNewInstalationChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value, type } = e.target;
+    if (type === 'checkbox') {
+      setNewInstalation((prev) => ({
+        ...prev,
+        [name]: (e.target as HTMLInputElement).checked,
+      }));
+    } else {
+      setNewInstalation((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+    }
   };
 
   const handleAddInstalacion = async () => {
     if (!token) return;
     try {
       const payload: CreateInstalationDto = {
-        contactId, // Se asigna el contactId del usuario autenticado
-        name: newInstalation.name,
+        contactId,
+        name: newInstalation.nombre,
         email: newInstalation.email,
-        phone: newInstalation.phone,
-        phone1: "123456789",
+        phone: newInstalation.telefono,
+        phone1: newInstalation.movil,
         address: {
-          direction: newInstalation.direction,
-          city: newInstalation.city,
-          postalCode: newInstalation.postalCode,
-          province: newInstalation.province,
-          country: newInstalation.country,
+          direction: newInstalation.direccion,
+          city: newInstalation.poblacion,
+          postalCode: newInstalation.codigoPostal,
+          province: newInstalation.provincia,
+          country: newInstalation.pais,
         },
       };
 
       await InstalationService.createInstalation(payload, token);
       fetchInstalaciones();
-      setSnackbarMessage('Nueva instalación añadida');
+      setSnackbarMessage('Nuevo almacén añadido');
       setSnackbarOpen(true);
       handleAddDialogClose();
     } catch (err: any) {
       console.error("Error creating installation:", err);
-      setSnackbarMessage('Error al añadir la instalación');
+      setSnackbarMessage('Error al añadir el almacén');
       setSnackbarOpen(true);
     }
   };
 
-  // -- Eliminar instalación --
+  // Diálogo de eliminación
   const handleDeleteDialogOpen = (id: string) => {
     setSelectedInstalacion(instalaciones.find(inst => inst.id === id) || null);
     setDeleteDialogOpen(true);
@@ -296,30 +333,38 @@ const Instalaciones = () => {
     try {
       await InstalationService.deleteInstalation(id, token);
       setInstalaciones(instalaciones.filter((inst) => inst.id !== id));
-      setSnackbarMessage('Instalación eliminada');
+      setSnackbarMessage('Almacén eliminado');
       setSnackbarOpen(true);
     } catch (err: any) {
       console.error("Error deleting installation:", err);
-      setSnackbarMessage('Error al eliminar la instalación');
+      setSnackbarMessage('Error al eliminar el almacén');
       setSnackbarOpen(true);
     } finally {
       setDeleteDialogOpen(false);
     }
   };
 
-  // -- Editar instalación --
+  // Diálogo de edición
   const handleEditDialogOpen = () => {
     if (!selectedInstalacion) return;
-    // Pre-cargamos el formulario con los datos de la instalación seleccionada
     setEditForm({
-      name: selectedInstalacion.name || '',
+      nombre: selectedInstalacion.name || '',
       email: selectedInstalacion.email || '',
-      phone: selectedInstalacion.phone || '',
-      direction: selectedInstalacion.address?.direction || '',
-      city: selectedInstalacion.address?.city || '',
-      postalCode: selectedInstalacion.address?.postalCode || '',
-      province: selectedInstalacion.address?.province || '',
-      country: selectedInstalacion.address?.country || '',
+      telefono: selectedInstalacion.phone || '',
+      movil: selectedInstalacion.phone1 || '',
+      direccion: selectedInstalacion.address?.direction || '',
+      poblacion: selectedInstalacion.address?.city || '',
+      codigoPostal: selectedInstalacion.address?.postalCode || '',
+      provincia: selectedInstalacion.address?.province || '',
+      pais: selectedInstalacion.address?.country || '',
+      nombreGerente: '',
+      emailGerente: '',
+      telefonoGerente: '',
+      movilGerente: '',
+      icono: '',
+      color: '#4290b3',
+      cuentaContable: '',
+      esAlmacenPrincipal: false,
     });
     setEditDialogOpen(true);
   };
@@ -329,11 +374,18 @@ const Instalaciones = () => {
   };
 
   const handleEditFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setEditForm((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    const { name, value, type } = e.target;
+    if (type === 'checkbox') {
+      setEditForm((prev) => ({
+        ...prev,
+        [name]: (e.target as HTMLInputElement).checked,
+      }));
+    } else {
+      setEditForm((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+    }
   };
 
   const handleUpdateInstalacion = async () => {
@@ -341,34 +393,35 @@ const Instalaciones = () => {
     try {
       const updatedInstalation: Instalation = {
         ...selectedInstalacion,
-        name: editForm.name,
+        name: editForm.nombre,
         email: editForm.email,
-        phone: editForm.phone,
+        phone: editForm.telefono,
+        phone1: editForm.movil,
         address: {
           ...selectedInstalacion.address,
-          direction: editForm.direction,
-          city: editForm.city,
-          postalCode: editForm.postalCode,
-          province: editForm.province,
-          country: editForm.country,
+          direction: editForm.direccion,
+          city: editForm.poblacion,
+          postalCode: editForm.codigoPostal,
+          province: editForm.provincia,
+          country: editForm.pais,
         },
       };
+
       await InstalationService.updateInstalation(updatedInstalation, token);
       setInstalaciones((prev) =>
         prev.map((inst) => (inst.id === updatedInstalation.id ? updatedInstalation : inst))
       );
       setSelectedInstalacion(updatedInstalation);
-      setSnackbarMessage('Instalación actualizada');
+      setSnackbarMessage('Almacén actualizado');
       setSnackbarOpen(true);
       handleEditDialogClose();
     } catch (err: any) {
       console.error("Error updating installation:", err);
-      setSnackbarMessage('Error al actualizar la instalación');
+      setSnackbarMessage('Error al actualizar el almacén');
       setSnackbarOpen(true);
     }
   };
 
-  // -- Productos asociados a la instalación --
   const fetchProductsForInstallation = async () => {
     if (!token || !selectedInstalacion) return;
     setLoadingProducts(true);
@@ -393,7 +446,6 @@ const Instalaciones = () => {
     }
   }, [selectedInstalacion, tabIndex, token]);
 
-  // -- Otros --
   const handleSnackbarClose = () => {
     setSnackbarOpen(false);
   };
@@ -406,9 +458,8 @@ const Instalaciones = () => {
     setTabIndex(newValue);
   };
 
-  // Filtrar instalaciones por nombre
-  const filteredInstalaciones = instalaciones.filter((inst) =>
-    (inst.name || '').toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredInstalaciones = instalaciones.filter((instal) =>
+    (instal.name || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
@@ -419,13 +470,13 @@ const Instalaciones = () => {
         <Box component="main" sx={{ flexGrow: 1, p: 3, maxWidth: '100%', bgcolor: '#F3F4F6' }}>
           <Container maxWidth="lg">
             <Typography variant="h3" gutterBottom sx={{ color: '#1A1A40', fontWeight: '600' }}>
-              Instalaciones
+              Almacenes
             </Typography>
             <Box sx={{ display: 'flex', mb: 3, flexWrap: 'wrap', gap: 1, alignItems: 'center' }}>
-              <TextField 
-                variant="outlined" 
-                placeholder="Buscar instalación..." 
-                fullWidth 
+              <TextField
+                variant="outlined"
+                placeholder="Buscar almacén..."
+                fullWidth
                 sx={{ flexGrow: 1 }}
                 value={searchQuery}
                 onChange={handleSearchChange}
@@ -435,117 +486,202 @@ const Instalaciones = () => {
                       <SearchIcon />
                     </InputAdornment>
                   ),
-                }} 
+                }}
               />
               <IconButton onClick={toggleViewMode}>
                 {viewMode === 'detailed' ? <GridOnIcon /> : <ListIcon />}
               </IconButton>
-              <Button 
-                variant="contained" 
-                sx={{ bgcolor: '#2666CF', color: '#ffffff', fontWeight: '500', textTransform: 'none', borderRadius: 2, minWidth: '150px' }} 
-                startIcon={<AddIcon />} 
+              <Button
+                variant="contained"
+                sx={{
+                  bgcolor: '#2666CF',
+                  color: '#ffffff',
+                  fontWeight: '500',
+                  textTransform: 'none',
+                  borderRadius: 2,
+                  minWidth: '150px',
+                }}
+                startIcon={<AddIcon />}
                 onClick={handleAddDialogOpen}
               >
-                Añadir instalación
+                Añadir almacén
               </Button>
             </Box>
 
             {loading ? (
-              <Typography variant="h6" sx={{ color: '#1A1A40' }}>Cargando instalaciones...</Typography>
+              <Typography variant="h6" sx={{ color: '#1A1A40' }}>
+                Cargando almacenes...
+              </Typography>
             ) : error ? (
-              <Typography variant="h6" sx={{ color: 'red' }}>{error}</Typography>
+              <Typography variant="h6" sx={{ color: 'red' }}>
+                {error}
+              </Typography>
             ) : (
               <>
                 {!selectedInstalacion ? (
                   viewMode === 'detailed' ? (
-                    // VISTA DETALLADA
                     <Box>
-                      {filteredInstalaciones.map((instalacion) => (
-                        <Paper 
-                          key={instalacion.id} 
-                          sx={{ mb: 2, p: 2, borderRadius: 2, cursor: 'pointer' }}
-                          onClick={() => handleCardClick(instalacion)}
+                      {filteredInstalaciones.map((almacen) => (
+                        <Card
+                          key={almacen.id}
+                          sx={{
+                            mb: 2,
+                            borderRadius: 3,
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                            transition: 'transform 0.2s, box-shadow 0.2s',
+                            '&:hover': {
+                              transform: 'translateY(-4px)',
+                              boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                            },
+                          }}
                         >
-                          <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1 }}>
-                            {instalacion.name}
-                          </Typography>
-                          <Grid container spacing={2}>
-                            <Grid item xs={12} md={6}>
-                              <Typography variant="subtitle1" sx={{ mb: 1 }}>Dirección</Typography>
-                              {instalacion.address ? (
-                                <>
-                                  <Typography>
-                                    {instalacion.address.direction}, {instalacion.address.city}, {instalacion.address.province}, {instalacion.address.postalCode}, {instalacion.address.country}
+                          <CardActionArea onClick={() => handleCardClick(almacen)}>
+                            <CardContent sx={{ p: 3 }}>
+                              <Typography
+                                variant="h6"
+                                sx={{ fontWeight: 'bold', mb: 2, color: '#1A1A40' }}
+                              >
+                                {almacen.name}
+                              </Typography>
+                              <Grid container spacing={2}>
+                                <Grid item xs={12} md={6}>
+                                  <Typography
+                                    variant="subtitle1"
+                                    sx={{ mb: 1, fontWeight: 'bold', color: '#555' }}
+                                  >
+                                    Dirección
                                   </Typography>
-                                  <Box sx={{ mt: 1, width: '100%', height: '200px' }}>
-                                    <iframe
-                                      width="100%"
-                                      height="100%"
-                                      frameBorder="0"
-                                      style={{ border: 0 }}
-                                      src={`https://maps.google.com/maps?q=${encodeURIComponent(
-                                        `${instalacion.address.direction}, ${instalacion.address.city}, ${instalacion.address.province}, ${instalacion.address.postalCode}, ${instalacion.address.country}`
-                                      )}&output=embed`}
-                                      allowFullScreen
-                                    ></iframe>
-                                  </Box>
-                                </>
-                              ) : (
-                                <Typography>Dirección no disponible</Typography>
-                              )}
-                            </Grid>
-                            <Grid item xs={12} md={6}>
-                              <Typography variant="subtitle1" sx={{ mb: 1 }}>Contacto</Typography>
-                              <Typography><strong>Email:</strong> {instalacion.email}</Typography>
-                              <Typography><strong>Teléfono:</strong> {instalacion.phone}</Typography>
-                            </Grid>
-                          </Grid>
-                        </Paper>
+                                  {almacen.address ? (
+                                    <>
+                                      <Typography sx={{ color: '#333' }}>
+                                        {almacen.address.direction}, {almacen.address.city},
+                                        {` ${almacen.address.province}, ${almacen.address.postalCode}, ${almacen.address.country}`}
+                                      </Typography>
+                                      <Box sx={{ mt: 1, width: '100%', height: '200px' }}>
+                                        <iframe
+                                          width="100%"
+                                          height="100%"
+                                          frameBorder="0"
+                                          style={{ border: 0 }}
+                                          src={`https://maps.google.com/maps?q=${encodeURIComponent(
+                                            `${almacen.address.direction}, ${almacen.address.city}, ${almacen.address.province}, ${almacen.address.postalCode}, ${almacen.address.country}`
+                                          )}&output=embed`}
+                                          allowFullScreen
+                                        ></iframe>
+                                      </Box>
+                                    </>
+                                  ) : (
+                                    <Typography sx={{ color: '#666' }}>
+                                      Dirección no disponible
+                                    </Typography>
+                                  )}
+                                </Grid>
+                                <Grid item xs={12} md={6}>
+                                  <Typography
+                                    variant="subtitle1"
+                                    sx={{ mb: 1, fontWeight: 'bold', color: '#555' }}
+                                  >
+                                    Contacto
+                                  </Typography>
+                                  <Typography sx={{ color: '#333' }}>
+                                    <strong>Email:</strong> {almacen.email}
+                                  </Typography>
+                                  <Typography sx={{ color: '#333' }}>
+                                    <strong>Teléfono:</strong> {almacen.phone}
+                                  </Typography>
+                                </Grid>
+                              </Grid>
+                            </CardContent>
+                          </CardActionArea>
+                        </Card>
                       ))}
                     </Box>
                   ) : (
-                    // VISTA COMPACTA
                     <Box>
                       <Grid container spacing={2}>
-                        {filteredInstalaciones.map((instalacion) => (
-                          <Grid item xs={12} sm={6} md={4} lg={3} key={instalacion.id}>
-                            <Paper
+                        {filteredInstalaciones.map((almacen) => (
+                          <Grid item xs={12} sm={6} md={4} lg={3} key={almacen.id}>
+                            <Card
                               sx={{
-                                cursor: 'pointer',
-                                textAlign: 'center',
-                                p: 2,
-                                borderRadius: 2,
+                                borderRadius: 3,
+                                boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                                transition: 'transform 0.2s, box-shadow 0.2s',
+                                '&:hover': {
+                                  transform: 'translateY(-4px)',
+                                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                                },
                               }}
-                              onClick={() => handleCardClick(instalacion)}
                             >
-                              <WarehouseIcon sx={{ fontSize: 40, color: '#2666CF' }} />
-                              <Typography variant="h6" sx={{ mt: 1 }}>
-                                {instalacion.name}
-                              </Typography>
-                              <Typography variant="body2" color="textSecondary">
-                                {instalacion.address?.city || 'Sin ciudad'}
-                              </Typography>
-                            </Paper>
+                              <CardActionArea onClick={() => handleCardClick(almacen)}>
+                                <CardContent
+                                  sx={{
+                                    textAlign: 'center',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    alignItems: 'center',
+                                    p: 3,
+                                  }}
+                                >
+                                  <WarehouseIcon sx={{ fontSize: 40, color: '#2666CF' }} />
+                                  <Typography
+                                    variant="h6"
+                                    sx={{ mt: 1, fontWeight: 'bold', color: '#1A1A40' }}
+                                  >
+                                    {almacen.name}
+                                  </Typography>
+                                  <Typography variant="body2" sx={{ color: '#666' }}>
+                                    {almacen.address?.city || 'Sin ciudad'}
+                                  </Typography>
+                                </CardContent>
+                              </CardActionArea>
+                            </Card>
                           </Grid>
                         ))}
                       </Grid>
                     </Box>
                   )
                 ) : (
-                  // VISTA DE DETALLE DE UNA INSTALACIÓN SELECCIONADA
-                  <Paper sx={{ p: 3, borderRadius: 2, mt: 2 }}>
+                  <Paper
+                    sx={{
+                      p: 3,
+                      borderRadius: 3,
+                      mt: 2,
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                    }}
+                  >
                     <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
-                      <Button variant="outlined" startIcon={<CloseIcon />} onClick={handleBack}>
+                      <Button
+                        variant="outlined"
+                        startIcon={<CloseIcon />}
+                        onClick={handleBack}
+                        sx={{
+                          borderRadius: 2,
+                          textTransform: 'none',
+                          fontWeight: 500,
+                        }}
+                      >
                         Atrás
                       </Button>
-                      <Button variant="contained" color="primary" onClick={handleEditDialogOpen}>
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={handleEditDialogOpen}
+                        sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 500 }}
+                      >
                         Editar
                       </Button>
-                      <Button variant="contained" color="error" onClick={() => handleDeleteDialogOpen(selectedInstalacion.id)}>
+                      <Button
+                        variant="contained"
+                        color="error"
+                        onClick={() =>
+                          selectedInstalacion && handleDeleteDialogOpen(selectedInstalacion.id)
+                        }
+                        sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 500 }}
+                      >
                         Eliminar
                       </Button>
                     </Box>
-                    <Typography variant="h4" sx={{ mb: 3 }}>
+                    <Typography variant="h4" sx={{ mb: 3, fontWeight: 'bold', color: '#1A1A40' }}>
                       {selectedInstalacion.name}
                     </Typography>
                     <Tabs value={tabIndex} onChange={handleTabChange} aria-label="Resumen y Productos">
@@ -556,19 +692,37 @@ const Instalaciones = () => {
                       <Box sx={{ p: 2 }}>
                         <Grid container spacing={3}>
                           <Grid item xs={12} md={6}>
-                            <Typography variant="subtitle1" sx={{ mb: 1 }}>Dirección</Typography>
-                            <Typography>
-                              {selectedInstalacion.address.direction}, {selectedInstalacion.address.city}, {selectedInstalacion.address.province}, {selectedInstalacion.address.postalCode}, {selectedInstalacion.address.country}
+                            <Typography
+                              variant="subtitle1"
+                              sx={{ mb: 1, fontWeight: 'bold', color: '#555' }}
+                            >
+                              Dirección
+                            </Typography>
+                            <Typography sx={{ color: '#333' }}>
+                              {selectedInstalacion.address.direction}, {selectedInstalacion.address.city},{' '}
+                              {selectedInstalacion.address.province}, {selectedInstalacion.address.postalCode},{' '}
+                              {selectedInstalacion.address.country}
                             </Typography>
                           </Grid>
                           <Grid item xs={12} md={6}>
-                            <Typography variant="subtitle1" sx={{ mb: 1 }}>Contacto</Typography>
-                            <Typography><strong>Email:</strong> {selectedInstalacion.email}</Typography>
-                            <Typography><strong>Teléfono:</strong> {selectedInstalacion.phone}</Typography>
+                            <Typography
+                              variant="subtitle1"
+                              sx={{ mb: 1, fontWeight: 'bold', color: '#555' }}
+                            >
+                              Contacto
+                            </Typography>
+                            <Typography sx={{ color: '#333' }}>
+                              <strong>Email:</strong> {selectedInstalacion.email}
+                            </Typography>
+                            <Typography sx={{ color: '#333' }}>
+                              <strong>Teléfono:</strong> {selectedInstalacion.phone}
+                            </Typography>
                           </Grid>
                         </Grid>
                         <Box sx={{ mt: 4 }}>
-                          <Typography variant="h6" sx={{ mb: 2 }}>Stock</Typography>
+                          <Typography variant="h6" sx={{ mb: 2, color: '#1A1A40', fontWeight: 'bold' }}>
+                            Stock
+                          </Typography>
                           <Line data={chartData} options={chartOptions} />
                         </Box>
                       </Box>
@@ -586,9 +740,11 @@ const Instalaciones = () => {
                           {loadingProducts ? (
                             <Typography variant="body1">Cargando productos...</Typography>
                           ) : errorProducts ? (
-                            <Typography variant="body1" color="error">{errorProducts}</Typography>
+                            <Typography variant="body1" color="error">
+                              {errorProducts}
+                            </Typography>
                           ) : (
-                            <TableContainer component={Paper}>
+                            <TableContainer component={Paper} sx={{ borderRadius: 2 }}>
                               <Table>
                                 <TableHead>
                                   <TableRow>
@@ -624,201 +780,89 @@ const Instalaciones = () => {
         </Box>
       </Box>
 
-      {/* Diálogo para Añadir Instalación */}
-      <Dialog open={addDialogOpen} onClose={handleAddDialogClose} aria-labelledby="form-dialog-title">
-        <DialogTitle id="form-dialog-title">Añadir Nueva Instalación</DialogTitle>
-        <DialogContent>
-          <TextField
-            autoFocus
-            margin="dense"
-            name="name"
-            label="Nombre"
-            type="text"
-            fullWidth
-            value={newInstalation.name}
-            onChange={handleNewInstalationChange}
-          />
-          <TextField
-            margin="dense"
-            name="email"
-            label="Email"
-            type="email"
-            fullWidth
-            value={newInstalation.email}
-            onChange={handleNewInstalationChange}
-          />
-          <TextField
-            margin="dense"
-            name="phone"
-            label="Teléfono"
-            type="text"
-            fullWidth
-            value={newInstalation.phone}
-            onChange={handleNewInstalationChange}
-          />
-          <TextField
-            margin="dense"
-            name="direction"
-            label="Dirección"
-            type="text"
-            fullWidth
-            value={newInstalation.direction}
-            onChange={handleNewInstalationChange}
-          />
-          <TextField
-            margin="dense"
-            name="city"
-            label="Ciudad"
-            type="text"
-            fullWidth
-            value={newInstalation.city}
-            onChange={handleNewInstalationChange}
-          />
-          <TextField
-            margin="dense"
-            name="postalCode"
-            label="Código Postal"
-            type="text"
-            fullWidth
-            value={newInstalation.postalCode}
-            onChange={handleNewInstalationChange}
-          />
-          <TextField
-            margin="dense"
-            name="province"
-            label="Provincia"
-            type="text"
-            fullWidth
-            value={newInstalation.province}
-            onChange={handleNewInstalationChange}
-          />
-          <TextField
-            margin="dense"
-            name="country"
-            label="País"
-            type="text"
-            fullWidth
-            value={newInstalation.country}
-            onChange={handleNewInstalationChange}
-          />
+      {/* Diálogo para Añadir almacén */}
+      <Dialog
+        open={addDialogOpen}
+        onClose={handleAddDialogClose}
+        aria-labelledby="nuevo-almacen-title"
+        maxWidth="md"
+        fullWidth
+        sx={{
+          '& .MuiPaper-root': {
+            borderRadius: 3,
+            overflow: 'visible',
+          },
+        }}
+      >
+        <DialogTitle id="nuevo-almacen-title" sx={{ fontWeight: 'bold', position: 'relative' }}>
+          Nuevo almacén
+          <IconButton onClick={handleAddDialogClose} sx={{ position: 'absolute', right: 8, top: 8 }}>
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+
+        <DialogContent dividers sx={{ pt: 2 }}>
+          <InstalacionForm formData={newInstalation} handleChange={handleNewInstalationChange} />
         </DialogContent>
-        <DialogActions>
-          <Button onClick={handleAddDialogClose} color="primary">
+
+        <DialogActions sx={{ px: 3, py: 2 }}>
+          <Button onClick={handleAddDialogClose} variant="outlined" sx={{ borderRadius: 2, textTransform: 'none' }}>
             Cancelar
           </Button>
-          <Button onClick={handleAddInstalacion} color="primary">
-            Añadir
+          <Button onClick={handleAddInstalacion} variant="contained" sx={{ borderRadius: 2, textTransform: 'none' }}>
+            Guardar
           </Button>
         </DialogActions>
       </Dialog>
 
       {/* Diálogo para Confirmar Eliminación */}
-      <Dialog open={deleteDialogOpen} onClose={handleDeleteDialogClose} aria-labelledby="alert-dialog-title">
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={handleDeleteDialogClose}
+        aria-labelledby="alert-dialog-title"
+      >
         <DialogTitle id="alert-dialog-title">{"Confirmar eliminación"}</DialogTitle>
         <DialogContent>
           <Typography>
-            ¿Está seguro de que desea eliminar esta instalación? Esta acción no se puede deshacer.
+            ¿Está seguro de que desea eliminar este almacén? Esta acción no se puede deshacer.
           </Typography>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleDeleteDialogClose} color="primary">
             Cancelar
           </Button>
-          <Button onClick={() => selectedInstalacion && handleDelete(selectedInstalacion.id)} color="error" autoFocus>
+          <Button
+            onClick={() => selectedInstalacion && handleDelete(selectedInstalacion.id)}
+            color="error"
+            autoFocus
+          >
             Eliminar
           </Button>
         </DialogActions>
       </Dialog>
 
-      {/* Diálogo para Editar Instalación */}
-      <Dialog open={editDialogOpen} onClose={handleEditDialogClose} aria-labelledby="edit-dialog-title">
-        <DialogTitle id="edit-dialog-title">Editar Instalación</DialogTitle>
-        <DialogContent>
-          <TextField
-            autoFocus
-            margin="dense"
-            name="name"
-            label="Nombre"
-            type="text"
-            fullWidth
-            value={editForm.name}
-            onChange={handleEditFormChange}
-          />
-          <TextField
-            margin="dense"
-            name="email"
-            label="Email"
-            type="email"
-            fullWidth
-            value={editForm.email}
-            onChange={handleEditFormChange}
-          />
-          <TextField
-            margin="dense"
-            name="phone"
-            label="Teléfono"
-            type="text"
-            fullWidth
-            value={editForm.phone}
-            onChange={handleEditFormChange}
-          />
-          <TextField
-            margin="dense"
-            name="direction"
-            label="Dirección"
-            type="text"
-            fullWidth
-            value={editForm.direction}
-            onChange={handleEditFormChange}
-          />
-          <TextField
-            margin="dense"
-            name="city"
-            label="Ciudad"
-            type="text"
-            fullWidth
-            value={editForm.city}
-            onChange={handleEditFormChange}
-          />
-          <TextField
-            margin="dense"
-            name="postalCode"
-            label="Código Postal"
-            type="text"
-            fullWidth
-            value={editForm.postalCode}
-            onChange={handleEditFormChange}
-          />
-          <TextField
-            margin="dense"
-            name="province"
-            label="Provincia"
-            type="text"
-            fullWidth
-            value={editForm.province}
-            onChange={handleEditFormChange}
-          />
-          <TextField
-            margin="dense"
-            name="country"
-            label="País"
-            type="text"
-            fullWidth
-            value={editForm.country}
-            onChange={handleEditFormChange}
-          />
+      {/* Diálogo para Editar almacén */}
+      <Dialog
+        open={editDialogOpen}
+        onClose={handleEditDialogClose}
+        aria-labelledby="edit-dialog-title"
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle id="edit-dialog-title">Editar almacén</DialogTitle>
+        <DialogContent dividers>
+          <InstalacionForm formData={editForm} handleChange={handleEditFormChange} />
         </DialogContent>
-        <DialogActions>
-          <Button onClick={handleEditDialogClose} color="primary">
+        <DialogActions sx={{ px: 3, py: 2 }}>
+          <Button onClick={handleEditDialogClose} variant="outlined" sx={{ borderRadius: 2 }}>
             Cancelar
           </Button>
-          <Button onClick={handleUpdateInstalacion} color="primary">
+          <Button onClick={handleUpdateInstalacion} variant="contained" sx={{ borderRadius: 2 }}>
             Guardar
           </Button>
         </DialogActions>
       </Dialog>
 
-      {/* Snackbar para notificaciones */}
       <Snackbar
         open={snackbarOpen}
         autoHideDuration={6000}

@@ -38,7 +38,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import SearchIcon from '@mui/icons-material/Search';
 
-import { useRouter } from 'next/router';
+import router, { useRouter } from 'next/router';
 import useAuthStore from '../../../store/useAuthStore';
 
 import Header from 'components/Header';
@@ -47,10 +47,13 @@ import Sidebar from 'components/Sidebar';
 import ProductService from '../services/productService';
 import { Product } from '../types/Product';
 
-// Se importa el servicio de Instalación y de Familias (para categorías reales)
+// Se importan los servicios de Instalación y Familias
 import InstalationService from '../services/instalationService';
 import { Instalation } from '../types/instalation';
-import FamilyService from '../services/familyService'; // NUEVO: Servicio de Familias
+import FamilyService from '../services/familyService';
+
+// Importamos el componente de detalle
+import ProductDetail from '../components/productDetail';
 
 // Columnas de la tabla de productos
 const allColumns = [
@@ -112,6 +115,7 @@ const ProductFormPage = ({
       installationId: [''] as [string],
     }
   );
+
   useEffect(() => {
     if (product) {
       setFormData(product);
@@ -191,9 +195,7 @@ const ProductFormPage = ({
 
   // Convertir el valor del campo "cantidad" a número
   const handleChange = (
-    e:
-      | React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-      | any
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | any
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -224,113 +226,135 @@ const ProductFormPage = ({
         </Typography>
       </Box>
 
-      <Card elevation={3} sx={{ mb: 4 }}>
-        <CardContent>
-          <Typography variant="h6" gutterBottom sx={{ fontWeight: '600' }}>
-            Información del Producto
-          </Typography>
-          <Divider sx={{ mb: 2 }} />
-          <Grid container spacing={3}>
-            {/* Columna de Nombre y Referencia */}
-            <Grid item xs={12} sm={4} container direction="column">
-              <TextField
-                label="Nombre Producto"
-                name="nombre"
-                variant="outlined"
-                fullWidth
-                value={formData.nombre}
-                onChange={handleChange}
-                sx={{ borderRadius: 2, mb: 2 }}
-              />
-              <TextField
-                label="Referencia"
-                name="referencia"
-                variant="outlined"
-                fullWidth
-                value={formData.referencia}
-                onChange={handleChange}
-                sx={{ borderRadius: 2 }}
-              />
-            </Grid>
+      {/* Se crea una fila con 2 columnas:
+          - Izquierda: Card con la info del producto
+          - Derecha: Sección de imagen (fuera del Card) */}
+      <Box display="flex" gap={2} sx={{ mb: 4 }}>
+        {/* Card con la información del producto */}
+        <Card elevation={3} sx={{ flex: 1 }}>
+          <CardContent>
+            <Typography variant="h6" gutterBottom sx={{ fontWeight: '600' }}>
+              Información del Producto
+            </Typography>
+            <Divider sx={{ mb: 2 }} />
 
-            {/* Columna de Descripción */}
-            <Grid item xs={12} sm={8}>
-              <TextField
-                label="Descripción"
-                name="descripcion"
-                multiline
-                rows={6}
-                variant="outlined"
-                fullWidth
-                value={formData.descripcion}
-                onChange={handleChange}
-                sx={{ borderRadius: 2 }}
-              />
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  label="Nombre Producto"
+                  name="nombre"
+                  variant="outlined"
+                  fullWidth
+                  value={formData.nombre}
+                  onChange={handleChange}
+                  sx={{ borderRadius: 2 }}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  label="Referencia"
+                  name="referencia"
+                  variant="outlined"
+                  fullWidth
+                  value={formData.referencia}
+                  onChange={handleChange}
+                  sx={{ borderRadius: 2 }}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  label="Descripción"
+                  name="descripcion"
+                  multiline
+                  rows={6}
+                  variant="outlined"
+                  fullWidth
+                  value={formData.descripcion}
+                  onChange={handleChange}
+                  sx={{ borderRadius: 2 }}
+                />
+              </Grid>
+              <Grid item xs={12} sm={4}>
+                <TextField
+                  label="Código de Barras"
+                  name="codigoBarras"
+                  variant="outlined"
+                  fullWidth
+                  value={formData.codigoBarras}
+                  onChange={handleChange}
+                  sx={{ borderRadius: 2 }}
+                />
+              </Grid>
+              <Grid item xs={12} sm={4}>
+                <TextField
+                  label="Código de Fabricación"
+                  name="codigoFabricacion"
+                  variant="outlined"
+                  fullWidth
+                  value={formData.codigoFabricacion}
+                  onChange={handleChange}
+                  sx={{ borderRadius: 2 }}
+                />
+              </Grid>
+              <Grid item xs={12} sm={4}>
+                <TextField
+                  label="Peso en Kg"
+                  name="peso"
+                  variant="outlined"
+                  fullWidth
+                  value={formData.peso}
+                  onChange={handleChange}
+                  sx={{ borderRadius: 2 }}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <FormControl fullWidth variant="outlined">
+                  <InputLabel id="installation-label">Instalación</InputLabel>
+                  <Select
+                    labelId="installation-label"
+                    label="Instalación"
+                    name="installationId"
+                    value={formData.installationId ? formData.installationId[0] : ''}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        installationId: [e.target.value as string] as [string],
+                      }))
+                    }
+                  >
+                    {Array.isArray(installations) &&
+                      installations.map((inst) => (
+                        <MenuItem key={inst.id} value={inst.id}>
+                          {inst.name}
+                        </MenuItem>
+                      ))}
+                  </Select>
+                </FormControl>
+              </Grid>
             </Grid>
+          </CardContent>
+        </Card>
 
-            {/* Fila para Código de Barras, Código de Fabricación y Peso */}
-            <Grid item xs={12} sm={4}>
-              <TextField
-                label="Código de Barras"
-                name="codigoBarras"
-                variant="outlined"
-                fullWidth
-                value={formData.codigoBarras}
-                onChange={handleChange}
-                sx={{ borderRadius: 2 }}
-              />
-            </Grid>
-            <Grid item xs={12} sm={4}>
-              <TextField
-                label="Código de Fabricación"
-                name="codigoFabricacion"
-                variant="outlined"
-                fullWidth
-                value={formData.codigoFabricacion}
-                onChange={handleChange}
-                sx={{ borderRadius: 2 }}
-              />
-            </Grid>
-            <Grid item xs={12} sm={4}>
-              <TextField
-                label="Peso en Kg"
-                name="peso"
-                variant="outlined"
-                fullWidth
-                value={formData.peso}
-                onChange={handleChange}
-                sx={{ borderRadius: 2 }}
-              />
-            </Grid>
-
-            {/* Desplegable para seleccionar la Instalación */}
-            <Grid item xs={12}>
-              <FormControl fullWidth variant="outlined">
-                <InputLabel id="installation-label">Instalación</InputLabel>
-                <Select
-                  labelId="installation-label"
-                  label="Instalación"
-                  name="installationId"
-                  value={formData.installationId ? formData.installationId[0] : ''}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      installationId: [e.target.value as string] as [string],
-                    }))
-                  }
-                >
-                  {Array.isArray(installations) &&
-                    installations.map((inst) => (
-                      <MenuItem key={inst.id} value={inst.id}>
-                        {inst.name}
-                      </MenuItem>
-                    ))}
-                </Select>
-              </FormControl>
-            </Grid>
-          </Grid>
-        </CardContent>
-      </Card>
+        {/* Sección de imagen: fuera del Card, a la derecha */}
+        <Box
+          sx={{
+            border: '2px dashed #ccc',
+            borderRadius: 2,
+            p: 2,
+            textAlign: 'center',
+            width: 200,
+            height: 200,
+            backgroundColor: '#fff',
+            color: '#aaa',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: 1,
+          }}
+        >
+          <Typography variant="body2">arrastrar imagen para añadir</Typography>
+        </Box>
+      </Box>
 
       {/* Sección Categorías (Familia/Subfamilia) */}
       <Card elevation={3} sx={{ mb: 4 }}>
@@ -468,7 +492,23 @@ const ProductFormPage = ({
                 </Select>
               </FormControl>
             </Grid>
-            <Grid item xs={12}>
+            <Grid item xs={12} sm={4}>
+              <TextField
+                label="% a incrementar"
+                name="incremento"
+                variant="outlined"
+                fullWidth
+                value={""}
+                onChange={handleChange}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">€</InputAdornment>
+                  ),
+                }}
+                sx={{ borderRadius: 2 }}
+              />
+            </Grid>
+            <Grid item xs={12} sm={4}>
               <FormControl fullWidth variant="outlined">
                 <InputLabel>Precio recomendado</InputLabel>
                 <Select
@@ -480,6 +520,21 @@ const ProductFormPage = ({
                 >
                   <MenuItem value="Precio 1">Precio 1</MenuItem>
                   <MenuItem value="Precio 2">Precio 2</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} sm={4}>
+              <FormControl fullWidth variant="outlined">
+                <InputLabel>Clientes</InputLabel>
+                <Select
+                  name="Clientes"
+                  value={formData.precioRecomendado || ''}
+                  onChange={handleChange}
+                  label="Precio"
+                  sx={{ borderRadius: 2 }}
+                >
+                  <MenuItem value="Precio 1">Contacto 1</MenuItem>
+                  <MenuItem value="Precio 2">Contacto 2</MenuItem>
                 </Select>
               </FormControl>
             </Grid>
@@ -658,7 +713,7 @@ const ProductFormPage = ({
               </Grid>
               <Grid item xs>
                 <TextField
-                  name="buscarVariante"  // Added name attribute for autofill/accessibility
+                  name="buscarVariante"
                   fullWidth
                   variant="outlined"
                   placeholder="Buscar Variante"
@@ -681,7 +736,7 @@ const ProductFormPage = ({
             <TableContainer component={Paper} sx={{ borderRadius: 2 }}>
               <Table aria-label="tabla de variantes">
                 <TableHead>
-                  <TableRow>
+                  <TableRow key="header">
                     <TableCell>Referencia</TableCell>
                     <TableCell>Cód. Barras</TableCell>
                     <TableCell>Cód. Fábrica</TableCell>
@@ -792,6 +847,10 @@ const Productos = () => {
   );
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
+  // NUEVO: Estados para ver el detalle del producto
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [selectedDetailProduct, setSelectedDetailProduct] = useState<Product | null>(null);
+
   // Función para obtener productos desde el API
   const fetchProducts = async () => {
     if (!token) return;
@@ -851,9 +910,12 @@ const Productos = () => {
   const handleOpen = (product: Product | null = null) => {
     setSelectedProduct(product);
     setIsEditing(true);
+    // Aseguramos cerrar el detalle si estuviera abierto
+    setIsDetailOpen(false);
+    setSelectedDetailProduct(null);
   };
 
-  // Volver al listado
+  // Volver al listado o cerrar el detalle/edición
   const handleBack = () => {
     setIsEditing(false);
     setSelectedProduct(null);
@@ -909,11 +971,25 @@ const Productos = () => {
     setIsMenuOpen(!isMenuOpen);
   };
 
+  // NUEVO: Abrir detalle al hacer click en una fila
+  const handleOpenDetail = (product: Product) => {
+    setSelectedDetailProduct(product);
+    setIsDetailOpen(true);
+    // Si se abre el detalle, nos aseguramos de cerrar el formulario de edición
+    setIsEditing(false);
+  };
+
+  // NUEVO: Cerrar el detalle y volver al listado
+  const handleCloseDetail = () => {
+    setIsDetailOpen(false);
+    setSelectedDetailProduct(null);
+  };
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', bgcolor: '#F3F4F6' }}>
       {/* Vista de listado de productos */}
-      <Fade in={!isEditing} timeout={300}>
-        <Box display={isEditing ? 'none' : 'block'} sx={{ flexGrow: 1 }}>
+      <Fade in={!isEditing && !isDetailOpen} timeout={300}>
+        <Box display={!isEditing && !isDetailOpen ? 'block' : 'none'} sx={{ flexGrow: 1 }}>
           <Header isMenuOpen={isMenuOpen} />
           <Box sx={{ display: 'flex', flexGrow: 1, marginTop: '64px' }}>
             <Box
@@ -936,11 +1012,12 @@ const Productos = () => {
               component="main"
               sx={{
                 flexGrow: 1,
-                bgcolor: '#F3F4F6',
+                bgcolor: "#F3F4F6",
                 p: 3,
-                transition: 'margin-left 0.3s ease',
-                marginLeft: isMenuOpen ? '240px' : '70px',
-                maxWidth: 'calc(100% - 240px)',
+                transition: "margin-left 0.3s ease",
+                marginLeft: isMenuOpen ? "240px" : "70px",
+                width: `calc(100% - ${isMenuOpen ? "240px" : "70px"})`, // Se adapta al sidebar
+                boxSizing: "border-box", // Asegura que el padding se calcule correctamente
               }}
             >
               <Container maxWidth="xl">
@@ -1058,6 +1135,7 @@ const Productos = () => {
                       {products.map((product, index) => (
                         <TableRow
                           key={product.id}
+                          onClick={() => handleOpenDetail(product)}
                           sx={{
                             bgcolor: index % 2 === 0 ? '#ffffff' : '#f9f9f9',
                             '&:hover': {
@@ -1065,6 +1143,7 @@ const Productos = () => {
                               boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
                             },
                             transition: 'background-color 0.3s, box-shadow 0.3s',
+                            cursor: 'pointer',
                           }}
                         >
                           {visibleColumns.map((colId) => (
@@ -1074,13 +1153,19 @@ const Productos = () => {
                           ))}
                           <TableCell align="center">
                             <IconButton
-                              onClick={() => handleOpen(product)}
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                handleOpen(product);
+                              }}
                               sx={{ color: '#1A1A40', marginRight: 1 }}
                             >
                               <EditIcon />
                             </IconButton>
                             <IconButton
-                              onClick={() => handleDelete(product.id!)}
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                handleDelete(product.id!);
+                              }}
                               sx={{ color: '#B00020' }}
                             >
                               <DeleteIcon />
@@ -1105,6 +1190,13 @@ const Productos = () => {
             handleBack={handleBack}
             handleSave={handleSave}
           />
+        </Box>
+      </Fade>
+
+      {/* Vista de detalle del producto */}
+      <Fade in={isDetailOpen} timeout={300}>
+        <Box display={isDetailOpen ? 'block' : 'none'}>
+          <ProductDetail product={selectedDetailProduct} onClose={handleCloseDetail} />
         </Box>
       </Fade>
     </Box>

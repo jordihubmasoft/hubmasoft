@@ -21,10 +21,15 @@ import {
   FormControlLabel,
   Checkbox,
   Divider,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  Autocomplete,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import Header from 'components/Header';
 import Sidebar from 'components/Sidebar';
 import { useRouter } from 'next/router';
@@ -40,6 +45,13 @@ interface Product {
   id: string;
   name: string;
   // otros campos...
+}
+
+// Definición de Contact para el Autocomplete
+interface Contact {
+  id: string;
+  nombre: string;
+  nif?: string;
 }
 
 const SubFamilyPage: React.FC = () => {
@@ -90,7 +102,7 @@ const SubFamilyPage: React.FC = () => {
         throw new Error(`Error fetching families: ${response.statusText}`);
       }
       const json = await response.json();
-      setFamilies(json.data); // Asumimos que json.data contiene el array de familias
+      setFamilies(json.data); // Se asume que json.data es el array de familias
     } catch (err) {
       console.error('Error al cargar las familias', err);
       setError('Error al cargar las familias.');
@@ -120,11 +132,10 @@ const SubFamilyPage: React.FC = () => {
 
   // --------------------------------------------
   // Estado y funciones para crear nueva sub-familia
+  // Se agrega la propiedad "allowedUsers" para usuarios que pueden ver
   // --------------------------------------------
   const [openAddDialog, setOpenAddDialog] = useState(false);
 
-  // En lugar de tener un estado para "name" y otro para "familyId", 
-  // creamos un objeto que contenga todos los campos necesarios.
   const [newSubFamilyData, setNewSubFamilyData] = useState<{
     name: string;
     familyId: string;
@@ -133,6 +144,7 @@ const SubFamilyPage: React.FC = () => {
     order: number;
     productIds: string[];
     imageFile: File | null;
+    allowedUsers: Contact[];
   }>({
     name: '',
     familyId: '',
@@ -141,6 +153,7 @@ const SubFamilyPage: React.FC = () => {
     order: 0,
     productIds: [],
     imageFile: null,
+    allowedUsers: [],
   });
 
   const handleOpenAddDialog = () => {
@@ -158,6 +171,7 @@ const SubFamilyPage: React.FC = () => {
       order: 0,
       productIds: [],
       imageFile: null,
+      allowedUsers: [],
     });
   };
 
@@ -181,7 +195,6 @@ const SubFamilyPage: React.FC = () => {
         });
         if (!resp.ok) throw new Error('Error al obtener productos');
         const json = await resp.json();
-        // Ajusta según tu API (json.data o similar)
         setAllProducts(json.data ?? json);
       } catch (error) {
         console.error('Error al obtener productos:', error);
@@ -196,7 +209,7 @@ const SubFamilyPage: React.FC = () => {
   );
 
   // --------------------------------------------
-  // Crear sub-familia (con campos extra)
+  // Crear sub-familia
   // --------------------------------------------
   const handleAddSubFamily = async () => {
     if (!token || !contactId) return;
@@ -205,8 +218,6 @@ const SubFamilyPage: React.FC = () => {
       return;
     }
     try {
-      // Construimos el payload con los campos nuevos.
-      // Ajusta la lógica si tu backend requiere FormData para la imagen.
       const payload = {
         contactId,
         familyId: newSubFamilyData.familyId,
@@ -215,15 +226,13 @@ const SubFamilyPage: React.FC = () => {
         showInCatalog: newSubFamilyData.showInCatalog,
         order: newSubFamilyData.order,
         productIds: newSubFamilyData.productIds,
-        // imageFile: newSubFamilyData.imageFile, // Manejo según tu API
+        // allowedUsers no se envía al backend (solo UI)
       };
 
       const newSub: SubFamily = await SubFamilyService.createSubFamily(payload, token);
-
       if (!newSub.id) {
         newSub.id = `${Date.now()}`;
       }
-      // Se agrega la nueva sub-familia a la familia correspondiente
       setFamilies((prevFamilies) =>
         prevFamilies.map((family) =>
           family.id === newSubFamilyData.familyId
@@ -240,34 +249,60 @@ const SubFamilyPage: React.FC = () => {
 
   // --------------------------------------------
   // Editar sub-familia
+  // Se agrega la propiedad "allowedUsers" también en el formulario de edición
   // --------------------------------------------
-  const [editingSubFamily, setEditingSubFamily] = useState<{
+  const [editingSubFamilyData, setEditingSubFamilyData] = useState<{
+    id: string;
+    name: string;
     familyId: string;
-    subFamily: SubFamily;
+    showInOrders: boolean;
+    showInCatalog: boolean;
+    order: number;
+    productIds: string[];
+    imageFile: File | null;
+    allowedUsers: Contact[];
   } | null>(null);
-  const [editingSubFamilyName, setEditingSubFamilyName] = useState('');
 
   const handleOpenEditDialog = (familyId: string, subFamily: SubFamily) => {
-    setEditingSubFamily({ familyId, subFamily });
-    setEditingSubFamilyName(subFamily.name);
+    setEditingSubFamilyData({
+      id: subFamily.id,
+      name: subFamily.name,
+      familyId: familyId,
+      showInOrders: null,
+      showInCatalog: null,
+      order: null,
+      productIds: [],
+      imageFile: null,
+      allowedUsers: [],
+    });
   };
 
   const handleCloseEditDialog = () => {
-    setEditingSubFamily(null);
-    setEditingSubFamilyName('');
+    setEditingSubFamilyData(null);
   };
 
   const handleEditSubFamily = async () => {
-    if (!editingSubFamily || editingSubFamilyName.trim() === '' || !token || !contactId) return;
+    if (!editingSubFamilyData || editingSubFamilyData.name.trim() === '' || !token || !contactId)
+      return;
     try {
+      const payload = {
+        subfamilyId: editingSubFamilyData.id,
+        name: editingSubFamilyData.name,
+        familyId: editingSubFamilyData.familyId,
+        showInOrders: editingSubFamilyData.showInOrders,
+        showInCatalog: editingSubFamilyData.showInCatalog,
+        order: editingSubFamilyData.order,
+        productIds: editingSubFamilyData.productIds,
+        // allowedUsers no se envía al backend (solo UI)
+      };
       const updatedSub: SubFamily = await SubFamilyService.updateSubFamily(
-        editingSubFamily.subFamily.id,
-        { subfamilyId: editingSubFamily.subFamily.id, name: editingSubFamilyName },
+        editingSubFamilyData.id,
+        payload,
         token
       );
       setFamilies((prevFamilies) =>
         prevFamilies.map((family) => {
-          if (family.id === editingSubFamily.familyId) {
+          if (family.id === editingSubFamilyData.familyId) {
             return {
               ...family,
               subFamilies: (family.subFamilies || []).map((sub) =>
@@ -331,6 +366,29 @@ const SubFamilyPage: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(true);
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
+  };
+
+  // ----------------------------------------------------------
+  // Nueva sección para Autocomplete de contactos para sub-familia (para la vista en el Accordion)
+  // ----------------------------------------------------------
+  const [contactOptions, setContactOptions] = useState<Contact[]>([]);
+  const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [subfamilyContacts, setSubfamilyContacts] = useState<Record<string, Contact[]>>({});
+
+  const searchContacts = async (text: string) => {
+    if (!token) return;
+    try {
+      // Llamada simulada; reemplazar con la llamada real cuando esté listo.
+      const simulatedResponse = {
+        data: [
+          { id: '1', nombre: 'Juan Pérez', nif: '12345678A' },
+          { id: '2', nombre: 'María García', nif: '87654321B' },
+        ],
+      };
+      setContactOptions(simulatedResponse.data);
+    } catch (err) {
+      console.error('Error buscando contactos:', err);
+    }
   };
 
   if (!hydrated) return null;
@@ -412,36 +470,90 @@ const SubFamilyPage: React.FC = () => {
               <Grid container spacing={3}>
                 {filteredSubFamilies.map((sub) => (
                   <Grid item xs={12} sm={6} md={4} key={sub.id}>
-                    <Card
-                      sx={{
-                        boxShadow: 3,
-                        transition: 'transform 0.3s ease, box-shadow 0.3s ease',
-                        '&:hover': {
-                          transform: 'scale(1.05)',
-                          boxShadow: '0 12px 20px rgba(0, 0, 0, 0.15)',
-                        },
-                      }}
-                    >
-                      <CardHeader
-                        title={sub.name}
-                        subheader={`Familia: ${sub.familyName}`}
+                    <Accordion>
+                      <AccordionSummary
+                        expandIcon={<ExpandMoreIcon />}
                         sx={{ backgroundColor: '#2666CF', color: '#ffffff' }}
-                        action={
-                          <Box>
-                            <Tooltip title="Editar Sub-Familia">
-                              <IconButton onClick={() => handleOpenEditDialog(sub.familyId, sub)}>
-                                <EditIcon sx={{ color: '#ffffff' }} />
-                              </IconButton>
-                            </Tooltip>
-                            <Tooltip title="Eliminar Sub-Familia">
-                              <IconButton onClick={() => handleOpenDeleteDialog(sub.familyId, sub)}>
-                                <DeleteIcon sx={{ color: '#ffffff' }} />
-                              </IconButton>
-                            </Tooltip>
-                          </Box>
-                        }
-                      />
-                    </Card>
+                      >
+                        <Box sx={{ flexGrow: 1 }}>
+                          <Typography variant="h6">{sub.name}</Typography>
+                        </Box>
+                        <Box>
+                          <Tooltip title="Editar Sub-Familia">
+                            <IconButton
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleOpenEditDialog(sub.familyId, sub);
+                              }}
+                            >
+                              <EditIcon sx={{ color: '#ffffff' }} />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Eliminar Sub-Familia">
+                            <IconButton
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleOpenDeleteDialog(sub.familyId, sub);
+                              }}
+                            >
+                              <DeleteIcon sx={{ color: '#ffffff' }} />
+                            </IconButton>
+                          </Tooltip>
+                        </Box>
+                      </AccordionSummary>
+                      <AccordionDetails>
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                          {/* Sección para productos asignados (no funcional, vacío por ahora) */}
+                          <Typography variant="body1" sx={{ fontWeight: '500', mb: 1 }}>
+                            Productos asignados:
+                          </Typography>
+                          <Typography variant="body2" color="textSecondary">
+                            No hay productos asignados.
+                          </Typography>
+                          {/* Sección para Autocomplete de contactos (vista de la sub-familia) */}
+                          <Typography variant="body1" sx={{ fontWeight: '500', mb: 1, mt: 2 }}>
+                            Contactos que pueden visualizar la sub-familia:
+                          </Typography>
+                          <Autocomplete
+                            multiple
+                            options={contactOptions}
+                            getOptionLabel={(option: Contact) => option.nombre}
+                            value={subfamilyContacts[sub.id] || []}
+                            onChange={(event, newValue) => {
+                              setSubfamilyContacts((prev) => ({
+                                ...prev,
+                                [sub.id]: newValue,
+                              }));
+                            }}
+                            onInputChange={(event, newInputValue) => {
+                              if (searchTimeout) clearTimeout(searchTimeout);
+                              const timeout = setTimeout(() => {
+                                if (newInputValue.trim().length > 0) {
+                                  searchContacts(newInputValue.trim());
+                                } else {
+                                  setContactOptions([]);
+                                }
+                              }, 300);
+                              setSearchTimeout(timeout);
+                            }}
+                            renderInput={(params) => (
+                              <TextField
+                                {...params}
+                                variant="outlined"
+                                size="small"
+                                placeholder="Buscar contactos..."
+                              />
+                            )}
+                            renderOption={(props, option) => (
+                              <li {...props} key={option.id}>
+                                {option.nombre} {option.nif ? `(${option.nif})` : ''}
+                              </li>
+                            )}
+                            sx={{ mt: 1 }}
+                          />
+                        </Box>
+                      </AccordionDetails>
+                    </Accordion>
                   </Grid>
                 ))}
               </Grid>
@@ -537,18 +649,7 @@ const SubFamilyPage: React.FC = () => {
                   />
                 </Grid>
                 <Grid item xs={12}>
-                  <TextField
-                    type="number"
-                    label="Orden"
-                    fullWidth
-                    value={newSubFamilyData.order}
-                    onChange={(e) =>
-                      setNewSubFamilyData((prev) => ({
-                        ...prev,
-                        order: Number(e.target.value),
-                      }))
-                    }
-                  />
+                  
                 </Grid>
               </Grid>
             </Box>
@@ -568,7 +669,7 @@ const SubFamilyPage: React.FC = () => {
                   if (e.target.files && e.target.files.length > 0) {
                     setNewSubFamilyData((prev) => ({
                       ...prev,
-                      imageFile: e.target.files![0],
+                      imageFile: e.target.files[0],
                     }));
                   }
                 }}
@@ -630,6 +731,44 @@ const SubFamilyPage: React.FC = () => {
                 )}
               </Box>
             </Box>
+
+            <Divider />
+
+            {/* Sección Autocomplete para Usuarios que pueden ver */}
+            <Box>
+              <Typography variant="h6" sx={{ mb: 2 }}>
+                Usuarios que pueden ver:
+              </Typography>
+              <Autocomplete
+                multiple
+                options={contactOptions}
+                getOptionLabel={(option: Contact) => option.nombre}
+                value={newSubFamilyData.allowedUsers || []}
+                onChange={(event, newValue) =>
+                  setNewSubFamilyData((prev) => ({ ...prev, allowedUsers: newValue }))
+                }
+                onInputChange={(event, newInputValue) => {
+                  if (searchTimeout) clearTimeout(searchTimeout);
+                  const timeout = setTimeout(() => {
+                    if (newInputValue.trim().length > 0) {
+                      searchContacts(newInputValue.trim());
+                    } else {
+                      setContactOptions([]);
+                    }
+                  }, 300);
+                  setSearchTimeout(timeout);
+                }}
+                renderInput={(params) => (
+                  <TextField {...params} variant="outlined" size="small" placeholder="Buscar usuarios..." />
+                )}
+                renderOption={(props, option) => (
+                  <li {...props} key={option.id}>
+                    {option.nombre} {option.nif ? `(${option.nif})` : ''}
+                  </li>
+                )}
+                sx={{ mt: 1 }}
+              />
+            </Box>
           </Box>
         </DialogContent>
         <DialogActions>
@@ -645,16 +784,221 @@ const SubFamilyPage: React.FC = () => {
       </Dialog>
 
       {/* Diálogo para editar sub-familia */}
-      <Dialog open={!!editingSubFamily} onClose={handleCloseEditDialog} maxWidth="sm" fullWidth>
-        <DialogTitle>Editar Sub-Familia</DialogTitle>
-        <DialogContent>
-          <TextField
-            fullWidth
-            label="Nombre de la sub-familia"
-            value={editingSubFamilyName}
-            onChange={(e) => setEditingSubFamilyName(e.target.value)}
-            sx={{ mb: 2 }}
-          />
+      <Dialog open={!!editingSubFamilyData} onClose={handleCloseEditDialog} maxWidth="sm" fullWidth>
+        <DialogTitle sx={{ fontWeight: 600 }}>Editar Sub-Familia</DialogTitle>
+        <DialogContent dividers>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            {/* Sección Información Básica */}
+            <Box>
+              <Typography variant="h6" sx={{ mb: 2 }}>
+                Información Básica
+              </Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    label="Nombre de la sub-familia"
+                    value={editingSubFamilyData?.name || ''}
+                    onChange={(e) =>
+                      setEditingSubFamilyData((prev) =>
+                        prev ? { ...prev, name: e.target.value } : prev
+                      )
+                    }
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <FormControl fullWidth>
+                    <InputLabel id="select-family-label-edit">Familia</InputLabel>
+                    <Select
+                      labelId="select-family-label-edit"
+                      value={editingSubFamilyData?.familyId || ''}
+                      label="Familia"
+                      onChange={(e) =>
+                        setEditingSubFamilyData((prev) =>
+                          prev ? { ...prev, familyId: e.target.value as string } : prev
+                        )
+                      }
+                    >
+                      {families.map((family) => (
+                        <MenuItem key={family.id} value={family.id}>
+                          {family.name}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+              </Grid>
+            </Box>
+
+            <Divider />
+
+            {/* Sección Opciones de Visualización */}
+            <Box>
+              <Typography variant="h6" sx={{ mb: 2 }}>
+                Opciones de Visualización
+              </Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={12}>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={editingSubFamilyData?.showInOrders || false}
+                        onChange={(e) =>
+                          setEditingSubFamilyData((prev) =>
+                            prev ? { ...prev, showInOrders: e.target.checked } : prev
+                          )
+                        }
+                      />
+                    }
+                    label="Mostrar grupo en pedidos (Vista inventario)"
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={editingSubFamilyData?.showInCatalog || false}
+                        onChange={(e) =>
+                          setEditingSubFamilyData((prev) =>
+                            prev ? { ...prev, showInCatalog: e.target.checked } : prev
+                          )
+                        }
+                      />
+                    }
+                    label="Mostrar grupo en catálogo"
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  
+                </Grid>
+              </Grid>
+            </Box>
+
+            <Divider />
+
+            {/* Sección Imagen */}
+            <Box>
+              <Typography variant="h6" sx={{ mb: 2 }}>
+                Imagen
+              </Typography>
+              <TextField
+                type="file"
+                fullWidth
+                inputProps={{ accept: 'image/*' }}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                  if (e.target.files && e.target.files.length > 0) {
+                    setEditingSubFamilyData((prev) =>
+                      prev ? { ...prev, imageFile: e.target.files[0] } : prev
+                    );
+                  }
+                }}
+              />
+            </Box>
+
+            <Divider />
+
+            {/* Sección Selección de Productos */}
+            <Box>
+              <Typography variant="h6" sx={{ mb: 2 }}>
+                Agregar Productos
+              </Typography>
+              <TextField
+                label="Buscar producto..."
+                fullWidth
+                value={productSearch}
+                onChange={(e) => setProductSearch(e.target.value)}
+                sx={{ mb: 2 }}
+              />
+              <Box
+                sx={{
+                  maxHeight: '200px',
+                  overflowY: 'auto',
+                  border: '1px solid #ccc',
+                  borderRadius: 2,
+                  p: 1,
+                }}
+              >
+                {filteredProducts.length === 0 ? (
+                  <Typography variant="body2" color="textSecondary">
+                    No se encontraron productos
+                  </Typography>
+                ) : (
+                  filteredProducts.map((product) => (
+                    <FormControlLabel
+                      key={product.id}
+                      control={
+                        <Checkbox
+                          checked={editingSubFamilyData?.productIds.includes(product.id) || false}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setEditingSubFamilyData((prev) =>
+                                prev
+                                  ? {
+                                      ...prev,
+                                      productIds: [...prev.productIds, product.id],
+                                    }
+                                  : prev
+                              );
+                            } else {
+                              setEditingSubFamilyData((prev) =>
+                                prev
+                                  ? {
+                                      ...prev,
+                                      productIds: prev.productIds.filter((id) => id !== product.id),
+                                    }
+                                  : prev
+                              );
+                            }
+                          }}
+                        />
+                      }
+                      label={product.name}
+                    />
+                  ))
+                )}
+              </Box>
+            </Box>
+
+            <Divider />
+
+            {/* Sección Autocomplete para Usuarios que pueden ver (en edición) */}
+            <Box>
+              <Typography variant="h6" sx={{ mb: 2 }}>
+                Usuarios que pueden ver:
+              </Typography>
+              <Autocomplete
+                multiple
+                options={contactOptions}
+                getOptionLabel={(option: Contact) => option.nombre}
+                value={editingSubFamilyData?.allowedUsers || []}
+                onChange={(event, newValue) =>
+                  setEditingSubFamilyData((prev) =>
+                    prev ? { ...prev, allowedUsers: newValue } : prev
+                  )
+                }
+                onInputChange={(event, newInputValue) => {
+                  if (searchTimeout) clearTimeout(searchTimeout);
+                  const timeout = setTimeout(() => {
+                    if (newInputValue.trim().length > 0) {
+                      searchContacts(newInputValue.trim());
+                    } else {
+                      setContactOptions([]);
+                    }
+                  }, 300);
+                  setSearchTimeout(timeout);
+                }}
+                renderInput={(params) => (
+                  <TextField {...params} variant="outlined" size="small" placeholder="Buscar usuarios..." />
+                )}
+                renderOption={(props, option) => (
+                  <li {...props} key={option.id}>
+                    {option.nombre} {option.nif ? `(${option.nif})` : ''}
+                  </li>
+                )}
+                sx={{ mt: 1 }}
+              />
+            </Box>
+          </Box>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseEditDialog}>Cancelar</Button>
