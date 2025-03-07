@@ -850,6 +850,7 @@ const Productos = () => {
   // NUEVO: Estados para ver el detalle del producto
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [selectedDetailProduct, setSelectedDetailProduct] = useState<Product | null>(null);
+  const user = useAuthStore((state) => state.contactId);
 
   // Función para obtener productos desde el API
   const fetchProducts = async () => {
@@ -857,7 +858,7 @@ const Productos = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await ProductService.getAllProducts(token);
+      const response = await ProductService.getProductsByContactId(user, token);
       if (response) {
         const mappedProducts = response.map((p: any) => ({
           referencia: p.reference,
