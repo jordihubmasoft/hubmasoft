@@ -180,7 +180,7 @@ const SubFamilyPage: React.FC = () => {
   // --------------------------------------------
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [productSearch, setProductSearch] = useState('');
-
+  const [formError, setFormError] = useState<string | null>(null);
   useEffect(() => {
     const fetchAllProducts = async () => {
       try {
@@ -213,22 +213,25 @@ const SubFamilyPage: React.FC = () => {
   // --------------------------------------------
   const handleAddSubFamily = async () => {
     if (!token || !contactId) return;
-    if (newSubFamilyData.name.trim() === '' || newSubFamilyData.familyId.trim() === '') {
-      alert('Debe ingresar un nombre y seleccionar una familia.');
+    if (newSubFamilyData.name.trim() === '') {
+      setFormError('Debe ingresar un nombre.');
       return;
     }
+    // Limpia el error si la validación es correcta
+    setFormError(null);
     try {
       const payload = {
         contactId,
-        familyId: newSubFamilyData.familyId,
+        familyId: newSubFamilyData.familyId, // Se envía '' si no hay selección
         name: newSubFamilyData.name,
         showInOrders: newSubFamilyData.showInOrders,
         showInCatalog: newSubFamilyData.showInCatalog,
         order: newSubFamilyData.order,
         productIds: newSubFamilyData.productIds,
-        // allowedUsers no se envía al backend (solo UI)
       };
-
+      
+      
+  
       const newSub: SubFamily = await SubFamilyService.createSubFamily(payload, token);
       if (!newSub.id) {
         newSub.id = `${Date.now()}`;
@@ -243,7 +246,7 @@ const SubFamilyPage: React.FC = () => {
       handleCloseAddDialog();
     } catch (err) {
       console.error('Error al crear la sub-familia', err);
-      alert('Ocurrió un error al crear la sub-familia.');
+      setFormError('Ocurrió un error al crear la sub-familia.');
     }
   };
 
@@ -316,7 +319,7 @@ const SubFamilyPage: React.FC = () => {
       handleCloseEditDialog();
     } catch (err) {
       console.error('Error al actualizar la sub-familia', err);
-      alert('Ocurrió un error al actualizar la sub-familia.');
+     
     }
   };
 
@@ -356,7 +359,7 @@ const SubFamilyPage: React.FC = () => {
       handleCloseDeleteDialog();
     } catch (err) {
       console.error('Error al eliminar la sub-familia', err);
-      alert('Ocurrió un error al eliminar la sub-familia.');
+      
     }
   };
 

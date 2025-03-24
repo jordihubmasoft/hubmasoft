@@ -30,8 +30,8 @@ import {
   DialogContent,
   DialogActions,
   Autocomplete,
-  SelectChangeEvent,
-  Chip
+  Chip,
+  SelectChangeEvent
 } from '@mui/material';
 import SaveIcon from '@mui/icons-material/Save';
 import AddIcon from '@mui/icons-material/Add';
@@ -43,6 +43,8 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import Header from 'components/Header';
 import Sidebar from 'components/Sidebar';
 import { useRouter } from 'next/router';
+import PrefixConfigService from '../services/PrefixConfigService';
+import useAuthStore from '../../../store/useAuthStore';
 
 // Simulación de datos de productos para presupuestos
 const productosPresupuesto = [
@@ -56,7 +58,7 @@ const impuestosDisponibles = [
   { nombre: 'Rec. eq. 5.2%', valor: 0.052 },
 ];
 
-// Definir el tipo para Producto en Presupuesto
+// Tipo para Producto en Presupuesto
 interface Producto {
   concepto: string;
   descripcion: string;
@@ -67,15 +69,11 @@ interface Producto {
   total: number;
 }
 
-// Función para calcular los impuestos en el presupuesto
-const calcularImpuestos = (precio: number, cantidad: number, impuestos: { nombre: string; valor: number }[]) => {
-  return impuestos.reduce((acc, impuesto) => acc + (precio * cantidad * impuesto.valor), 0);
-};
+// Funciones para calcular impuestos y totales
+const calcularImpuestos = (precio: number, cantidad: number, impuestos: { nombre: string; valor: number }[]) =>
+  impuestos.reduce((acc, impuesto) => acc + (precio * cantidad * impuesto.valor), 0);
 
-// Función para calcular el total del presupuesto
-const calcularTotal = (subtotal: number, impuestos: number) => {
-  return subtotal + impuestos;
-};
+const calcularTotal = (subtotal: number, impuestos: number) => subtotal + impuestos;
 
 // Columnas de la tabla de presupuestos
 const allColumns = [
@@ -95,6 +93,7 @@ const allColumns = [
 // Datos de ejemplo para la tabla de presupuestos
 const budgetsData = [];
 
+// Componente que gestiona la creación/edición de un presupuesto
 const BudgetPage = ({ budget, handleBack, handleSave }) => {
   const [formData, setFormData] = useState(budget || {
     cliente: '',
@@ -103,7 +102,7 @@ const BudgetPage = ({ budget, handleBack, handleSave }) => {
     fechaValidez: '',
   });
 
-  // Estado para manejar la tabla de productos
+  // Estado para la tabla de productos
   const [productos, setProductos] = useState<Producto[]>([
     {
       concepto: 'Placa',
@@ -116,13 +115,10 @@ const BudgetPage = ({ budget, handleBack, handleSave }) => {
     },
   ]);
 
-  // Estado para totales
+  // Estados para totales
   const [subtotal, setSubtotal] = useState(125.00);
   const [totalImpuestos, setTotalImpuestos] = useState(26.25);
   const [total, setTotal] = useState(151.25);
-
-  // Estado para el diálogo de creación de producto
-  const [openDialog, setOpenDialog] = useState(false);
 
   // Manejador para agregar una nueva fila a la tabla
   const handleAddRow = () => {
@@ -136,19 +132,18 @@ const BudgetPage = ({ budget, handleBack, handleSave }) => {
     recalcularTotales(updatedProductos);
   };
 
-  // Función para actualizar los valores de las celdas de la tabla
+  // Función para actualizar los valores de las celdas
   const handleInputChange = (
     index: number,
-    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | SelectChangeEvent<string>
+    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | React.ChangeEvent<{ name?: string; value: unknown; }> | SelectChangeEvent<string>
   ) => {
     const updatedProductos: Producto[] = [...productos];
-
     const { name, value } = event.target as HTMLInputElement | HTMLSelectElement;
-
+    
     if (name === 'concepto' || name === 'descripcion' || name === 'unidades') {
       updatedProductos[index][name as 'concepto' | 'descripcion' | 'unidades'] = value;
-    } else if (name === 'impuestos') {
-      updatedProductos[index].impuestos = value as unknown as { nombre: string; valor: number }[];
+    } else if (name === 'cantidad' || name === 'precio') {
+      updatedProductos[index][name as 'cantidad' | 'precio'] = parseFloat(value as string);
     } else {
       console.warn(`El campo "${name}" no es una propiedad válida del objeto Producto.`);
     }
@@ -179,7 +174,10 @@ const BudgetPage = ({ budget, handleBack, handleSave }) => {
   // Función para recalcular subtotal, impuestos y total
   const recalcularTotales = (productosActualizados: Producto[]) => {
     const nuevoSubtotal = productosActualizados.reduce((acc, producto) => acc + (producto.precio * producto.cantidad), 0);
-    const nuevoTotalImpuestos = productosActualizados.reduce((acc, producto) => acc + calcularImpuestos(producto.precio, producto.cantidad, producto.impuestos), 0);
+    const nuevoTotalImpuestos = productosActualizados.reduce(
+      (acc, producto) => acc + calcularImpuestos(producto.precio, producto.cantidad, producto.impuestos),
+      0
+    );
     const nuevoTotal = calcularTotal(nuevoSubtotal, nuevoTotalImpuestos);
 
     setSubtotal(nuevoSubtotal);
@@ -214,7 +212,7 @@ const BudgetPage = ({ budget, handleBack, handleSave }) => {
               variant="outlined"
               fullWidth
               value={formData.cliente}
-              onChange={(event) => handleInputChange(0, event)}
+              onChange={(e) => setFormData({ ...formData, cliente: e.target.value })}
               sx={{ borderRadius: 2 }}
             />
           </Grid>
@@ -225,7 +223,7 @@ const BudgetPage = ({ budget, handleBack, handleSave }) => {
               variant="outlined"
               fullWidth
               value={formData.numeroDocumento}
-              onChange={(event) => handleInputChange(0, event)}
+              onChange={(e) => setFormData({ ...formData, numeroDocumento: e.target.value })}
               sx={{ borderRadius: 2 }}
             />
           </Grid>
@@ -238,7 +236,7 @@ const BudgetPage = ({ budget, handleBack, handleSave }) => {
               fullWidth
               InputLabelProps={{ shrink: true }}
               value={formData.fechaDocumento}
-              onChange={(event) => handleInputChange(0, event)}
+              onChange={(e) => setFormData({ ...formData, fechaDocumento: e.target.value })}
               sx={{ borderRadius: 2 }}
             />
           </Grid>
@@ -251,7 +249,7 @@ const BudgetPage = ({ budget, handleBack, handleSave }) => {
               fullWidth
               InputLabelProps={{ shrink: true }}
               value={formData.fechaValidez}
-              onChange={(event) => handleInputChange(0, event)}
+              onChange={(e) => setFormData({ ...formData, fechaValidez: e.target.value })}
               sx={{ borderRadius: 2 }}
             />
           </Grid>
@@ -283,16 +281,7 @@ const BudgetPage = ({ budget, handleBack, handleSave }) => {
                         value={producto.concepto}
                         onChange={(event, newValue) => handleProductoSeleccionado(index, newValue as string)}
                         renderInput={(params) => (
-                          <TextField
-                            {...params}
-                            label="Concepto"
-                            variant="outlined"
-                            fullWidth
-                            InputProps={{
-                              ...params.InputProps,
-                              style: { minWidth: 200 },
-                            }}
-                          />
+                          <TextField {...params} label="Concepto" variant="outlined" fullWidth />
                         )}
                       />
                     </TableCell>
@@ -350,9 +339,10 @@ const BudgetPage = ({ budget, handleBack, handleSave }) => {
                           recalcularTotales(updatedProductos);
                         }}
                         renderTags={(value, getTagProps) =>
-                          value.map((option, index) => (
-                            <Chip label={option.nombre} {...getTagProps({ index })} />
-                          ))
+                          value.map((option, idx) => {
+                            const { key, ...other } = getTagProps({ index: idx });
+                            return <Chip key={key} label={option.nombre} {...other} />;
+                          })
                         }
                         renderInput={(params) => <TextField {...params} variant="outlined" label="Impuestos" />}
                       />
@@ -362,7 +352,6 @@ const BudgetPage = ({ budget, handleBack, handleSave }) => {
                         name="total"
                         type="number"
                         value={producto.total.toFixed(2)}
-                        onChange={(event) => handleInputChange(index, event)}
                         variant="outlined"
                         fullWidth
                         disabled
@@ -380,7 +369,6 @@ const BudgetPage = ({ budget, handleBack, handleSave }) => {
           </TableContainer>
         </Box>
 
-        {/* Botón para añadir filas */}
         <Box sx={{ mt: 2 }}>
           <Button
             variant="outlined"
@@ -396,7 +384,6 @@ const BudgetPage = ({ budget, handleBack, handleSave }) => {
 
         {/* Sección de Totales */}
         <Grid container spacing={4} sx={{ mt: 4 }}>
-          {/* Totales */}
           <Grid item xs={12} display="flex" justifyContent="flex-end">
             <Box sx={{ width: '300px' }}>
               <Typography variant="body1" sx={{ fontWeight: 'bold' }}>Subtotal</Typography>
@@ -426,9 +413,7 @@ const BudgetPage = ({ budget, handleBack, handleSave }) => {
               bgcolor: 'primary.main',
               color: 'white',
               fontWeight: 'bold',
-              '&:hover': {
-                bgcolor: 'primary.dark',
-              },
+              '&:hover': { bgcolor: 'primary.dark' },
               borderRadius: 2,
             }}
           >
@@ -441,6 +426,10 @@ const BudgetPage = ({ budget, handleBack, handleSave }) => {
 };
 
 const Presupuestos = () => {
+  const router = useRouter();
+  const token = useAuthStore((state) => state.token);
+  const contactId = useAuthStore((state) => state.contactId);
+
   const [isEditing, setIsEditing] = useState(false);
   const [selectedBudget, setSelectedBudget] = useState(null);
   const [budgets, setBudgets] = useState(budgetsData);
@@ -448,17 +437,39 @@ const Presupuestos = () => {
   const [visibleColumns, setVisibleColumns] = useState(allColumns.map((col) => col.id));
   const [anchorEl, setAnchorEl] = useState(null);
 
-  const router = useRouter();
   const { new: isNew } = router.query;
 
   useEffect(() => {
     if (isNew) {
-      handleOpen(); // Llama a la función que abre el formulario de nuevo presupuesto
+      handleOpen();
     }
   }, [isNew]);
 
-  const handleOpen = (budget = null) => {
-    setSelectedBudget(budget);
+  const handleOpen = async (budget = null) => {
+    if (!budget) {
+      try {
+        // Se utiliza el token y contactId reales del usuario
+        const prefixConfigs = await PrefixConfigService.getByContactId(token, contactId);
+        const firstPrefix = prefixConfigs[0]?.prefix || 'BUD-XXXX';
+        
+        setSelectedBudget({
+          cliente: '',
+          numeroDocumento: firstPrefix,
+          fechaDocumento: '',
+          fechaValidez: '',
+        });
+      } catch (error) {
+        console.error('Error fetching prefix config:', error);
+        setSelectedBudget({
+          cliente: '',
+          numeroDocumento: '',
+          fechaDocumento: '',
+          fechaValidez: '',
+        });
+      }
+    } else {
+      setSelectedBudget(budget);
+    }
     setIsEditing(true);
   };
 
@@ -468,7 +479,7 @@ const Presupuestos = () => {
   };
 
   const handleSave = (budget) => {
-    if (selectedBudget) {
+    if (selectedBudget && selectedBudget.id) {
       setBudgets(budgets.map((b) => (b.id === budget.id ? budget : b)));
     } else {
       budget.id = budgets.length + 1;
@@ -482,9 +493,7 @@ const Presupuestos = () => {
 
   const handleColumnToggle = (column) => {
     setVisibleColumns((prev) =>
-      prev.includes(column)
-        ? prev.filter((col) => col !== column)
-        : [...prev, column]
+      prev.includes(column) ? prev.filter((col) => col !== column) : [...prev, column]
     );
   };
 
@@ -564,9 +573,7 @@ const Presupuestos = () => {
                       borderRadius: 2,
                       boxShadow: '0 3px 6px rgba(0, 0, 0, 0.1)',
                       transition: 'background-color 0.3s ease',
-                      '&:hover': {
-                        bgcolor: '#FF8C00',
-                      },
+                      '&:hover': { bgcolor: '#FF8C00' },
                       minWidth: '48px',
                       minHeight: '48px'
                     }}
@@ -578,12 +585,7 @@ const Presupuestos = () => {
                     anchorEl={anchorEl}
                     open={Boolean(anchorEl)}
                     onClose={handleMenuClose}
-                    PaperProps={{
-                      style: {
-                        maxHeight: '400px',
-                        width: '250px',
-                      },
-                    }}
+                    PaperProps={{ style: { maxHeight: '400px', width: '250px' } }}
                   >
                     {allColumns.map((column) => (
                       <DropdownMenuItem key={column.id}>
