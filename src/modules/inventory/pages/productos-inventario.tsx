@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   Box,
   Container,
@@ -29,6 +29,7 @@ import {
   MenuItem,
   ToggleButton,
   ToggleButtonGroup,
+  Autocomplete,
 } from '@mui/material';
 import SaveIcon from '@mui/icons-material/Save';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -52,10 +53,12 @@ import InstalationService from '../services/instalationService';
 import { Instalation } from '../types/instalation';
 import FamilyService from '../services/familyService';
 
+// Se importa el servicio de Contactos para el autocomplete (mismo endpoint que en el formulario de contactos)
+import ContactService from '../../../services/ContactService';
+
 // Importamos el componente de detalle
 import ProductDetail from '../components/productDetail';
 
-// Columnas de la tabla de productos
 const allColumns = [
   { id: 'referencia', label: 'Referencia' },
   { id: 'nombre', label: 'Nombre' },
@@ -69,7 +72,6 @@ const allColumns = [
   { id: 'codigoBarras', label: 'Código de Barras' },
 ];
 
-// Formulario de Producto
 const ProductFormPage = ({
   product,
   handleBack,
@@ -111,7 +113,6 @@ const ProductFormPage = ({
       almacenPredeterminado: '',
       cantidad: 0,
       contactId: '',
-      // Se añade el campo para el id de la instalación como tuple de 1 elemento
       installationId: [''] as [string],
     }
   );
@@ -203,6 +204,87 @@ const ProductFormPage = ({
       [name]: name === "cantidad" ? Number(value) : value,
     }));
   };
+
+  // Cálculo automático en Ventas: impuestos y total a partir del subtotal (IVA 21%)
+  useEffect(() => {
+    const subtotalNumber = parseFloat(formData.subtotal);
+    if (!isNaN(subtotalNumber)) {
+      const calculatedIVA = subtotalNumber * 0.21;
+      const calculatedTotal = subtotalNumber + calculatedIVA;
+      setFormData((prev) => ({
+        ...prev,
+        impuestos: calculatedIVA.toFixed(2),
+        total: calculatedTotal.toFixed(2),
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        impuestos: '',
+        total: '',
+      }));
+    }
+  }, [formData.subtotal]);
+
+  // Nuevo: Estado para capturar el % a incrementar (Ventas) sin agregarlo a formData
+  const [incremento, setIncremento] = useState("");
+
+  // Valores calculados para Compras a partir del subtotal de Ventas y el % de incremento
+  const computedPurchaseSubtotal = useMemo(() => {
+    const salesSubtotal = parseFloat(formData.subtotal);
+    const inc = parseFloat(incremento);
+    if (!isNaN(salesSubtotal) && !isNaN(inc)) {
+      return (salesSubtotal * (1 + inc / 100)).toFixed(2);
+    }
+    return "";
+  }, [formData.subtotal, incremento]);
+
+  const computedPurchaseIVA = useMemo(() => {
+    const ps = parseFloat(computedPurchaseSubtotal);
+    if (!isNaN(ps)) {
+      return (ps * 0.21).toFixed(2);
+    }
+    return "";
+  }, [computedPurchaseSubtotal]);
+
+  const computedPurchaseTotal = useMemo(() => {
+    const ps = parseFloat(computedPurchaseSubtotal);
+    const iva = parseFloat(computedPurchaseIVA);
+    if (!isNaN(ps) && !isNaN(iva)) {
+      return (ps + iva).toFixed(2);
+    }
+    return "";
+  }, [computedPurchaseSubtotal, computedPurchaseIVA]);
+
+  // NUEVO: Estados para el Autocomplete en el campo Proveedor en Compras
+  const [proveedorInput, setProveedorInput] = useState('');
+  const [proveedorOptions, setProveedorOptions] = useState<any[]>([]);
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    if (proveedorInput) {
+      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+      debounceTimerRef.current = setTimeout(() => {
+        if (token) {
+          // Se utiliza el mismo endpoint que en el formulario de contactos
+          ContactService.getContactsWithFiltersV2({ text: proveedorInput }, token)
+            .then((response) => {
+              if (response && response.data) {
+                setProveedorOptions(response.data);
+              }
+            })
+            .catch((error) => {
+              console.error('Error al obtener sugerencias de proveedor:', error);
+              setProveedorOptions([]);
+            });
+        }
+      }, 300);
+    } else {
+      setProveedorOptions([]);
+    }
+    return () => {
+      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+    };
+  }, [proveedorInput, token]);
 
   // Al enviar el formulario, se utiliza el objeto de estado (inyectando el ContactId)
   const handleSubmit = () => {
@@ -498,11 +580,11 @@ const ProductFormPage = ({
                 name="incremento"
                 variant="outlined"
                 fullWidth
-                value={""}
-                onChange={handleChange}
+                value={incremento}
+                onChange={(e) => setIncremento(e.target.value)}
                 InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">€</InputAdornment>
+                  endAdornment: (
+                    <InputAdornment position="end">%</InputAdornment>
                   ),
                 }}
                 sx={{ borderRadius: 2 }}
@@ -551,14 +633,30 @@ const ProductFormPage = ({
           <Divider sx={{ mb: 2 }} />
           <Grid container spacing={3} sx={{ mb: 4 }}>
             <Grid item xs={12} sm={6}>
-              <TextField
-                label="Proveedor"
-                name="proveedor"
-                variant="outlined"
-                fullWidth
-                value={formData.proveedor}
-                onChange={handleChange}
-                sx={{ borderRadius: 2 }}
+              {/* Autocomplete para el campo Proveedor */}
+              <Autocomplete
+                freeSolo
+                options={proveedorOptions}
+                getOptionLabel={(option) =>
+                  typeof option === 'string' ? option : option.name || ''
+                }
+                onInputChange={(event, newInputValue) => {
+                  setProveedorInput(newInputValue);
+                  setFormData((prev) => ({ ...prev, proveedor: newInputValue }));
+                }}
+                onChange={(event, newValue) => {
+                  if (newValue && typeof newValue !== 'string') {
+                    setFormData((prev) => ({ ...prev, proveedor: newValue.name }));
+                  }
+                }}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Proveedor"
+                    variant="outlined"
+                    fullWidth
+                  />
+                )}
               />
             </Grid>
             <Grid item xs={12} sm={6}>
@@ -590,12 +688,12 @@ const ProductFormPage = ({
                 name="precioCompraSubtotal"
                 variant="outlined"
                 fullWidth
-                value={formData.precioCompraSubtotal}
-                onChange={handleChange}
+                value={computedPurchaseSubtotal}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">€</InputAdornment>
                   ),
+                  readOnly: true,
                 }}
                 sx={{ borderRadius: 2 }}
               />
@@ -606,12 +704,12 @@ const ProductFormPage = ({
                 name="precioCompraImpuestos"
                 variant="outlined"
                 fullWidth
-                value={formData.precioCompraImpuestos}
-                onChange={handleChange}
+                value={computedPurchaseIVA}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">€</InputAdornment>
                   ),
+                  readOnly: true,
                 }}
                 sx={{ borderRadius: 2 }}
               />
@@ -622,12 +720,12 @@ const ProductFormPage = ({
                 name="precioCompraTotal"
                 variant="outlined"
                 fullWidth
-                value={formData.precioCompraTotal}
-                onChange={handleChange}
+                value={computedPurchaseTotal}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">€</InputAdornment>
                   ),
+                  readOnly: true,
                 }}
                 sx={{ borderRadius: 2 }}
               />
@@ -657,8 +755,12 @@ const ProductFormPage = ({
                   onChange={handleChange}
                   label="Almacén Predeterminado"
                 >
-                  <MenuItem value="Almacén 1">Almacén 1</MenuItem>
-                  <MenuItem value="Almacén 2">Almacén 2</MenuItem>
+                  {Array.isArray(installations) &&
+                    installations.map((inst) => (
+                      <MenuItem key={inst.id} value={inst.id}>
+                        {inst.name}
+                      </MenuItem>
+                    ))}
                 </Select>
               </FormControl>
             </Grid>
@@ -1017,8 +1119,8 @@ const Productos = () => {
                 p: 3,
                 transition: "margin-left 0.3s ease",
                 marginLeft: isMenuOpen ? "240px" : "70px",
-                width: `calc(100% - ${isMenuOpen ? "240px" : "70px"})`, // Se adapta al sidebar
-                boxSizing: "border-box", // Asegura que el padding se calcule correctamente
+                width: `calc(100% - ${isMenuOpen ? "240px" : "70px"})`,
+                boxSizing: "border-box",
               }}
             >
               <Container maxWidth="xl">

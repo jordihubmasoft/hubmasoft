@@ -210,12 +210,10 @@ const Dashboard = () => {
 
   useEffect(() => {
     const fetchContact = async () => {
-      if (!open || !contactId || !token) return;
-
+      if (!contactId || !token) return;
       setLoadingState(true);
       try {
         const response = await ContactService.getContactById(contactId, token);
-
         if (response?.data?.length > 0) {
           const contactData = response.data[0] as any;
           setFormData((prev) => ({
@@ -224,7 +222,6 @@ const Dashboard = () => {
             email: contactData.email || "",
             country: contactData.country || "",
             city: contactData.city || "",
-            // userType vendrá de contactProfile (1 o 2), si lo necesitas
             userType:
               contactData.contactProfile === 1
                 ? "freelancer"
@@ -246,30 +243,36 @@ const Dashboard = () => {
             companyName: contactData.companyName || "",
             companySize: contactData.companySize || "",
             shippingAddress:
-              contactData.extraInformation?.shippingAddress?.[0]?.direction ||
-              "",
+              contactData.extraInformation?.shippingAddress?.[0]?.direction || "",
             shippingCity:
               contactData.extraInformation?.shippingAddress?.[0]?.city || "",
             shippingProvince:
               contactData.extraInformation?.shippingAddress?.[0]?.province || "",
             shippingPostalCode:
-              contactData.extraInformation?.shippingAddress?.[0]?.postalCode ||
-              "",
+              contactData.extraInformation?.shippingAddress?.[0]?.postalCode || "",
             shippingCountry:
               contactData.extraInformation?.shippingAddress?.[0]?.country || "",
           }));
           setHasContact(true);
+          // Si el campo "name" tiene valor, significa que el usuario completó su información
+          if (contactData.name && contactData.name.trim() !== "") {
+            setOpen(false);
+          } else {
+            setOpen(true);
+          }
         } else {
           resetFormData();
+          setOpen(true);
         }
       } catch (error) {
         console.error("Error fetching contact:", error);
         resetFormData();
+        setOpen(true);
       } finally {
         setLoadingState(false);
       }
     };
-
+  
     const resetFormData = () => {
       setFormData((prev) => ({
         ...prev,
@@ -299,9 +302,10 @@ const Dashboard = () => {
       }));
       setHasContact(false);
     };
-
+  
     fetchContact();
-  }, [open, contactId, token, agentId, refresh]);
+  }, [contactId, token, agentId, refresh]);
+  
 
   // Estado para los widgets
   const [widgets, setWidgets] = useState({
