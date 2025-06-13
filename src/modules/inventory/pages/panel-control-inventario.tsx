@@ -340,10 +340,31 @@ const InventoryControlPanel: React.FC = () => {
                     placeholder="Opcional"
                     sx={{ mb: 2 }}
                     />
+                    {/* Bloque de búsqueda y acciones */}
+                    <Box sx={{ mb: 2, p: 2, bgcolor: '#f8fafd', borderRadius: 2, border: '1.5px solid #dbeafe', display: 'flex', flexWrap: 'wrap', gap: 2, alignItems: 'center' }}>
+                      <TextField
+                        placeholder="Buscar por nombre o sku"
+                        size="small"
+                        sx={{ minWidth: 220 }}
+                      />
+                      <Button variant="contained" sx={{ fontWeight: 600, borderRadius: 2 }}>Buscar productos</Button>
+                      <Button variant="outlined" color="error" sx={{ fontWeight: 600, borderRadius: 2 }}>Marcar negativos</Button>
+                      <TextField
+                        placeholder="Cantidad"
+                        size="small"
+                        sx={{ width: 100 }}
+                        type="number"
+                      />
+                      <Button variant="contained" sx={{ fontWeight: 600, borderRadius: 2 }}>Añadir a todos</Button>
+                      <Button variant="outlined" sx={{ fontWeight: 600, borderRadius: 2 }}>Establecer a todos</Button>
+                    </Box>
                     <TableContainer component={Paper} sx={{ mt: 2 }}>
                     <Table>
                         <TableHead>
                         <TableRow>
+                            <TableCell padding="checkbox">
+                              <input type="checkbox" />
+                            </TableCell>
                             <TableCell>SKU</TableCell>
                             <TableCell>Código de barras</TableCell>
                             <TableCell>Stock en Taller</TableCell>
@@ -353,6 +374,9 @@ const InventoryControlPanel: React.FC = () => {
                         </TableHead>
                         <TableBody>
                         <TableRow>
+                            <TableCell padding="checkbox">
+                              <input type="checkbox" />
+                            </TableCell>
                             <TableCell>Producto A</TableCell>
                             <TableCell>1234567890123</TableCell>
                             <TableCell>0</TableCell>
@@ -373,8 +397,7 @@ const InventoryControlPanel: React.FC = () => {
                     <Button onClick={handleDialogClose}>Cancelar</Button>
                     <Button onClick={handleDialogClose} variant="contained">Actualizar stock</Button>
                 </DialogActions>
-                </Dialog>
-
+            </Dialog>
 
             {/* Dialog for Transferring Stock */}
             <Dialog open={openTransferStockDialog} onClose={handleDialogClose} maxWidth="md" fullWidth>
@@ -408,10 +431,29 @@ const InventoryControlPanel: React.FC = () => {
                     placeholder="Opcional"
                     sx={{ mb: 2 }}
                     />
+                    {/* Bloque de búsqueda y acciones */}
+                    <Box sx={{ mb: 2, p: 2, bgcolor: '#f8fafd', borderRadius: 2, border: '1.5px solid #dbeafe', display: 'flex', flexWrap: 'wrap', gap: 2, alignItems: 'center' }}>
+                      <TextField
+                        placeholder="Buscar por nombre o sku"
+                        size="small"
+                        sx={{ minWidth: 220 }}
+                      />
+                      <Button variant="contained" sx={{ fontWeight: 600, borderRadius: 2 }}>Buscar productos</Button>
+                      <TextField
+                        placeholder="Cantidad a transferir"
+                        size="small"
+                        sx={{ width: 140 }}
+                        type="number"
+                      />
+                      <Button variant="contained" sx={{ fontWeight: 600, borderRadius: 2 }}>Añadir a todos</Button>
+                    </Box>
                     <TableContainer component={Paper} sx={{ mt: 2 }}>
                     <Table>
                         <TableHead>
                         <TableRow>
+                            <TableCell padding="checkbox">
+                              <input type="checkbox" />
+                            </TableCell>
                             <TableCell>SKU</TableCell>
                             <TableCell>Código de barras</TableCell>
                             <TableCell>Stock en Origen</TableCell>
@@ -421,6 +463,9 @@ const InventoryControlPanel: React.FC = () => {
                         </TableHead>
                         <TableBody>
                         <TableRow>
+                            <TableCell padding="checkbox">
+                              <input type="checkbox" />
+                            </TableCell>
                             <TableCell>Producto A</TableCell>
                             <TableCell>1234567890123</TableCell>
                             <TableCell>0</TableCell>
@@ -438,8 +483,7 @@ const InventoryControlPanel: React.FC = () => {
                     <Button onClick={handleDialogClose}>Cancelar</Button>
                     <Button onClick={handleDialogClose} variant="contained">Transferir stock</Button>
                 </DialogActions>
-                </Dialog>
-
+            </Dialog>
 
             {/* Dialog for Printing Barcodes */}
             <Dialog open={openPrintBarcodeDialog} onClose={handleDialogClose} maxWidth="sm" fullWidth>

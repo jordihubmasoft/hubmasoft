@@ -420,21 +420,34 @@ const ProductFormPage = ({
         {/* Sección de imagen: fuera del Card, a la derecha */}
         <Box
           sx={{
-            border: '2px dashed #ccc',
+            border: '2px dashed #2666CF',
             borderRadius: 2,
             p: 2,
             textAlign: 'center',
-            width: 200,
-            height: 200,
-            backgroundColor: '#fff',
-            color: '#aaa',
+            width: 220,
+            height: 220,
+            backgroundColor: '#f8fafd',
+            color: '#2666CF',
             display: 'flex',
+            flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
             boxShadow: 1,
+            position: 'relative',
+            transition: 'border-color 0.2s',
+            cursor: 'pointer',
+            '&:hover': { borderColor: '#174ea6', backgroundColor: '#e3eefe' },
           }}
         >
-          <Typography variant="body2">arrastrar imagen para añadir</Typography>
+          <Box sx={{ fontSize: 60, mb: 1 }}>
+            <span role="img" aria-label="imagen">🖼️</span>
+          </Box>
+          <Typography variant="body1" sx={{ fontWeight: 500 }}>
+            Arrastra hasta 10 imágenes aquí
+          </Typography>
+          <Typography variant="caption" sx={{ color: '#888', mt: 1 }}>
+            (Solo visual, sin carga real)
+          </Typography>
         </Box>
       </Box>
 
@@ -448,45 +461,55 @@ const ProductFormPage = ({
           <Grid container spacing={3}>
             {/* Familia */}
             <Grid item xs={12} sm={6}>
-              <FormControl fullWidth variant="outlined" sx={{ borderRadius: 2 }}>
-                <InputLabel>Familia</InputLabel>
-                <Select
-                  label="Familia"
-                  name="familia"
-                  value={formData.familia || ''}
-                  onChange={handleChange}
-                >
-                  {families.map((family: any) => (
-                    <MenuItem key={family.id} value={family.id}>
-                      {family.name}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <FormControl fullWidth variant="outlined" sx={{ borderRadius: 2 }}>
+                  <InputLabel>Familia</InputLabel>
+                  <Select
+                    label="Familia"
+                    name="familia"
+                    value={formData.familia || ''}
+                    onChange={handleChange}
+                  >
+                    {families.map((family: any) => (
+                      <MenuItem key={family.id} value={family.id}>
+                        {family.name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+                <Button variant="outlined" size="small" sx={{ minWidth: 0, px: 1.5, borderRadius: 2, fontWeight: 600, ml: 1 }}>
+                  + Añadir familia
+                </Button>
+              </Box>
             </Grid>
             {/* Sub-familia: desactivado hasta que se seleccione una familia */}
             <Grid item xs={12} sm={6}>
-              <FormControl
-                fullWidth
-                variant="outlined"
-                sx={{ borderRadius: 2 }}
-                disabled={!formData.familia}
-              >
-                <InputLabel>Sub-familia</InputLabel>
-                <Select
-                  label="Sub-familia"
-                  name="subFamilia"
-                  value={formData.subFamilia || ''}
-                  onChange={handleChange}
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <FormControl
+                  fullWidth
+                  variant="outlined"
+                  sx={{ borderRadius: 2 }}
+                  disabled={!formData.familia}
                 >
-                  {families.find((family: any) => family.id === formData.familia)
-                    ?.subFamilies?.map((sub: any) => (
-                      <MenuItem key={sub.id} value={sub.id}>
-                        {sub.name}
-                      </MenuItem>
-                    )) || []}
-                </Select>
-              </FormControl>
+                  <InputLabel>Sub-familia</InputLabel>
+                  <Select
+                    label="Sub-familia"
+                    name="subFamilia"
+                    value={formData.subFamilia || ''}
+                    onChange={handleChange}
+                  >
+                    {families.find((family: any) => family.id === formData.familia)
+                      ?.subFamilies?.map((sub: any) => (
+                        <MenuItem key={sub.id} value={sub.id}>
+                          {sub.name}
+                        </MenuItem>
+                      )) || []}
+                  </Select>
+                </FormControl>
+                <Button variant="outlined" size="small" sx={{ minWidth: 0, px: 1.5, borderRadius: 2, fontWeight: 600, ml: 1 }} disabled={!formData.familia}>
+                  + Añadir subfamilia
+                </Button>
+              </Box>
             </Grid>
           </Grid>
         </CardContent>
@@ -500,64 +523,48 @@ const ProductFormPage = ({
           </Typography>
           <Divider sx={{ mb: 2 }} />
           <Grid container spacing={3}>
-            <Grid item xs={12} sm={3}>
-              <TextField
-                label="Nombre tarifa"
-                name="nombreTarifa"
-                variant="outlined"
-                fullWidth
-                value={formData.nombreTarifa}
-                onChange={handleChange}
-                sx={{ borderRadius: 2 }}
-              />
-            </Grid>
-            <Grid item xs={12} sm={3}>
-              <TextField
-                label="Subtotal"
-                name="subtotal"
-                variant="outlined"
-                fullWidth
-                value={formData.subtotal}
-                onChange={handleChange}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">€</InputAdornment>
-                  ),
-                }}
-                sx={{ borderRadius: 2 }}
-              />
-            </Grid>
-            <Grid item xs={12} sm={3}>
-              <TextField
-                label="Impuestos (IVA 21%)"
-                name="impuestos"
-                variant="outlined"
-                fullWidth
-                value={formData.impuestos}
-                onChange={handleChange}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">€</InputAdornment>
-                  ),
-                }}
-                sx={{ borderRadius: 2 }}
-              />
-            </Grid>
-            <Grid item xs={12} sm={3}>
-              <TextField
-                label="Total"
-                name="total"
-                variant="outlined"
-                fullWidth
-                value={formData.total}
-                onChange={handleChange}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">€</InputAdornment>
-                  ),
-                }}
-                sx={{ borderRadius: 2 }}
-              />
+            <Grid item xs={12}>
+              <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', bgcolor: '#f8fafd', borderRadius: 2, p: 2, border: '1.5px solid #dbeafe', mb: 2 }}>
+                <TextField
+                  label="Subtotal"
+                  name="subtotal"
+                  variant="outlined"
+                  value={formData.subtotal}
+                  onChange={handleChange}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">€</InputAdornment>
+                    ),
+                  }}
+                  sx={{ borderRadius: 2, flex: 1 }}
+                />
+                <TextField
+                  label="Impuestos (IVA 21%)"
+                  name="impuestos"
+                  variant="outlined"
+                  value={formData.impuestos}
+                  onChange={handleChange}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">€</InputAdornment>
+                    ),
+                  }}
+                  sx={{ borderRadius: 2, flex: 1 }}
+                />
+                <TextField
+                  label="Total"
+                  name="total"
+                  variant="outlined"
+                  value={formData.total}
+                  onChange={handleChange}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">€</InputAdornment>
+                    ),
+                  }}
+                  sx={{ borderRadius: 2, flex: 1 }}
+                />
+              </Box>
             </Grid>
             <Grid item xs={12}>
               <FormControl fullWidth variant="outlined">
@@ -632,48 +639,47 @@ const ProductFormPage = ({
           </Typography>
           <Divider sx={{ mb: 2 }} />
           <Grid container spacing={3} sx={{ mb: 4 }}>
-            <Grid item xs={12} sm={6}>
-              {/* Autocomplete para el campo Proveedor */}
-              <Autocomplete
-                freeSolo
-                options={proveedorOptions}
-                getOptionLabel={(option) =>
-                  typeof option === 'string' ? option : option.name || ''
-                }
-                onInputChange={(event, newInputValue) => {
-                  setProveedorInput(newInputValue);
-                  setFormData((prev) => ({ ...prev, proveedor: newInputValue }));
-                }}
-                onChange={(event, newValue) => {
-                  if (newValue && typeof newValue !== 'string') {
-                    setFormData((prev) => ({ ...prev, proveedor: newValue.name }));
+            <Grid item xs={12}>
+              <Box sx={{ bgcolor: '#f8fafd', borderRadius: 2, p: 2, border: '1.5px solid #dbeafe', display: 'flex', gap: 2, alignItems: 'center' }}>
+                <Autocomplete
+                  freeSolo
+                  options={proveedorOptions}
+                  getOptionLabel={(option) =>
+                    typeof option === 'string' ? option : option.name || ''
                   }
-                }}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    label="Proveedor"
-                    variant="outlined"
-                    fullWidth
-                  />
-                )}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                label="Coste Medio"
-                name="costeMedio"
-                variant="outlined"
-                fullWidth
-                value={formData.costeMedio}
-                onChange={handleChange}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">€</InputAdornment>
-                  ),
-                }}
-                sx={{ borderRadius: 2 }}
-              />
+                  onInputChange={(event, newInputValue) => {
+                    setProveedorInput(newInputValue);
+                    setFormData((prev) => ({ ...prev, proveedor: newInputValue }));
+                  }}
+                  onChange={(event, newValue) => {
+                    if (newValue && typeof newValue !== 'string') {
+                      setFormData((prev) => ({ ...prev, proveedor: newValue.name }));
+                    }
+                  }}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label="Proveedor"
+                      variant="outlined"
+                      fullWidth
+                    />
+                  )}
+                  sx={{ flex: 2 }}
+                />
+                <TextField
+                  label="Coste Medio"
+                  name="costeMedio"
+                  variant="outlined"
+                  value={formData.costeMedio}
+                  onChange={handleChange}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">€</InputAdornment>
+                    ),
+                  }}
+                  sx={{ borderRadius: 2, flex: 1 }}
+                />
+              </Box>
             </Grid>
           </Grid>
 
@@ -682,53 +688,48 @@ const ProductFormPage = ({
           </Typography>
           <Divider sx={{ mb: 2 }} />
           <Grid container spacing={3}>
-            <Grid item xs={12} sm={4}>
-              <TextField
-                label="Subtotal"
-                name="precioCompraSubtotal"
-                variant="outlined"
-                fullWidth
-                value={computedPurchaseSubtotal}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">€</InputAdornment>
-                  ),
-                  readOnly: true,
-                }}
-                sx={{ borderRadius: 2 }}
-              />
-            </Grid>
-            <Grid item xs={12} sm={4}>
-              <TextField
-                label="Impuestos (IVA 21%)"
-                name="precioCompraImpuestos"
-                variant="outlined"
-                fullWidth
-                value={computedPurchaseIVA}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">€</InputAdornment>
-                  ),
-                  readOnly: true,
-                }}
-                sx={{ borderRadius: 2 }}
-              />
-            </Grid>
-            <Grid item xs={12} sm={4}>
-              <TextField
-                label="Total"
-                name="precioCompraTotal"
-                variant="outlined"
-                fullWidth
-                value={computedPurchaseTotal}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">€</InputAdornment>
-                  ),
-                  readOnly: true,
-                }}
-                sx={{ borderRadius: 2 }}
-              />
+            <Grid item xs={12}>
+              <Box sx={{ bgcolor: '#f8fafd', borderRadius: 2, p: 2, border: '1.5px solid #dbeafe', display: 'flex', gap: 2, alignItems: 'center' }}>
+                <TextField
+                  label="Subtotal"
+                  name="precioCompraSubtotal"
+                  variant="outlined"
+                  value={computedPurchaseSubtotal}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">€</InputAdornment>
+                    ),
+                    readOnly: true,
+                  }}
+                  sx={{ borderRadius: 2, flex: 1 }}
+                />
+                <TextField
+                  label="Impuestos (IVA 21%)"
+                  name="precioCompraImpuestos"
+                  variant="outlined"
+                  value={computedPurchaseIVA}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">€</InputAdornment>
+                    ),
+                    readOnly: true,
+                  }}
+                  sx={{ borderRadius: 2, flex: 1 }}
+                />
+                <TextField
+                  label="Total"
+                  name="precioCompraTotal"
+                  variant="outlined"
+                  value={computedPurchaseTotal}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">€</InputAdornment>
+                    ),
+                    readOnly: true,
+                  }}
+                  sx={{ borderRadius: 2, flex: 1 }}
+                />
+              </Box>
             </Grid>
           </Grid>
         </CardContent>
@@ -782,7 +783,7 @@ const ProductFormPage = ({
       </Card>
 
       {/* Gestión de Inventario (Variantes / Lotes) */}
-      <Card elevation={3} sx={{ mb: 4, mt: 4 }}>
+      <Card elevation={3} sx={{ mb: 4, mt: 4, border: '1.5px solid #dbeafe', background: '#f8fafd' }}>
         <CardContent>
           <Typography variant="h6" gutterBottom sx={{ fontWeight: '600' }}>
             Gestión de Inventario
@@ -791,10 +792,10 @@ const ProductFormPage = ({
           <Grid container spacing={2} sx={{ mb: 3 }}>
             <Grid item>
               <ToggleButtonGroup exclusive aria-label="Menú Principal" value="variantes">
-                <ToggleButton value="variantes" aria-label="Gestionar variantes">
+                <ToggleButton value="variantes" aria-label="Gestionar variantes" sx={{ fontWeight: 600, borderRadius: 2 }}>
                   Gestionar Variantes
                 </ToggleButton>
-                <ToggleButton value="lotes" aria-label="Gestionar lotes">
+                <ToggleButton value="lotes" aria-label="Gestionar lotes" sx={{ fontWeight: 600, borderRadius: 2 }}>
                   Gestionar Lotes
                 </ToggleButton>
               </ToggleButtonGroup>
@@ -804,12 +805,12 @@ const ProductFormPage = ({
           <Box>
             <Grid container spacing={2} alignItems="center" sx={{ mb: 2 }}>
               <Grid item>
-                <Button variant="contained" color="primary" sx={{ borderRadius: 2 }}>
+                <Button variant="contained" color="primary" sx={{ borderRadius: 2, fontWeight: 600 }}>
                   Precios de Compra
                 </Button>
               </Grid>
               <Grid item>
-                <Button variant="contained" color="secondary" sx={{ borderRadius: 2 }}>
+                <Button variant="contained" color="secondary" sx={{ borderRadius: 2, fontWeight: 600 }}>
                   Precios de Venta
                 </Button>
               </Grid>
@@ -835,18 +836,18 @@ const ProductFormPage = ({
             </Grid>
 
             {/* Tabla de Variantes (ejemplo estático) */}
-            <TableContainer component={Paper} sx={{ borderRadius: 2 }}>
+            <TableContainer component={Paper} sx={{ borderRadius: 2, border: '1.5px solid #dbeafe', background: '#fff' }}>
               <Table aria-label="tabla de variantes">
                 <TableHead>
-                  <TableRow key="header">
-                    <TableCell>Referencia</TableCell>
-                    <TableCell>Cód. Barras</TableCell>
-                    <TableCell>Cód. Fábrica</TableCell>
-                    <TableCell>Precio Venta</TableCell>
-                    <TableCell>Precio Compra</TableCell>
-                    <TableCell>Peso</TableCell>
-                    <TableCell>Cantidad</TableCell>
-                    <TableCell>Acciones</TableCell>
+                  <TableRow key="header" sx={{ background: '#e3eefe' }}>
+                    <TableCell sx={{ fontWeight: 700, color: '#174ea6' }}>Referencia</TableCell>
+                    <TableCell sx={{ fontWeight: 700, color: '#174ea6' }}>Cód. Barras</TableCell>
+                    <TableCell sx={{ fontWeight: 700, color: '#174ea6' }}>Cód. Fábrica</TableCell>
+                    <TableCell sx={{ fontWeight: 700, color: '#174ea6' }}>Precio Venta</TableCell>
+                    <TableCell sx={{ fontWeight: 700, color: '#174ea6' }}>Precio Compra</TableCell>
+                    <TableCell sx={{ fontWeight: 700, color: '#174ea6' }}>Peso</TableCell>
+                    <TableCell sx={{ fontWeight: 700, color: '#174ea6' }}>Cantidad</TableCell>
+                    <TableCell sx={{ fontWeight: 700, color: '#174ea6' }}>Acciones</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>

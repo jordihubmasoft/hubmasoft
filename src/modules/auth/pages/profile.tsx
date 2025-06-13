@@ -10,9 +10,20 @@ import {
   ListItemButton,
   ListItemText,
   Button,
+  Card,
 } from '@mui/material';
 import Grow from '@mui/material/Grow';
 import SaveIcon from '@mui/icons-material/Save';
+import PersonIcon from '@mui/icons-material/Person';
+import BusinessIcon from '@mui/icons-material/Business';
+import ContactPhoneIcon from '@mui/icons-material/ContactPhone';
+import LocalShippingIcon from '@mui/icons-material/LocalShipping';
+import SettingsIcon from '@mui/icons-material/Settings';
+import DescriptionIcon from '@mui/icons-material/Description';
+import PaymentIcon from '@mui/icons-material/Payment';
+import ImportExportIcon from '@mui/icons-material/ImportExport';
+import PollIcon from '@mui/icons-material/Poll';
+import PercentIcon from '@mui/icons-material/Percent';
 
 import Header from '../../../components/Header';
 import Sidebar from '../../../components/Sidebar';
@@ -107,7 +118,7 @@ const Profile: React.FC = () => {
     contactProfile: "" // <--- campo añadido para conservar la información extra
   });
 
-  // Handler para cambios en datos fiscales (mapea “nif” a “nie” y “vatIdentifier” a “vatIdentification”)
+  // Handler para cambios en datos fiscales (mapea "nif" a "nie" y "vatIdentifier" a "vatIdentification")
   const handleFiscalDataChange = (field: string, value: string) => {
     let fieldName = field;
     if (field === 'nif') fieldName = 'nie';
@@ -489,8 +500,8 @@ const Profile: React.FC = () => {
             </Typography>
 
             {/* Sección Perfil */}
-            <Box id="profile">
-              <Grid container spacing={3}>
+            <Box id="profile" sx={{ mb: 5 }}>
+              <Grid container spacing={4}>
                 <Grid item xs={12} md={4}>
                   <ProfileCard
                     name={formData.name}
@@ -503,7 +514,13 @@ const Profile: React.FC = () => {
                   <EditProfileForm
                     loading={loading}
                     hasContact={hasContact}
-                    formData={formData}
+                    formData={{
+                      name: formData.name,
+                      surname: formData.surname,
+                      email: formData.email,
+                      phone: formData.phone,
+                      language: formData.language,
+                    }}
                     onChange={handleChangeProfileForm}
                     onSubmit={handleSubmitProfile}
                     onChangePassword={() => alert('Cambiar Contraseña')}
@@ -513,95 +530,111 @@ const Profile: React.FC = () => {
             </Box>
 
             {/* Sección Datos Fiscales */}
-            <Box id="fiscalData" sx={{ mt: 4 }}>
-            <FiscalDataForm
-              initialData={{
-                companyName: formData.companyName,
-                nif: formData.nie,
-                commercialName: formData.commercialName,
-                vatIdentification: formData.vatIdentification,
-                address: formData.address,
-                postalCode: formData.postalCode,
-                province: formData.province,
-                country: formData.country,
-              }}
-              // Se pasa contactProfile y el nombre normal para la comparación
-              contactProfile={parseInt(formData.contactProfile)}
-              name={formData.name}
-              onSave={() => {}}
-              onChange={handleFiscalDataChange}
-            />
-
+            <Box id="fiscalData" sx={{ mt: 0, mb: 5 }}>
+              <Card sx={{ p: 3, borderRadius: 3, bgcolor: '#f8fafd', boxShadow: '0 3px 10px rgba(38,102,207,0.07)' }}>
+                <FiscalDataForm
+                  initialData={{
+                    companyName: formData.companyName,
+                    nif: formData.nie,
+                    commercialName: formData.commercialName,
+                    vatIdentification: formData.vatIdentification,
+                    address: formData.address,
+                    postalCode: formData.postalCode,
+                    province: formData.province,
+                    country: formData.country,
+                  }}
+                  contactProfile={parseInt(formData.contactProfile)}
+                  name={formData.name}
+                  onSave={() => {}}
+                  onChange={handleFiscalDataChange}
+                />
+              </Card>
             </Box>
 
             {/* Sección Contacto */}
-            <Box id="contactData" sx={{ mt: 4 }}>
-              <ContactDataForm
-                data={{
-                  email: formData.email,
-                  phone: formData.phone,
-                  website: formData.website,
-                  phone1: formData.phone1,
-                  shippingAddress: formData.shippingAddress,
-                }}
-                onChange={handleChangeProfileForm}
-              />
+            <Box id="contactData" sx={{ mt: 0, mb: 5 }}>
+              <Card sx={{ p: 3, borderRadius: 3, bgcolor: '#f8fafd', boxShadow: '0 3px 10px rgba(38,102,207,0.07)' }}>
+                <ContactDataForm
+                  data={{
+                    email: formData.email,
+                    phone: formData.phone,
+                    website: formData.website,
+                    phone1: formData.phone1,
+                    shippingAddress: formData.shippingAddress,
+                  }}
+                  onChange={handleChangeProfileForm}
+                />
+              </Card>
             </Box>
 
             {/* Sección Dirección de Envío */}
-            <Box id="shippingAddress" sx={{ mt: 4 }}>
-              <ShippingAddressForm
-                initialData={{
-                  direccion: formData.shippingAddress,
-                  poblacion: formData.shippingCity,
-                  provincia: formData.shippingProvince,
-                  codigoPostal: formData.shippingPostalCode,
-                  pais: formData.shippingCountry,
-                }}
-                onAddAddress={(updatedShipping) => {
-                  setFormData((prev) => ({
-                    ...prev,
-                    shippingAddress: updatedShipping.direccion,
-                    shippingCity: updatedShipping.poblacion,
-                    shippingProvince: updatedShipping.provincia,
-                    shippingPostalCode: updatedShipping.codigoPostal,
-                    shippingCountry: updatedShipping.pais,
-                  }));
-                  setUnsavedChanges(true);
-                }}
-              />
+            <Box id="shippingAddress" sx={{ mt: 0, mb: 5 }}>
+              <Card sx={{ p: 3, borderRadius: 3, bgcolor: '#f8fafd', boxShadow: '0 3px 10px rgba(38,102,207,0.07)' }}>
+                <ShippingAddressForm
+                  initialData={{
+                    direccion: formData.shippingAddress,
+                    poblacion: formData.shippingCity,
+                    provincia: formData.shippingProvince,
+                    codigoPostal: formData.shippingPostalCode,
+                    pais: formData.shippingCountry,
+                  }}
+                  onAddAddress={(updatedShipping) => {
+                    setFormData((prev) => ({
+                      ...prev,
+                      shippingAddress: updatedShipping.direccion,
+                      shippingCity: updatedShipping.poblacion,
+                      shippingProvince: updatedShipping.provincia,
+                      shippingPostalCode: updatedShipping.codigoPostal,
+                      shippingCountry: updatedShipping.pais,
+                    }));
+                    setUnsavedChanges(true);
+                  }}
+                />
+              </Card>
             </Box>
 
             <Divider sx={{ my: 4 }} />
 
             {/* Sección Preferencias */}
-            <Box id="preferences" sx={{ mt: 4 }}>
-              <PreferencesForm onSave={() => {}} />
+            <Box id="preferences" sx={{ mt: 0, mb: 5 }}>
+              <Card sx={{ p: 3, borderRadius: 3, bgcolor: '#f8fafd', boxShadow: '0 3px 10px rgba(38,102,207,0.07)' }}>
+                <PreferencesForm onSave={() => {}} />
+              </Card>
             </Box>
 
             {/* Sección Documentos */}
-            <Box id="documentTemplates" sx={{ mt: 4 }}>
-              <DocumentTemplates />
+            <Box id="documentTemplates" sx={{ mt: 0, mb: 5 }}>
+              <Card sx={{ p: 3, borderRadius: 3, bgcolor: '#f8fafd', boxShadow: '0 3px 10px rgba(38,102,207,0.07)' }}>
+                <DocumentTemplates />
+              </Card>
             </Box>
 
             {/* Sección Método de Pago */}
-            <Box id="paymentMethod" sx={{ mt: 4 }}>
-              <PaymentMethodComponent />
+            <Box id="paymentMethod" sx={{ mt: 0, mb: 5 }}>
+              <Card sx={{ p: 3, borderRadius: 3, bgcolor: '#f8fafd', boxShadow: '0 3px 10px rgba(38,102,207,0.07)' }}>
+                <PaymentMethodComponent />
+              </Card>
             </Box>
 
             {/* Sección Imports */}
-            <Box id="imports" sx={{ mt: 4 }}>
-              <Imports />
+            <Box id="imports" sx={{ mt: 0, mb: 5 }}>
+              <Card sx={{ p: 3, borderRadius: 3, bgcolor: '#f8fafd', boxShadow: '0 3px 10px rgba(38,102,207,0.07)' }}>
+                <Imports />
+              </Card>
             </Box>
 
             {/* Sección Encuestas */}
-            <Box id="polls" sx={{ mt: 4 }}>
-              <Polls />
+            <Box id="polls" sx={{ mt: 0, mb: 5 }}>
+              <Card sx={{ p: 3, borderRadius: 3, bgcolor: '#f8fafd', boxShadow: '0 3px 10px rgba(38,102,207,0.07)' }}>
+                <Polls />
+              </Card>
             </Box>
 
             {/* Sección Impuestos */}
-            <Box id="taxes" sx={{ mt: 4 }}>
-              <Taxes />
+            <Box id="taxes" sx={{ mt: 0, mb: 5 }}>
+              <Card sx={{ p: 3, borderRadius: 3, bgcolor: '#f8fafd', boxShadow: '0 3px 10px rgba(38,102,207,0.07)' }}>
+                <Taxes />
+              </Card>
             </Box>
           </Container>
 
@@ -611,10 +644,10 @@ const Profile: React.FC = () => {
               position: 'fixed',
               top: '120px',
               right: '20px',
-              width: '220px',
-              bgcolor: 'background.paper',
-              borderRadius: 2,
-              boxShadow: 3,
+              width: '240px',
+              bgcolor: '#fff',
+              borderRadius: 3,
+              boxShadow: '0 6px 24px rgba(38,102,207,0.10)',
               p: 2,
               display: { xs: 'none', md: 'block' },
               zIndex: 1100,
@@ -622,53 +655,54 @@ const Profile: React.FC = () => {
             }}
           >
             <List>
-              {sections.map((section, index) => (
-                <Grow
-                  in={true}
-                  style={{ transformOrigin: '0 0 0' }}
-                  timeout={500 + index * 150}
-                  key={section.id}
-                >
-                  <ListItem disablePadding>
-                    <ListItemButton
-                      onClick={() =>
-                        document.getElementById(section.id)?.scrollIntoView({
-                          behavior: 'smooth',
-                        })
-                      }
-                      selected={activeSection === section.id}
-                      sx={{
-                        transition: 'transform 0.3s, background-color 0.3s',
-                        '&:hover': {
-                          transform: 'scale(1.03)',
-                          backgroundColor: 'rgba(25, 118, 210, 0.1)',
-                        },
-                        borderRadius: 1,
-                        position: 'relative',
-                        ...(activeSection === section.id && {
-                          '&::before': {
-                            content: '""',
-                            position: 'absolute',
-                            left: -8,
-                            top: '50%',
-                            transform: 'translateY(-50%)',
-                            width: 4,
-                            height: '60%',
-                            bgcolor: 'primary.main',
-                            borderRadius: 2,
+              {sections.map((section, index) => {
+                const icons = [
+                  <PersonIcon />, <BusinessIcon />, <ContactPhoneIcon />, <LocalShippingIcon />, <SettingsIcon />,
+                  <DescriptionIcon />, <PaymentIcon />, <ImportExportIcon />, <PollIcon />, <PercentIcon />
+                ];
+                return (
+                  <Grow
+                    in={true}
+                    style={{ transformOrigin: '0 0 0' }}
+                    timeout={500 + index * 150}
+                    key={section.id}
+                  >
+                    <ListItem disablePadding>
+                      <ListItemButton
+                        onClick={() =>
+                          document.getElementById(section.id)?.scrollIntoView({
+                            behavior: 'smooth',
+                          })
+                        }
+                        selected={activeSection === section.id}
+                        sx={{
+                          transition: 'transform 0.3s, background-color 0.3s',
+                          '&:hover': {
+                            transform: 'scale(1.04)',
+                            backgroundColor: 'rgba(38,102,207,0.08)',
                           },
-                        }),
-                        '&.Mui-selected': {
-                          backgroundColor: 'primary.main',
-                          color: 'primary.contrastText',
-                        },
-                      }}
-                    >
-                      <ListItemText primary={section.label} />
-                    </ListItemButton>
-                  </ListItem>
-                </Grow>
-              ))}
+                          borderRadius: 2,
+                          position: 'relative',
+                          mb: 0.5,
+                          px: 2,
+                          py: 1.2,
+                          ...(activeSection === section.id && {
+                            backgroundColor: '#2666CF',
+                            color: '#fff',
+                            fontWeight: 700,
+                            boxShadow: '0 2px 8px rgba(38,102,207,0.10)',
+                          }),
+                        }}
+                      >
+                        <Box sx={{ minWidth: 28, mr: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          {icons[index]}
+                        </Box>
+                        <ListItemText primary={section.label} />
+                      </ListItemButton>
+                    </ListItem>
+                  </Grow>
+                );
+              })}
             </List>
           </Box>
         </Box>
@@ -682,20 +716,24 @@ const Profile: React.FC = () => {
         disabled={!unsavedChanges || loading}
         sx={{
           position: 'fixed',
-          bottom: 16,
-          right: 16,
+          bottom: 24,
+          right: 32,
           zIndex: 1500,
           background: 'linear-gradient(90deg, #2666CF, #6A82FB)',
           color: '#FFFFFF',
           fontWeight: 'bold',
-          '&:hover': {
-            background: 'linear-gradient(90deg, #6A82FB, #2666CF)',
-          },
-          borderRadius: 2,
-          px: 3,
-          py: 1.5,
+          fontSize: 18,
+          borderRadius: 3,
+          px: 4,
+          py: 2,
+          boxShadow: '0 4px 16px rgba(38,102,207,0.15)',
           textTransform: 'none',
           opacity: !unsavedChanges || loading ? 0.7 : 1,
+          transition: 'all 0.2s',
+          '&:hover': {
+            background: 'linear-gradient(90deg, #6A82FB, #2666CF)',
+            boxShadow: '0 6px 24px rgba(38,102,207,0.18)',
+          },
         }}
       >
         Guardar Cambios
