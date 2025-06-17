@@ -1,5 +1,7 @@
 import React from 'react';
 import { Card, Avatar, Typography, Button } from '@mui/material';
+import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
+import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 // import { useAuth } from '../context/AuthContext'; // Ya no será necesario si mostramos datos del form
 
 interface ProfileCardProps {
@@ -22,69 +24,75 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     <Card
       sx={{
         textAlign: 'center',
-        p: 3,
-        borderRadius: 2,
-        boxShadow: '0 3px 10px rgba(0,0,0,0.1)',
-        bgcolor: '#ffffff',
+        p: 4,
+        borderRadius: 4,
+        boxShadow: '0 6px 24px rgba(38,102,207,0.10)',
+        bgcolor: '#f8fafd',
         transition: '0.3s',
-        '&:hover': {
-          transform: 'translateY(-3px)',
-          boxShadow: '0 6px 15px rgba(0,0,0,0.15)',
-        },
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: 2,
       }}
     >
       <Avatar
         sx={{
           bgcolor: '#1A1A40',
-          width: 100,
-          height: 100,
-          fontSize: 50,
+          width: 120,
+          height: 120,
+          fontSize: 56,
           mx: 'auto',
           mb: 2,
+          border: '4px solid #2666CF',
+          boxShadow: '0 4px 16px rgba(38,102,207,0.15)',
         }}
       >
         {name?.charAt(0)?.toUpperCase() || 'NA'}
       </Avatar>
-
-      <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: '#1A1A40' }}>
+      <Typography variant="h5" sx={{ fontWeight: 700, mb: 1, color: '#1A1A40', letterSpacing: 0.5 }}>
         {name || 'Nombre no disponible'}
       </Typography>
-
-      <Typography variant="body2" sx={{ mb: 3, color: '#555' }}>
+      <Typography variant="body1" sx={{ mb: 2, color: '#555', fontSize: 16 }}>
         {email || 'Email no disponible'}
       </Typography>
-
       <Button
-        variant="outlined"
+        variant="contained"
+        startIcon={<PhotoCameraIcon />}
         fullWidth
         onClick={onChangePhoto}
         sx={{
-          mb: 2,
+          mb: 1.5,
           textTransform: 'none',
-          borderColor: '#2666CF',
-          color: '#2666CF',
+          background: 'linear-gradient(90deg, #2666CF, #6A82FB)',
+          color: '#fff',
+          fontWeight: 600,
+          borderRadius: 2,
+          boxShadow: '0 2px 8px rgba(38,102,207,0.10)',
           '&:hover': {
-            backgroundColor: 'rgba(38, 102, 207, 0.1)',
-            borderColor: '#6A82FB',
+            background: 'linear-gradient(90deg, #6A82FB, #2666CF)',
           },
         }}
       >
-        Cambiar Foto
+        Reemplazar foto
       </Button>
       <Button
-        variant="text"
+        variant="outlined"
+        startIcon={<DeleteForeverIcon />}
         fullWidth
         onClick={onDeleteAccount}
         sx={{
           textTransform: 'none',
           color: '#E53935',
+          borderColor: '#E53935',
           fontWeight: 'bold',
+          borderRadius: 2,
           '&:hover': {
-            backgroundColor: 'rgba(229,57,53,0.1)',
+            backgroundColor: 'rgba(229,57,53,0.08)',
+            borderColor: '#B71C1C',
           },
         }}
       >
-        Eliminar Cuenta
+        Eliminar cuenta
       </Button>
     </Card>
   );

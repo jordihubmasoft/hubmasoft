@@ -19,5 +19,8 @@ export interface Instalation {
     creationDate: string;
     active: boolean;
     updatingDate: string;
+    nombreGerente?: string;
+    telefonoGerente?: string;
+    emailGerente?: string;
   }
   
